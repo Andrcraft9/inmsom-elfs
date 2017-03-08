@@ -1,0 +1,10 @@
+!  interpolation weight functions for grid coordinates
+      real(8) longitude, latitude  
+      real(8) fnclon,fnclat
+      fnclon(longitude)=longitude
+!   bilinear interpolation
+!     fnclat(latitude) =latitude
+      real(8) dpi_180
+      parameter(dpi_180=3.1415926535897/180.0d00)
+!   harmonic interpolation
+      fnclat(latitude)=dlog((1d0+dsin(dpi_180*latitude)) / (1d0-dsin(dpi_180*latitude)))

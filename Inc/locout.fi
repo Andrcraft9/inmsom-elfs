@@ -1,0 +1,19 @@
+integer, parameter:: m1loc=mmm,     &                 !left  point number for local output
+                     m2loc=mm,      &                 !right point number for local output
+                     n1loc=nnn,     &                 !lower point number for local output
+                     n2loc=nn,      &                 !upper point number for local output
+                     nx_loc=m2loc-m1loc+1,      &     !local array dimension on X
+                     ny_loc=n2loc-n1loc+1             !local array dimension on Y
+
+integer, parameter:: uv_output=1,     &
+                     ww_output=1,     &
+                    ssh_output=1,     &
+                     tt_output=1,     &
+                     ss_output=1,     &
+                   wstr_output=0,     &
+                   wind_output=0,     &
+                    sfl_output=0,     &
+                   amuv_output=1,     &
+                   anzu_output=1
+
+integer, parameter:: grid_shift=1                     !0 - output velocity at model grid, 1 - interpolation to T-grid

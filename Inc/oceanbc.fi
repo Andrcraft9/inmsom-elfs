@@ -1,0 +1,37 @@
+integer, parameter :: numb_of_lqp_max=15000
+
+!conversion factors for data
+real(4), parameter:: confac_sst    = 1.0,  &    !For SST data (must convert to °C)
+                     confac_sss    = 1.0,  &    !For SSS data (must convert to PSU)
+                     confac_runoff = 1.0,  &    !For runoff data (must convert to kg/m^2/s)
+                     confac_tlbc   = 1.0,  &    !For TLBC data (must convert to °C)
+                     confac_slbc   = 1.0,  &    !For SLBC data (must convert to PSU)
+                     confac_ulbc   = 1.0,  &    !For UVLBC data (must convert to m/s)
+                     confac_hlbc   = 1.0        !For HLBC data (must convert to m)
+
+! type of BC data: 0 - monthly mean, 1 - real-time data  
+integer, parameter:: ftype_sst    = 0,  &    !For SST data
+                     ftype_sss    = 0,  &    !For SSS data
+                     ftype_runoff = 1,  &    !For runoff data
+                     ftype_tlbc   = 0,  &    !For TLBC data
+                     ftype_slbc   = 0,  &    !For SLBC data
+                     ftype_ulbc   = 0,  &    !For UVLBC data
+                     ftype_hlbc   = 0        !For HLBC data
+
+! time resolution of BC data in hours (significant for real-time data only)
+integer, parameter:: time_resolution_sst    = 724,  &    !For SST data
+                     time_resolution_sss    = 724,  &    !For SSS data
+                     time_resolution_runoff =  12,  &    !For runoff data
+                     time_resolution_tlbc   = 724,  &    !For TLBC data
+                     time_resolution_slbc   = 724,  &    !For SLBC data
+                     time_resolution_ulbc   = 724,  &    !For UVLBC data
+                     time_resolution_hlbc   = 724        !For HLBC data
+
+! index of data time period: 0 - data of climatic year, 1 - data of real year (path to data depends on current year) 
+integer, parameter:: ind_clim_sst    = 0,  &    !For SST data
+                     ind_clim_sss    = 0,  &    !For SSS data
+                     ind_clim_runoff = 1,  &    !For runoff data
+                     ind_clim_tlbc   = 0,  &    !For TLBC data
+                     ind_clim_slbc   = 0,  &    !For SLBC data
+                     ind_clim_ulbc   = 0,  &    !For UVLBC data
+                     ind_clim_hlbc   = 0        !For HLBC data

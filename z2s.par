@@ -1,0 +1,17 @@
+                                   !Path to data(input)
+imask.txt                          !File with temperature mask
+topo.dat                           !File with bottom data(input)
+salBS.dat                          !File with z-level data(input)
+cpss.dat                           !File with s-level data(output)
+1                                  !Horizontal grid: T/U/H=1/2/3
+1                                  !Vertical grid: T/W=1/2
+0                                  !1-st s-level is equal to 1-st z-level(1/0=yes/no)
+1                                  !number of 3D array
+36                                 !number of z-levels
+0.0000000       5.0000000       10.000000       16.000000       22.000000       28.000000       34.000000    
+40.000000       46.000000       52.000000       60.000000       68.000000       76.000000       84.000000    
+92.000000       100.00000       110.00000       120.00000       135.00000       150.00000       175.00000    
+200.00000       250.00000       300.00000       400.00000       500.00000       600.00000       750.00000    
+900.00000       1050.0000       1200.0000       1350.0000       1550.0000       1750.0000       1950.0000    
+2150.0000     
+-1.0e+32                           !Undefined value in input data

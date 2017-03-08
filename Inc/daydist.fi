@@ -1,0 +1,2 @@
+                                    !    type of calendar:                 
+integer, parameter:: yr_type=1      !0 - without leap-year, 1 - with leap-year

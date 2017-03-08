@@ -1,0 +1,17 @@
+!<<<<<<<< define diffusive and viskosity coefficients>>>>>
+!$omp parallel do private(m,n,k)
+      do n=ny_start-1,ny_end+1
+       do m=nx_start-1,nx_end+1
+         do k=1,nz
+          
+!        for temperature at T-grid
+         amts(m,n,k)=ldiff_ts
+!        for velocity at T-grid
+
+         amuv(m,n,k)=lvisc_2
+         amuv4(m,n,k)=dsqrt(lvisc_4/tau)*dx(m,n)*dy(m,n) 
+                  
+         end do
+       enddo
+      enddo
+!$omp end parallel do

@@ -1,0 +1,11 @@
+integer, parameter:: uv_output=1,     &
+                    ssh_output=1,     &
+                     tt_output=1,     &
+                     ss_output=1,     &
+                   wstr_output=1,     &
+                   wind_output=1,     &
+                    sfl_output=1,     &
+                   RHSt_output=0,     &
+                   RHSs_output=0
+
+integer, parameter:: grid_shift=1                     !0 - output velocity at model grid, 1 - interpolation to T-grid
