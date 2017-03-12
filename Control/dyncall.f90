@@ -508,10 +508,6 @@ subroutine shallow_water_model_step(tau,nstep)
 !----------- Set ssh at model time step (pgrx=pgry=ssh): -----------------------!
    ssh_i = pgrx
 
-!   print *, full_free_surface
-!   print *, time_smooth
-!   print *, "|-------------------------|"
-
    do n=ny_start,ny_end
       do m=nx_start,nx_end
           if(lu(m,n)>0.5) then

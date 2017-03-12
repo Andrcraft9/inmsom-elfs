@@ -48,7 +48,7 @@ implicit none
  !  forming mask for depth grid points
  !  forming luh from lu, which have land neibours in luh.
  ! constructing array luh for relief hh.
- 
+
  if (rank .eq. 0) then
     write(*,*) 'Construction of H-grid masks: '
     write(*,*) 'LUH (includes boundary) and LUU (does not include boundary)'
@@ -128,13 +128,6 @@ implicit none
   call cyclize_y(lcv,nx,ny,1,nnn,nn)
   call cyclize_y(llv,nx,ny,1,nnn,nn)
  endif
-
-!print *, 'lu: ',  lu(2, :)
-!print *, '----------------------------------------------------------------------'
-!print *, 'lcu: ', lcu(2, :)
-!print *, '----------------------------------------------------------------------'
-!print *, 'lcv: ', lcv(2, :)
-!print *, '----------------------------------------------------------------------'
 
 return
 99    write(*,*)'  error in reading file ',ftemask(1:len_trim(ftemask))

@@ -648,27 +648,5 @@ real*8 :: d2r
                    hhh_e, hhhp_e, hhhn_e,    &
                    ssh_e, sshp_e, hhq_rest)
 
-!--------------Rayleigh friction initialization
-!$omp parallel do private(m,n,k, hx2, hy2)
-!         do n=ny_start,ny_end
-!          do m=nx_start,nx_end
-!            if(lu(m,n)>0.5) then
-!              hx2= ( ((hhq_rest(m+1,n)-hhq_rest(m  ,n))/dxt(m  ,n))**2 * dble(lcu(m  ,n))    &
-!                    +((hhq_rest(m  ,n)-hhq_rest(m-1,n))/dxt(m-1,n))**2 * dble(lcu(m-1,n)) )/dble(lcu(m,n)+lcu(m-1,n))
-!              hy2= ( ((hhq_rest(m,n+1)-hhq_rest(m,n  ))/dyt(m,n  ))**2 * dble(lcv(m,n  ))    &
-!                    +((hhq_rest(m,n  )-hhq_rest(m,n-1))/dyt(m,n-1))**2 * dble(lcv(m,n-1)) )/dble(lcv(m,n)+lcv(m,n-1))
-!              r_diss(m,n)=r_fric*dsqrt(hx2+hy2)
-!            endif
-!          enddo
-!         enddo
-!$omp end parallel do
-
-!       if(periodicity_x/=0) then
-!        call cyclize8_x( r_diss, nx,ny,1,mmm,mm)
-!	   end if
-
-!       if(periodicity_y/=0) then
-!        call cyclize8_y( r_diss, nx,ny,1,nnn,nn)
-!	   end if
 
 endsubroutine sw_only_inicond
