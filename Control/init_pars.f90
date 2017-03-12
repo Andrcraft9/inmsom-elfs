@@ -115,13 +115,13 @@ close(90)
 !   hhq_rest=dble(array4)
     hhq_rest = 3000.0d0
 
-      if(periodicity_x/=0) then
+    if(periodicity_x/=0) then
         call cyclize8_x(hhq_rest,nx,ny,1,mmm,mm)
-      end if
+    end if
 
-      if(periodicity_y/=0) then
+    if(periodicity_y/=0) then
         call cyclize8_y(hhq_rest,nx,ny,1,nnn,nn)
-      end if
+    end if
 
 !Initializing lateral diffusion
 include 'latdiff.fi'
@@ -519,11 +519,12 @@ subroutine test_init
 
     integer :: m, n, i, procn, ierr
 
-
     ssh_i = rank
 
     ssh_err = rank
     call syncborder_real8(ssh_err)
+    call cyclize8_x(ssh_err, nx,ny,1,mmm,mm)
+!    call cyclize82d_x(ssh_err, mmm, mm)
 
 !----------------------- MPI output --------------------------------------------!
     call mpi_comm_size(cart_comm, procn, ierr)
@@ -565,9 +566,8 @@ real*8 :: d2r
 
       d2r= Pi / 180.0d0
 
-      a = 45.0d0
+      a = 0.0d0
       u0 = 2d0*Pi*RadEarth / (12.0d0*24*60*60)
-      print *, " u0 is :", u0
 
       ssh_i = 0.0d0
       sshp_i = 0.0d0
@@ -583,28 +583,34 @@ real*8 :: d2r
       vbrtrp_e = 0.d0
 
 !---------------------Test 2: --------------------------------------------------!
-      do n=ny_start, ny_end
-        do m=nx_start, nx_end
+       do n=ny_start, ny_end
+          do m=nx_start, nx_end
+              if (lcu(m, n) > 0.5) then
+                  ubrtr_e(m,n) = u0 * (dcos(d2r*geo_lat_u(m, n))*dcos(d2r*a)            &
+                      - dcos(d2r*geo_lon_u(m,n))*dsin(d2r*geo_lat_u(m,n))*dsin(d2r*a))
+              endif
 
-            ubrtr_e(m,n) = u0 * (dcos(d2r*geo_lat_u(m, n))*dcos(d2r*a)            &
-                + dcos(d2r*geo_lon_u(m,n))*dsin(d2r*geo_lat_u(m,n))*dsin(d2r*a))
+              if (lcv(m, n) > 0.5) then
+                  vbrtr_e(m,n) = u0 * dsin(d2r*geo_lon_v(m, n))*dsin(d2r*a)
+              endif
 
-            vbrtr_e(m,n) = -u0 * dsin(d2r*geo_lon_v(m, n))*dsin(d2r*a)
-
-            ssh_e(m,n) = -(1.0d0 / FreeFallAcc)                                 &
-              * (RadEarth*EarthAngVel*u0 + 0.5d0*u0*u0)                         &
-                * (( -dcos(d2r*geo_lon_t(m,n))*dcos(d2r*geo_lat_t(m,n))*dsin(d2r*a) &
-                  + dsin(d2r*geo_lat_t(m,n))*dcos(d2r*a) )**2)
-
-        enddo
+              if (lu(m ,n) > 0.5) then
+                  ssh_e(m,n) = -(1.0d0 / FreeFallAcc)                                 &
+                    * (RadEarth*EarthAngVel*u0 + 0.5d0*u0*u0)                         &
+                      * (( dcos(d2r*geo_lon_t(m,n))*dcos(d2r*geo_lat_t(m,n))*dsin(d2r*a) &
+                          + dsin(d2r*geo_lat_t(m,n))*dcos(d2r*a) )**2)
+              endif
+          enddo
       enddo
+
+      call syncborder_real8(ubrtr_e)
+      call syncborder_real8(vbrtr_e)
+      call syncborder_real8(ssh_e)
 
       ubrtrp_e = ubrtr_e
       vbrtrp_e = vbrtr_e
       sshp_e = ssh_e
-
       ssh_err = ssh_e
-
 
       if(periodicity_x/=0) then
           call cyclize8_x(ssh_e ,  nx,ny,1,mmm,mm)

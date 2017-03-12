@@ -41,6 +41,8 @@ integer m,n,k
  enddo
 !$omp end parallel do
 
+      call syncborder_real8(vort)
+
       if(periodicity_x/=0) then
        call cyclize8_x(vort,nx,ny,nlev,mmm,mm)
 	end if
@@ -487,6 +489,8 @@ do step=1,2*nstep
  enddo
 !$omp end parallel do
 
+ call syncborder_real8(sshn)
+
  if(periodicity_x/=0) then
    call cyclize8_x(sshn,nx,ny,1,mmm,mm)
  endif
@@ -558,6 +562,9 @@ do step=1,2*nstep
   enddo
  enddo
 !$omp end parallel do
+
+ call syncborder_real8(un)
+ call syncborder_real8(vn)
 
  if(periodicity_x/=0) then
    call cyclize8_x(  un,nx,ny,1,mmm,mm)

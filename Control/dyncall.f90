@@ -422,8 +422,9 @@ subroutine shallow_water_model_step(tau,nstep)
    use time_integration
 
    implicit none
-   integer m, n, k, nstep, mark
+   integer m, n, k, nstep, mark, ierr
    real(8) density, tau
+   real*8 :: w_time
 
 !--------------- Set constant pressuare ----------------------------------------!
 !   do n=ny_start,ny_end
@@ -441,6 +442,8 @@ subroutine shallow_water_model_step(tau,nstep)
 !        endif
 !    enddo
 !   enddo
+!   call syncborder_real8(RHSx2d)
+!   call syncborder_real8(RHSy2d)
 
    RHSx2d = 0.0d0
    RHSy2d = 0.0d0
@@ -471,6 +474,7 @@ subroutine shallow_water_model_step(tau,nstep)
 !    stop
 
 !---------------------- Shallow water equ solver -------------------------------!
+   call start_timer(w_time)
    call barotropic_dynamics(tau,     &
                           nstep,     &
                           ksw_lat4,  &
@@ -499,13 +503,14 @@ subroutine shallow_water_model_step(tau,nstep)
                   RHSy2d_tran_disp,  &
                   RHSx2d_diff_disp,  &
                   RHSy2d_diff_disp  )
-
+   call end_timer(w_time)
+   if (rank .eq. 0) print *, "SW time: ", w_time
 !----------- Set ssh at model time step (pgrx=pgry=ssh): -----------------------!
    ssh_i = pgrx
 
-   print *, full_free_surface
-   print *, time_smooth
-   print *, "|-------------------------|"
+!   print *, full_free_surface
+!   print *, time_smooth
+!   print *, "|-------------------------|"
 
    do n=ny_start,ny_end
       do m=nx_start,nx_end
@@ -513,9 +518,10 @@ subroutine shallow_water_model_step(tau,nstep)
               if(ssh_i(m,n)<10000.0d0.and.ssh_i(m,n)>-10000.0d0) then
                   continue
               else
-                  write(*,*) 'in the point m=',m,'n=',n,'ssh_i=',ssh_i(m,n)
-                  write(*,*) 'Time: ', time_step
+                  write(*,*) rank, 'in the point m=',m,'n=',n,'ssh_i=',ssh_i(m,n)
+                  write(*,*) rank, 'Time: ', time_step
                   stop
+                  call mpi_finalize(ierr)
               endif
           endif
       enddo

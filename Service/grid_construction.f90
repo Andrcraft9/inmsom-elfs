@@ -37,13 +37,6 @@ implicit none
 
       lu1=1.0
 
-!  forming mask for depth grid points
-!  forming luh from lu, which have land neibours in luh.
-! constructing array luh for relief hh.
-
-!print *, 'lu_noperiod: ',  lu(2, :)
-!print *, '----------------------------------------------------------------------'
-
  if(periodicity_x/=0) then
    call cyclize_x(lu,nx,ny,1,mmm,mm)
  endif
@@ -52,6 +45,10 @@ implicit none
    call cyclize_y(lu,nx,ny,1,nnn,nn)
  endif
 
+ !  forming mask for depth grid points
+ !  forming luh from lu, which have land neibours in luh.
+ ! constructing array luh for relief hh.
+ 
  if (rank .eq. 0) then
     write(*,*) 'Construction of H-grid masks: '
     write(*,*) 'LUH (includes boundary) and LUU (does not include boundary)'
@@ -71,6 +68,9 @@ implicit none
       endif
     enddo
  enddo
+
+ call syncborder_real(luh)
+ call syncborder_real(luu)
 
  if(periodicity_x/=0) then
    call cyclize_x(luh,nx,ny,1,mmm,mm)
@@ -108,10 +108,10 @@ implicit none
     enddo
  enddo
 
- !print *, 'lcu_noperiod: ', lcu(2, :)
- !print *, '----------------------------------------------------------------------'
- !print *, 'lcv_noperiod: ', lcv(2, :)
- !print *, '----------------------------------------------------------------------'
+ call syncborder_real(llu)
+ call syncborder_real(llv)
+ call syncborder_real(lcu)
+ call syncborder_real(lcv)
 
  if (periodicity_x/=0) then
   if (rank .eq. 0) write(*,*)'  set periodicity to u-grid mask(lcu,llu).'

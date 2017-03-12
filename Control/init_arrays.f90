@@ -26,23 +26,14 @@ subroutine mpi_array_boundary_definition
     integer :: ierr
     integer :: locn
 
-!    nx_start=mmm
-!    nx_end  =mm
-!    ny_start =nnn
-!    ny_end  =nn
-!    bnd_x1=nx_start-2
-!    bnd_x2=nx_end  +2
-!    bnd_y1=ny_start-2
-!    bnd_y2=ny_end  +2
-
     call mpi_init(ierr)
 
     period = (/1,1/)
     p_size = (/0,0/)
-    len_x1 = 2
-    len_x2 = 2
-    len_y1 = 2
-    len_y2 = 2
+    len_x1 = 1
+    len_x2 = 1
+    len_y1 = 1
+    len_y2 = 1
     ierr = 0
 
     call mpi_comm_rank(mpi_comm_world, rank, ierr)

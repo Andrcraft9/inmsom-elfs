@@ -168,26 +168,31 @@ if (rank .eq. 0) print *, "ALLOCATE OK"
 !Initializing ocean model parameters
 call ocean_model_parameters(time_step)
 if (rank .eq. 0) print *, "OCEAN INIT OK"
+
 !--------------------- SW ONLY INIT --------------------------------------------!
 
-!call sw_only_inicond
-!if (rank .eq. 0) print *, "SW INIT OK"
+call sw_only_inicond
+if (rank .eq. 0) print *, "SW INIT OK"
 
-call test_init
-if (rank .eq. 0) print *, "TEST INIT OK"
-call  parallel_local_output(path2ocp,  &
-                          1,  &
-                   year_loc,  &
-                    mon_loc,  &
-                    day_loc,  &
-                   hour_loc,  &
-                    min_loc,  &
-             loc_data_tstep,  &
-                    yr_type  )
+!call print_basin_grid
+!call mpi_finalize(ierr)
+!stop
 
-if (rank .eq. 0) print *, "OUTPUT OK"
-call mpi_finalize(ierr)
-stop
+!call test_init
+!if (rank .eq. 0) print *, "TEST INIT OK"
+!call  parallel_local_output(path2ocp,  &
+!                          1,  &
+!                   year_loc,  &
+!                    mon_loc,  &
+!                    day_loc,  &
+!                   hour_loc,  &
+!                    min_loc,  &
+!             loc_data_tstep,  &
+!                    yr_type  )
+!
+!if (rank .eq. 0) print *, "OUTPUT OK"
+!call mpi_finalize(ierr)
+!stop
 !-------------------------------------------------------------------------------!
 
 !Initializing open boundary parameters
@@ -207,9 +212,11 @@ stop
 !call build_intrp_mtrx(path2atmssdata,atmask)
 
 !-----------------------------------------------------------------------
-write(*,'(2x,5hstep:,f7.2,4hhrs;,f9.2,4hsec;,f9.5,4hday.)')     &
+if (rank .eq. 0) then
+    write(*,'(2x,5hstep:,f7.2,4hhrs;,f9.2,4hsec;,f9.5,4hday.)')     &
              time_step_h,   time_step,    time_step_d
-write(*,'(2x,15hduration of run:,f9.2,6h days.)') run_duration
+     write(*,'(2x,15hduration of run:,f9.2,6h days.)') run_duration
+endif
 
 key_time_print=1
 call model_time_def(   num_step,            &     !step counter,            input
@@ -235,9 +242,11 @@ call model_time_def(   num_step,            &     !step counter,            inpu
 
 num_step_max=int8(run_duration*nstep_per_day)
 
-write(*,*)'=================================================================='
-write(*,*)'------------------Starting model time integration-----------------'
-write(*,*)'=================================================================='
+if (rank .eq. 0) then
+    write(*,*)'=================================================================='
+    write(*,*)'------------------Starting model time integration-----------------'
+    write(*,*)'=================================================================='
+endif
 
 do while(num_step<num_step_max)
 ! atmospheric data time interpolation on atmospheric grid

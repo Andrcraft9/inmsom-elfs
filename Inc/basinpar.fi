@@ -1,8 +1,8 @@
 !Parameters of the ocean model
 
 real(8), parameter:: time_smooth=0.05d0
-integer, parameter:: nx=24,   &	 !number of total points in x-direction in base arrays
-                     ny=14,   &     !number of total points in y-direction in base arrays
+integer, parameter:: nx=148,   &	 !number of total points in x-direction in base arrays
+                     ny=94,   &     !number of total points in y-direction in base arrays
                      nz=1,    &     !number of s-levels in vertical direction for 3d arrays
                      mmm=3,    &     !begin of significant area in x-direction
                      nnn=3,    &     !begin of significant area in y-direction
@@ -10,12 +10,12 @@ integer, parameter:: nx=24,   &	 !number of total points in x-direction in base 
                    nn=ny-2,    &     !end of significant area in y-direction
           nx_glob=mm-mmm+1,    &     !Size of significant area in x-direction
           ny_glob=nn-nnn+1,    &     !Size of significant area in y-direction
-           periodicity_x=0,    &     !Periodicity on x-direction (0 - non-periodic, 1 - periodic)
+           periodicity_x=1,    &     !Periodicity on x-direction (0 - non-periodic, 1 - periodic)
            periodicity_y=0           !Periodicity on y-direction (0 - non-periodic, 1 - periodic)
 
- real(8), parameter:: rlon = 0.0d0,   &     !first calcutable t-point (m=mmm) on latitude  (in degrees) !-178.75d0
-                      rlat = 0.0d0,   &     !first calcutable t-point (n=nnn) on longitude (in degrees) !-89.00d0
-                      dxst = 4.0d0,     &     !longitude step (in degrees) in case of regular grid
+ real(8), parameter:: rlon = -178.75d0,   &     !first calcutable t-point (m=mmm) on latitude  (in degrees) !-178.75d0
+                      rlat = -89.00d0,   &     !first calcutable t-point (n=nnn) on longitude (in degrees) !-89.00d0
+                      dxst = 2.5d0,     &     !longitude step (in degrees) in case of regular grid
                       dyst = 2.0d0            !latitude  step (in degrees) in case of regular grid
 
  integer, parameter:: xgr_type=0,   &

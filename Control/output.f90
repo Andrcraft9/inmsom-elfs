@@ -64,7 +64,52 @@ integer m,n,k
 
 end subroutine
 
+subroutine print_basin_grid
+    use main_basin_pars
+    use mpi_parallel_tools
+    use basin_grid
+    use ocean_variables
+    use ocean_bc
 
+    implicit none
+
+    integer :: m, n, k, procn, ierr
+
+    call mpi_comm_size(cart_comm, procn, ierr)
+    do k = 0, procn-1
+        if (rank .eq. k) then
+            print *, "RANK IS ", rank
+            ! LU mask
+            print *, "|------------------------- LU MASK: --------------------------|"
+            print *, "m ", "n "
+            do m=bnd_x1, bnd_x2
+              do n=bnd_y1, bnd_y2
+                  print *, m, n, lu(m, n)
+              enddo
+            enddo
+
+            ! LCU mask
+            print *, "|------------------------- LCU MASK: --------------------------|"
+            print *, "m ", "n "
+            do m=bnd_x1, bnd_x2
+              do n=bnd_y1, bnd_y2
+                  print *, m, n, lcu(m, n)
+              enddo
+            enddo
+
+            ! LCV mask
+            print *, "|------------------------- LCV MASK: --------------------------|"
+            print *, "m ", "n "
+            do m=bnd_x1, bnd_x2
+              do n=bnd_y1, bnd_y2
+                  print *, m, n, lcv(m, n)
+              enddo
+            enddo
+        endif
+        call mpi_barrier(cart_comm, ierr)
+    enddo
+
+end subroutine print_basin_grid
 
 subroutine local_output(path2data,  &
                         nrec,       &

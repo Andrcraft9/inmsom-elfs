@@ -1,41 +1,144 @@
 !=====================================================
 subroutine cyclize_x(ff,nx,ny,nz,mmm,mm)
-implicit none
+    use mpi_parallel_tools
+    implicit none
 !---------------------------------------------------------------------
 ! adds periodically left (m=mmm-1) and right (m=mm+1) for cyclic lines
- integer nx, ny, nz
- integer mmm, mm, n, k
- real(4) ff(nx,ny,nz)
- 
-!$omp parallel do private(n,k)      
-  do n=1,ny
-   do k=1,nz
-      ff(mmm-1,n,k) = ff(mm ,n,k)
-      ff(mm +1,n,k) = ff(mmm,n,k)
-   enddo
-  enddo
-!$omp end parallel do      
+    integer :: nx, ny, nz
+    integer :: mmm, mm, n, k
+    real(4) :: ff(bnd_x1:bnd_x2,bnd_y1:bnd_y2,nz)
 
+    integer, dimension(2) :: p_dist
+    integer :: dist_rank
+    integer :: ierr
+    integer stat(MPI_status_size)
+
+    if (p_coord(1) .eq. 0) then
+!-------------- proc has mmm-1 area --------------------------------------------
+        p_dist(1) = p_size(1) - 1
+        p_dist(2) = p_coord(2)
+        call mpi_cart_rank(cart_comm, p_dist,dist_rank,ierr)
+
+        call mpi_sendrecv(ff(mmm, bnd_y1:bnd_y2, 1:nz),         &
+                          (bnd_y2 - bnd_y1 + 1)*nz,              &
+                          mpi_real4, dist_rank, 1,          &
+                          ff(mmm-1, bnd_y1:bnd_y2, 1:nz),       &
+                          (bnd_y2 - bnd_y1 + 1)*nz,              &
+                          mpi_real4, dist_rank, 1,          &
+                          cart_comm, stat, ierr)
+!                write(*,*)rank,p_coord,'0',ierr
+    endif
+
+    if (p_coord(1) .eq. (p_size(1) - 1)) then
+!-------------- proc has mm+1 area ---------------------------------------------
+        p_dist(1) = 0
+        p_dist(2) = p_coord(2)
+        call mpi_cart_rank(cart_comm, p_dist,dist_rank,ierr)
+
+        call mpi_sendrecv(ff(mm, bnd_y1:bnd_y2, 1:nz),          &
+                          (bnd_y2 - bnd_y1 + 1)*nz,              &
+                          mpi_real4, dist_rank, 1,          &
+                          ff(mm+1, bnd_y1:bnd_y2, 1:nz),        &
+                          (bnd_y2 - bnd_y1 + 1)*nz,              &
+                          mpi_real4, dist_rank, 1,          &
+                          cart_comm, stat, ierr)
+!                write(*,*)rank,p_coord,'size-1',ierr
+    endif
 endsubroutine cyclize_x
+
 !======================================================
 subroutine cyclize8_x(ff,nx,ny,nz,mmm,mm)
-implicit none
+    use mpi_parallel_tools
+    implicit none
 !---------------------------------------------------------------------
 ! adds periodically left (m=mmm-1) and right (m=mm+1) for cyclic lines
- integer nx, ny, nz
- integer mmm, mm, n, k
- real(8) ff(nx,ny,nz)
+    integer :: nx, ny, nz
+    integer :: mmm, mm, n, k
+    real(8) :: ff(bnd_x1:bnd_x2,bnd_y1:bnd_y2,nz)
 
-!$omp parallel do private(n,k)  
-  do n=1,ny
-    do k=1,nz
-     ff(mmm-1,n,k) = ff(mm ,n,k)
-     ff(mm +1,n,k) = ff(mmm,n,k)
-    enddo    
-  enddo
-!$omp end parallel do
+    integer, dimension(2) :: p_dist
+    integer :: dist_rank
+    integer :: ierr
+    integer stat(MPI_status_size)
 
+    if (p_coord(1) .eq. 0) then
+!-------------- proc has mmm-1 area --------------------------------------------
+        p_dist(1) = p_size(1) - 1
+        p_dist(2) = p_coord(2)
+        call mpi_cart_rank(cart_comm, p_dist,dist_rank,ierr)
+
+        call mpi_sendrecv(ff(mmm, bnd_y1:bnd_y2, 1:nz),         &
+                          (bnd_y2 - bnd_y1 + 1)*nz,              &
+                          mpi_real8, dist_rank, 1,          &
+                          ff(mmm-1, bnd_y1:bnd_y2, 1:nz),       &
+                          (bnd_y2 - bnd_y1 + 1)*nz,              &
+                          mpi_real8, dist_rank, 1,          &
+                          cart_comm, stat, ierr)
+!                write(*,*)rank,p_coord,'0',ierr
+    endif
+
+    if (p_coord(1) .eq. (p_size(1) - 1)) then
+!-------------- proc has mm+1 area ---------------------------------------------
+        p_dist(1) = 0
+        p_dist(2) = p_coord(2)
+        call mpi_cart_rank(cart_comm, p_dist,dist_rank,ierr)
+
+        call mpi_sendrecv(ff(mm, bnd_y1:bnd_y2, 1:nz),          &
+                          (bnd_y2 - bnd_y1 + 1)*nz,              &
+                          mpi_real8, dist_rank, 1,          &
+                          ff(mm+1, bnd_y1:bnd_y2, 1:nz),        &
+                          (bnd_y2 - bnd_y1 + 1)*nz,              &
+                          mpi_real8, dist_rank, 1,          &
+                          cart_comm, stat, ierr)
+!                write(*,*)rank,p_coord,'size-1',ierr
+    endif
 endsubroutine cyclize8_x
+
+subroutine cyclize82d_x(ff, mmm,mm)
+    use mpi_parallel_tools
+    implicit none
+!---------------------------------------------------------------------
+! adds periodically left (m=mmm-1) and right (m=mm+1) for cyclic lines
+    integer :: mmm, mm, n, k
+    real(8) :: ff(bnd_x1:bnd_x2, bnd_y1:bnd_y2)
+
+    integer, dimension(2) :: p_dist
+    integer :: dist_rank
+    integer :: ierr
+    integer stat(MPI_status_size)
+
+    if (p_coord(1) .eq. 0) then
+!-------------- proc has mmm-1 area --------------------------------------------
+        p_dist(1) = p_size(1) - 1
+        p_dist(2) = p_coord(2)
+        call mpi_cart_rank(cart_comm, p_dist,dist_rank,ierr)
+
+        call mpi_sendrecv(ff(mmm, bnd_y1:bnd_y2),         &
+                          (bnd_y2 - bnd_y1 + 1),              &
+                          mpi_real8, dist_rank, 1,          &
+                          ff(mmm-1, bnd_y1:bnd_y2),       &
+                          (bnd_y2 - bnd_y1 + 1),              &
+                          mpi_real8, dist_rank, 1,          &
+                          cart_comm, stat, ierr)
+                write(*,*) rank, p_coord, '0', mmm, ierr
+    endif
+
+    if (p_coord(1) .eq. (p_size(1) - 1)) then
+!-------------- proc has mm+1 area ---------------------------------------------
+        p_dist(1) = 0
+        p_dist(2) = p_coord(2)
+        call mpi_cart_rank(cart_comm, p_dist,dist_rank,ierr)
+
+        call mpi_sendrecv(ff(mm, bnd_y1:bnd_y2),          &
+                          (bnd_y2 - bnd_y1 + 1),              &
+                          mpi_real8, dist_rank, 1,          &
+                          ff(mm+1, bnd_y1:bnd_y2),        &
+                          (bnd_y2 - bnd_y1 + 1),              &
+                          mpi_real8, dist_rank, 1,          &
+                          cart_comm, stat, ierr)
+                write(*,*) rank, p_coord, 'size-1', mm, ierr
+    endif
+endsubroutine cyclize82d_x
 
 !=====================================================
 subroutine cyclize_y(ff,nx,ny,nz,nnn,nn)
@@ -45,15 +148,15 @@ implicit none
  integer nx, ny, nz
  integer nnn, nn, m, k
  real(4) ff(nx,ny,nz)
- 
-!$omp parallel do private(m,k)      
+
+!$omp parallel do private(m,k)
   do m=1,nx
    do k=1,nz
       ff(m,nnn-1,k) = ff(m,nn ,k)
       ff(m, nn+1,k) = ff(m,nnn,k)
    enddo
   enddo
-!$omp end parallel do      
+!$omp end parallel do
 
 endsubroutine cyclize_y
 
@@ -65,30 +168,32 @@ implicit none
  integer nx, ny, nz
  integer nnn, nn, m, k
  real(8) ff(nx,ny,nz)
- 
-!$omp parallel do private(m,k)      
+
+!$omp parallel do private(m,k)
   do m=1,nx
    do k=1,nz
       ff(m,nnn-1,k) = ff(m,nn ,k)
       ff(m, nn+1,k) = ff(m,nnn,k)
    enddo
   enddo
-!$omp end parallel do      
+!$omp end parallel do
 
 endsubroutine cyclize8_y
+
+
 
 !==========================================================================
 function density(t,s,p_pa)
 implicit none
 ! SEA WATER DENSITY DEVIATION FROM 1020 [kg/m**3]
-! AS FUNCTION OF T[°C](potential),S[PPT],P[Pa]
+! AS FUNCTION OF T[ï¿½C](potential),S[PPT],P[Pa]
 ! By Brydon et al.:"A new approximation of the equation of state for
 !                   seawater, suitable for numerical ocean models."
 ! In: J.Geophis.Res.,v.104,No.C1, p.1537-1540, 1999.
 ! Pressure profile is subtracted
        real(8)  t,s,p,p_pa,density, den_cgs
        real(8), parameter:: prestompa=1.0d-6
-       
+
 !-2<t<40;0<s<42;0<p<100.
 
       p=p_pa*prestompa
@@ -109,27 +214,27 @@ endfunction density
   implicit none
     real(8) dpip180           !for degrees to radians convers
     parameter(dpip180=3.1415926535897/180.0d0)
-    real(8) lon1,lat1,lon2,lat2 
+    real(8) lon1,lat1,lon2,lat2
     real(8) distance
     real(8) x1,y1,z1, x2,y2,z2
 
-    z1 = dsin(lat1*dpip180)            
+    z1 = dsin(lat1*dpip180)
     x1 = dcos(lat1*dpip180)*dcos(lon1*dpip180)
     y1 = dcos(lat1*dpip180)*dsin(lon1*dpip180)
-   
+
     z2 = dsin(lat2*dpip180)
     x2 = dcos(lat2*dpip180)*cos(lon2*dpip180)
     y2 = dcos(lat2*dpip180)*sin(lon2*dpip180)
 
     distance = dsqrt((z1-z2)**2+(x1-x2)**2+(y1-y2)**2)
-  
+
   end function distance
 
 !=============================================================================
 subroutine air_sea_turbulent_fluxes(wnd,        &   ! wind modulo, m/s
                                     slp,        &   ! sea level pressure, Pa
-                                    tair,       &   ! air temperature,  °C
-                                    tsea,       &   ! sea surface temp, °C
+                                    tair,       &   ! air temperature,  ï¿½C
+                                    tsea,       &   ! sea surface temp, ï¿½C
                                     qair,       &   ! air specific humidity, kg/kg
                                     u_hgt,      &   ! height of wind datasets, m
                                     t_hgt,      &   ! height of tair datasets, m
@@ -141,11 +246,11 @@ subroutine air_sea_turbulent_fluxes(wnd,        &   ! wind modulo, m/s
                                     ty          )   ! meridional wind stress, Pa
 implicit none
   real(8), parameter :: grav    = 9.80d0     !m/s^2 Gravity acceleration
-  real(8), parameter :: vonkarm = 0.40d0     !      Von Karman constant         
+  real(8), parameter :: vonkarm = 0.40d0     !      Von Karman constant
   real(8), parameter :: rgas    = 287.04d0   !J/kg/K Gas constant
   real(8), parameter :: cp_air  = 1000.5d0   !J/kg/K Air heat capacity
   real(8), parameter :: lambda_v= 2.5d6      !J/kg   Heat of evaporation
- 
+
   real(8) wnd, slp, tair, tsea, qair, u_hgt, t_hgt, q_hgt       !input data
   real(8) sens_heat, evap_rate, lat_heat, tx, ty                !output data
 
@@ -158,9 +263,9 @@ implicit none
 
   real(8) rho_a, tv, qsat
   real(8) u, u10, t_zu, q_zu, tstar, qstar, z0, xx, stab
-  real(8) cd, ch, ce, ustar, bstar   
+  real(8) cd, ch, ce, ustar, bstar
   real(8) cd_n10, ce_n10, ch_n10, cd_n10_rt   ! neutral 10m drag coefficients
-  real(8) cd_rt                               
+  real(8) cd_rt
   real(8) zeta_u, zeta_t, zeta_q, x2, x,  &
               psi_m_u, psi_m_t, psi_m_q,  &
               psi_h_u, psi_h_t, psi_h_q       ! stability parameters
@@ -179,7 +284,7 @@ implicit none
                                         *cd_n10_rt/1d3        ! L-Y eqn. 6c
 
 ! first guess for exchange coeff's at z
-      cd    = cd_n10                                          
+      cd    = cd_n10
       ch    = ch_n10
       ce    = ce_n10
 
@@ -194,7 +299,7 @@ implicit none
         ustar = cd_rt*u                                    ! L-Y eqn. 7a
         tstar = (ch/cd_rt)*(t_zu-tsea)                     ! L-Y eqn. 7b
         qstar = (ce/cd_rt)*(q_zu-qsat)                     ! L-Y eqn. 7c
-        bstar    = grav*(tstar/tv+qstar/(q_zu+1.0d0/0.608d0))       
+        bstar    = grav*(tstar/tv+qstar/(q_zu+1.0d0/0.608d0))
 
 ! stability for U-height
         zeta_u   = vonkarm*bstar*u_hgt/(ustar*ustar)            ! L-Y eqn. 8a
@@ -202,7 +307,7 @@ implicit none
         x2 = dsqrt(dabs(1.0d0-16.0d0*zeta_u))                 ! L-Y eqn. 8b
         x2 = max(x2, 1.0d0)                                   ! undocumented NCAR
         x = dsqrt(x2);
-    
+
         if (zeta_u > 0.0d0) then
           psi_m_u = -5.0d0*zeta_u                             ! L-Y eqn. 8c
           psi_h_u = -5.0d0*zeta_u                             ! L-Y eqn. 8c
@@ -211,14 +316,14 @@ implicit none
                             -2.0d0*(datan(x)-datan(1.0d0))    ! L-Y eqn. 8d
           psi_h_u = 2.0d0*dlog((1.0d0+x2)/2.0d0)              ! L-Y eqn. 8e
         end if
- 
+
  ! stability for T-height
         zeta_t   = vonkarm*bstar*t_hgt/(ustar*ustar)          ! L-Y eqn. 8a
         zeta_t   = dsign(min(dabs(zeta_t),10.0d0), zeta_t )   ! undocumented NCAR
         x2 = dsqrt(dabs(1.0d0-16.0d0*zeta_t))                 ! L-Y eqn. 8b
         x2 = max(x2, 1.0d0)                                   ! undocumented NCAR
         x = dsqrt(x2);
-    
+
         if (zeta_t > 0.0d0) then
           psi_m_t = -5.0d0*zeta_t                             ! L-Y eqn. 8c
           psi_h_t = -5.0d0*zeta_t                             ! L-Y eqn. 8c
@@ -234,7 +339,7 @@ implicit none
         x2 = dsqrt(dabs(1.0d0-16.0d0*zeta_q))                 ! L-Y eqn. 8b
         x2 = max(x2, 1.0d0)                                   ! undocumented NCAR
         x = dsqrt(x2);
-    
+
         if (zeta_q > 0.0d0) then
           psi_m_q = -5.0d0*zeta_q                             ! L-Y eqn. 8c
           psi_h_q = -5.0d0*zeta_q                             ! L-Y eqn. 8c
@@ -243,28 +348,28 @@ implicit none
                             -2.0d0*(datan(x)-datan(1.0d0))    ! L-Y eqn. 8d
           psi_h_q = 2.0d0*dlog((1.0d0+x2)/2.0d0)              ! L-Y eqn. 8e
         end if
-      
+
         u10 = u/(1.0d0+cd_n10_rt*(dlog(u_hgt/10.0d0)-psi_m_u)/vonkarm) ! L-Y eqn. 9
         t_zu= tair  - tstar/vonkarm*(dlog(t_hgt/u_hgt) +psi_h_u - psi_h_t )
-        q_zu= qair  - qstar/vonkarm*(dlog(q_hgt/u_hgt) +psi_h_u - psi_h_q )      
+        q_zu= qair  - qstar/vonkarm*(dlog(q_hgt/u_hgt) +psi_h_u - psi_h_q )
 
         cd_n10 = (2.7d0/u10+0.142d0+0.0764d0*u10)/1d3               ! L-Y eqn. 6a again
-        cd_n10_rt = dsqrt(cd_n10) 
+        cd_n10_rt = dsqrt(cd_n10)
         ce_n10 = 34.6d0*cd_n10_rt/1d3                               ! L-Y eqn. 6b again
         stab = 0.5d0 + dsign(0.5d0,zeta_t)
-        ch_n10 = (18.0d0*stab+32.7d0*(1.0d0-stab))*cd_n10_rt/1d3    ! L-Y eqn. 6c again      
+        ch_n10 = (18.0d0*stab+32.7d0*(1.0d0-stab))*cd_n10_rt/1d3    ! L-Y eqn. 6c again
 
-        xx = (dlog(u_hgt/10.0d0)-psi_m_u)/vonkarm 
+        xx = (dlog(u_hgt/10.0d0)-psi_m_u)/vonkarm
         cd = cd_n10/(1.0d0+cd_n10_rt*xx)**2                        ! L-Y 10a
 
-        xx = (dlog(u_hgt/10.0d0)-psi_h_u)/vonkarm 
+        xx = (dlog(u_hgt/10.0d0)-psi_h_u)/vonkarm
         ch = ch_n10/(1.0d0+ch_n10*xx/cd_n10_rt)*dsqrt(cd/cd_n10) ! 10b (corrected code aug2007)
         ce = ce_n10/(1.0d0+ce_n10*xx/cd_n10_rt)*dsqrt(cd/cd_n10) ! 10c (corrected code aug2007)
 
         tv= (t_zu+273.15d0)*(1.0d0+0.608d0*q_zu)
         rho_a=slp/(rgas*tv)
         qsat=q1*dexp(q2/(tsea+273.15d0))/rho_a
-      
+
       end do
 !    endif
 
@@ -279,8 +384,8 @@ endsubroutine air_sea_turbulent_fluxes
 !=============================================================================
 subroutine air_ice_turbulent_fluxes(wnd,        &   ! wind modulo, m/s
                                     slp,        &   ! sea level pressure, Pa
-                                    tair,       &   ! air temperature,  °C
-                                    tsrf,       &   ! ice-snow surface temp, °C
+                                    tair,       &   ! air temperature,  ï¿½C
+                                    tsrf,       &   ! ice-snow surface temp, ï¿½C
                                     qair,       &   ! air specific humidity, kg/kg
                                     u_hgt,      &   ! height of wind datasets, m
                                     t_hgt,      &   ! height of tair datasets, m
@@ -292,11 +397,11 @@ subroutine air_ice_turbulent_fluxes(wnd,        &   ! wind modulo, m/s
                                     ty          )   ! meridional wind stress, Pa
 implicit none
   real(8), parameter :: grav    = 9.80d0     !m/s^2 Gravity acceleration
-  real(8), parameter :: vonkarm = 0.40d0     !      Von Karman constant   
+  real(8), parameter :: vonkarm = 0.40d0     !      Von Karman constant
   real(8), parameter :: rgas    = 287.04d0   !J/kg/K Gas constant
   real(8), parameter :: cp_air  = 1000.5d0   !J/kg/K Air heat capacity
   real(8), parameter :: lambda_s= 2.839d6    !J/kg   Heat of sublimation
- 
+
   real(8) wnd, slp, tair, tsrf, qair, u_hgt, t_hgt, q_hgt    !input data
   real(8) sens_heat, evap_rate, lat_heat, tx, ty             !output data
 
@@ -309,9 +414,9 @@ implicit none
 
   real(8) rho_a, tv, qsat
   real(8) u, u10, t_zu, q_zu, tstar, qstar, z0, xx, stab
-  real(8) cd, ch, ce, ustar, bstar   
+  real(8) cd, ch, ce, ustar, bstar
   real(8) cd_n10, ce_n10, ch_n10, cd_n10_rt   ! neutral 10m drag coefficients
-  real(8) cd_rt                               
+  real(8) cd_rt
   real(8) zeta_u, zeta_t, zeta_q, x2, x,  &
               psi_m_u, psi_m_t, psi_m_q,  &
               psi_h_u, psi_h_t, psi_h_q       ! stability parameters
@@ -327,7 +432,7 @@ implicit none
       ch_n10 = 1.63d-3
 
 ! first guess for exchange coeff's at z
-      cd    = cd_n10                                          
+      cd    = cd_n10
       ch    = ch_n10
       ce    = ce_n10
 
@@ -342,7 +447,7 @@ implicit none
         ustar = cd_rt*u                                    ! L-Y eqn. 7a
         tstar = (ch/cd_rt)*(t_zu-tsrf)                     ! L-Y eqn. 7b
         qstar = (ce/cd_rt)*(q_zu-qsat)                     ! L-Y eqn. 7c
-        bstar    = grav*(tstar/tv+qstar/(q_zu+1.0d0/0.608d0))       
+        bstar    = grav*(tstar/tv+qstar/(q_zu+1.0d0/0.608d0))
 
 ! stability for U-height
         zeta_u   = vonkarm*bstar*u_hgt/(ustar*ustar)            ! L-Y eqn. 8a
@@ -350,7 +455,7 @@ implicit none
         x2 = dsqrt(dabs(1.0d0-16.0d0*zeta_u))                 ! L-Y eqn. 8b
         x2 = max(x2, 1.0d0)                                   ! undocumented NCAR
         x = dsqrt(x2);
-    
+
         if (zeta_u > 0.0d0) then
           psi_m_u = -5.0d0*zeta_u                             ! L-Y eqn. 8c
           psi_h_u = -5.0d0*zeta_u                             ! L-Y eqn. 8c
@@ -359,14 +464,14 @@ implicit none
                             -2.0d0*(datan(x)-datan(1.0d0))    ! L-Y eqn. 8d
           psi_h_u = 2.0d0*dlog((1.0d0+x2)/2.0d0)              ! L-Y eqn. 8e
         end if
- 
+
  ! stability for T-height
         zeta_t   = vonkarm*bstar*t_hgt/(ustar*ustar)          ! L-Y eqn. 8a
         zeta_t   = dsign(min(dabs(zeta_t),10.0d0), zeta_t )   ! undocumented NCAR
         x2 = dsqrt(dabs(1.0d0-16.0d0*zeta_t))                 ! L-Y eqn. 8b
         x2 = max(x2, 1.0d0)                                   ! undocumented NCAR
         x = dsqrt(x2);
-    
+
         if (zeta_t > 0.0d0) then
           psi_m_t = -5.0d0*zeta_t                             ! L-Y eqn. 8c
           psi_h_t = -5.0d0*zeta_t                             ! L-Y eqn. 8c
@@ -382,7 +487,7 @@ implicit none
         x2 = dsqrt(dabs(1.0d0-16.0d0*zeta_q))                 ! L-Y eqn. 8b
         x2 = max(x2, 1.0d0)                                   ! undocumented NCAR
         x = dsqrt(x2);
-    
+
         if (zeta_q > 0.0d0) then
           psi_m_q = -5.0d0*zeta_q                             ! L-Y eqn. 8c
           psi_h_q = -5.0d0*zeta_q                             ! L-Y eqn. 8c
@@ -391,28 +496,28 @@ implicit none
                             -2.0d0*(datan(x)-datan(1.0d0))    ! L-Y eqn. 8d
           psi_h_q = 2.0d0*dlog((1.0d0+x2)/2.0d0)              ! L-Y eqn. 8e
         end if
-      
+
         u10 = u/(1.0d0+cd_n10_rt*(dlog(u_hgt/10.0d0)-psi_m_u)/vonkarm) ! L-Y eqn. 9
         t_zu= tair  - tstar/vonkarm*(dlog(t_hgt/u_hgt) +psi_h_u - psi_h_t )
-        q_zu= qair  - qstar/vonkarm*(dlog(q_hgt/u_hgt) +psi_h_u - psi_h_q )      
+        q_zu= qair  - qstar/vonkarm*(dlog(q_hgt/u_hgt) +psi_h_u - psi_h_q )
 
 !        cd_n10 = (2.7d0/u10+0.142d0+0.0764d0*u10)/1d3               ! L-Y eqn. 6a again
-!        cd_n10_rt = dsqrt(cd_n10) 
+!        cd_n10_rt = dsqrt(cd_n10)
 !        ce_n10 = 34.6d0*cd_n10_rt/1d3                               ! L-Y eqn. 6b again
 !        stab = 0.5d0 + dsign(0.5d0,zeta_t)
-!        ch_n10 = (18.0d0*stab+32.7d0*(1.0d0-stab))*cd_n10_rt/1d3    ! L-Y eqn. 6c again      
+!        ch_n10 = (18.0d0*stab+32.7d0*(1.0d0-stab))*cd_n10_rt/1d3    ! L-Y eqn. 6c again
 
-        xx = (dlog(u_hgt/10.0d0)-psi_m_u)/vonkarm 
+        xx = (dlog(u_hgt/10.0d0)-psi_m_u)/vonkarm
         cd = cd_n10/(1.0d0+cd_n10_rt*xx)**2                        ! L-Y 10a
 
-        xx = (dlog(u_hgt/10.0d0)-psi_h_u)/vonkarm 
+        xx = (dlog(u_hgt/10.0d0)-psi_h_u)/vonkarm
         ch = ch_n10/(1.0d0+ch_n10*xx/cd_n10_rt)*dsqrt(cd/cd_n10) ! 10b (corrected code aug2007)
         ce = ce_n10/(1.0d0+ce_n10*xx/cd_n10_rt)*dsqrt(cd/cd_n10) ! 10c (corrected code aug2007)
 
         tv= (t_zu+273.15d0)*(1.0d0+0.608d0*q_zu)
         rho_a=slp/(rgas*tv)
         qsat=q1*dexp(q2/(tsrf+273.15d0))/rho_a
-      
+
       end do
 !    endif
 
@@ -461,7 +566,7 @@ implicit none
       do j1=jj1,ii,-1
        rksi(j1) = x(j1) * rksi(j1+1) + y(j1)
       end do
-      
+
       deallocate(y, x)
 
 endsubroutine factor8
@@ -500,14 +605,14 @@ integer i,j,k,kdeep,kups,nocegrid,lev1,ierr, kr
   over5=abs(over)-abs(over)/20.0
   ierr=0
   write(*,*)' interpolation from z-levels to s-levels'
-      
+
   if(nz>150) then
      write(*,*)' error in routine z2s:'
      write(*,*)' number of s-levels is greater than 150'
      ierr=1
      return
   endif
-  
+
   if(nlvl>150) then
      write(*,*)' error in routine z2s:'
      write(*,*)' number of z-levels is greater than 150'
@@ -517,19 +622,19 @@ integer i,j,k,kdeep,kups,nocegrid,lev1,ierr, kr
 
 !  interpolation
   nocegrid=0
-  
+
   do j=1,ny
    do i=1,nx
     if(msk(i,j)>0.5) then
       nocegrid=nocegrid+1
       deep=hhq(i,j)
-      
+
       do k=1,nz
          zs(k)=zsigma(k)*deep
       end do
-     
+
       fz(1)=f1(i,j,1)
-      
+
       if(abs(fz(1))>over5) then
          write(*,*)' error in routine z2s:'
          write(*,'(a,2i4,a)') ' in point ',i,j,' input value of upper level is undefined!'
@@ -539,7 +644,7 @@ integer i,j,k,kdeep,kups,nocegrid,lev1,ierr, kr
 
 !--------- making profile without bottom-------------
       ierr=0
-      
+
       do k=2,nlvl
        fz(k)=f1(i,j,k)
        if(abs(fz(k))>over5) then
@@ -552,25 +657,25 @@ integer i,j,k,kdeep,kups,nocegrid,lev1,ierr, kr
         write(*,*)' warning in routine z2s:'
         write(*,1000) i,j,deep,zlvl(1)
       end if
-      
+
       ierr=0
 
 !  searching number of upper sigma level
       kups=1
- 
+
        do while(zs(kups)<zlvl(1).and.kups<nz)
         kups=kups+1
        end do
- 
+
       kups=kups-1
- 
+
       if(kups>=1) then
 
 !   for upper sigma levels of f2
          do k=1,kups
            f2(i,j,k)=f1(i,j,1)
          enddo
-    
+
       else
          if (lev1/=0) then
           f2(i,j,1)=f1(i,j,1)
@@ -581,11 +686,11 @@ integer i,j,k,kdeep,kups,nocegrid,lev1,ierr, kr
 
 ! searching the deepest z level
       kdeep=1
-      
+
       do while(zlvl(kdeep)<deep.and.kdeep<nlvl)
        kdeep=kdeep+1
       end do
-      
+
       kr=1
       fz1=fz(1)
       fz2=fz1
@@ -593,9 +698,9 @@ integer i,j,k,kdeep,kups,nocegrid,lev1,ierr, kr
       z2=zlvl(1)
 
       do k=kups+1,nz
-       
+
        ds=zs(k)
-       
+
        do while((ds<=z1.or.ds>z2).and.kr<kdeep)
           kr=kr+1
           fz1=fz2
@@ -603,7 +708,7 @@ integer i,j,k,kdeep,kups,nocegrid,lev1,ierr, kr
           fz2=fz(kr)
           z2=zlvl(kr)
        end do
-       
+
        if(ds>=zlvl(kdeep)) then
          f2(i,j,k)=fz(kdeep)
        else
@@ -629,14 +734,14 @@ endsubroutine z2s
 function pot_temp(tem,sal,pres)
 implicit none
 
-! potential temperature = function of T[°C], S[PSU], p[bar]
+! potential temperature = function of T[ï¿½C], S[PSU], p[bar]
 ! s - salinity deviation from 35ppt
 
 real(8) tem, sal, pres
 real(8) t,s,p, pot_temp
 
 t=tem
-s=sal-35.0d0 
+s=sal-35.0d0
 p=pres
 
 pot_temp = t - p*(3.6504d-04       + 8.3198d-05*t - 5.4065d-07*t*t     &
@@ -648,7 +753,7 @@ endfunction pot_temp
 
 !==========density for potential temperature computing=========================================
 function denz(tem,sal,pres)
-! tem - temperature [°C]
+! tem - temperature [ï¿½C]
 ! sal - salinity [PSU]
 ! pres - pressure[bars]
 ! denz - density [kg/m**3]
@@ -679,7 +784,7 @@ real(8), parameter:: pr10= 3.239908d0,   pr11= 1.437130d-03, pr12= 1.160920d-04,
                      pr22=-1.607800d-06, pr30=-9.934800d-07, pr31= 2.081600d-08,      &
                      pr32= 9.169700d-10, pr40= 1.910750d-04
 
-! sea water density(+-0.00005kg/m**3)=function of T(°C),S(PSU)& Z(m)
+! sea water density(+-0.00005kg/m**3)=function of T(ï¿½C),S(PSU)& Z(m)
 real(8) t,s,pressure, rho, ppym, ss
 real(8) tem, sal, pres, denz, den_cgs
 
@@ -706,7 +811,7 @@ rho =     fw0+ fw1*t + fw2*t**2  + fw3*t**3  + fw4*t**4 + fw5*t**5      &
   else
    den_cgs=rho-rh0                 ![gr/cm**3]
  endif
-   
+
    denz=den_cgs*1000.0d0 !output density is in kg/m^3
 
  endfunction denz
@@ -717,7 +822,7 @@ implicit none
 
 real(8) t, s, dens, tem, sal, den_cgs
 !c unesco81 formula for surface density deviation from 1.020[g/cm**3]
-!as function of T[°C], S[PSU]
+!as function of T[ï¿½C], S[PSU]
 
 t=tem
 s=max(sal, 0.0d0)
@@ -749,11 +854,11 @@ implicit none
 ! lu  - t-grid mask
 ! nx,ny,nz - dimension on longitude, latitude, depth
  real(4) tt(nx,ny,nz),  ss(nx,ny,nz),     &
-        den(nx,ny,nz), tth(nx,ny,nz) 
+        den(nx,ny,nz), tth(nx,ny,nz)
  integer m,n,k
  real(8) dens, denz, pot_temp
  real(8) p_in_bar, d, tem, sal, tpot, den_surf
- 
+
 ! define initial density
 do n=nnn,nn
   do m=mmm,mm
@@ -771,27 +876,27 @@ do n=nnn,nn
         tth(m,n,k)=sngl(tpot)
         den(m,n,k )=sngl(den_surf)
        end do
-       
+
        tem=dble(tt(m,n,nz))
        sal=dble(ss(m,n,nz))
        tpot= pot_temp (tem,sal,p_in_bar)
        den_surf=dens(tpot,sal)
         tth(m,n,nz)=sngl(tpot)
-        den(m,n,nz)=sngl(den_surf)        
+        den(m,n,nz)=sngl(den_surf)
      end if
    end do
  end do
 
   write(*,*)' Control tests:'
   write(*,*)' 1) testing of formula for potential temperature:'
-  write(*,*)'    theta(T=10°C, S=25 PSU, P=1000) = ', pot_temp(10.d0,25.0d0,1000.d0)
+  write(*,*)'    theta(T=10ï¿½C, S=25 PSU, P=1000) = ', pot_temp(10.d0,25.0d0,1000.d0)
   write(*,*)'                    control number =        8,4678516'
   write(*,*)' 2) testing of formula for density (unesco81):'
-  write(*,*)'    rho(S=0 PSU, T=5°C) = ', dens(5.0d0, 0.0d0)+RefDen
-  write(*,*)'    rho(S=0 PSU, T=5°C, P=0) = ', denz(5.0d0, 0.0d0,0.0d0)+RefDen
+  write(*,*)'    rho(S=0 PSU, T=5ï¿½C) = ', dens(5.0d0, 0.0d0)+RefDen
+  write(*,*)'    rho(S=0 PSU, T=5ï¿½C, P=0) = ', denz(5.0d0, 0.0d0,0.0d0)+RefDen
   write(*,*)'           control number =      999,96675'
-  write(*,*)'    rho(S=35 PSU, T=5°C)     = ', dens(5.0d0, 35.0d0)+RefDen
-  write(*,*)'    rho(S=35 PSU, T=5°C, P=0) = ',denz(5.0d0, 35.0d0, 0.0d0)+RefDen
+  write(*,*)'    rho(S=35 PSU, T=5ï¿½C)     = ', dens(5.0d0, 35.0d0)+RefDen
+  write(*,*)'    rho(S=35 PSU, T=5ï¿½C, P=0) = ',denz(5.0d0, 35.0d0, 0.0d0)+RefDen
   write(*,*)'           control number =     1027,67547'
   return
 endsubroutine t2th
