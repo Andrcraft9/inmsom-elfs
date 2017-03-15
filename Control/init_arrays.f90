@@ -3,12 +3,12 @@ subroutine non_mpi_array_boundary_definition
  use main_basin_pars
  use mpi_parallel_tools
  implicit none
-
+ 
        nx_start=mmm
        nx_end  =mm
        ny_start =nnn
        ny_end  =nn
-
+ 
        bnd_x1=nx_start-2
        bnd_x2=nx_end  +2
        bnd_y1=ny_start-2
@@ -16,76 +16,6 @@ subroutine non_mpi_array_boundary_definition
 
 endsubroutine non_mpi_array_boundary_definition
 !end of array boundary definition for non-mpi arrays
-
-!----------------------array boundary definition for mpi arrays
-subroutine mpi_array_boundary_definition
-    use main_basin_pars
-    use mpi_parallel_tools
-    implicit none
-
-    integer :: ierr
-    integer :: locn
-
-!    nx_start=mmm
-!    nx_end  =mm
-!    ny_start =nnn
-!    ny_end  =nn
-!    bnd_x1=nx_start-2
-!    bnd_x2=nx_end  +2
-!    bnd_y1=ny_start-2
-!    bnd_y2=ny_end  +2
-
-    call mpi_init(ierr)
-
-    period = (/1,1/)
-    p_size = (/0,0/)
-    len_x1 = 2
-    len_x2 = 2
-    len_y1 = 2
-    len_y2 = 2
-    ierr = 0
-
-    call mpi_comm_rank(mpi_comm_world, rank, ierr)
-    call mpi_comm_size(mpi_comm_world, procs, ierr)
-    call mpi_dims_create(procs, 2, p_size, ierr)
-    call mpi_cart_create(mpi_comm_world, 2, p_size, period, 0, cart_comm, ierr)
-    call mpi_cart_coords(cart_comm, rank, 2, p_coord, ierr)
-
-!-----------------------------------NX------------------------------------------!
-    locn = floor(real(nx - 4)/real(p_size(1)))
-    nx_start = locn*p_coord(1) + 1 + 2
-    if ( p_coord(1) .EQ. p_size(1) - 1 ) then
-        locn = (nx - 2) - nx_start + 1
-    endif
-    nx_end = nx_start + locn - 1
-    nx_start = nx_start
-!   border area
-    bnd_x1 = nx_start - len_x1
-!    if (bnd_x1 < 1) bnd_x1 = 1
-    bnd_x2 = nx_end + len_x2
-!    if (bnd_x2 > nx) bnd_x2 = nx
-
-!-----------------------------------NY------------------------------------------!
-    locn = floor(real(ny - 4)/real(p_size(2)))
-    ny_start = locn*p_coord(2) + 1 + 2
-    if ( p_coord(2) .EQ. p_size(2) - 1 ) then
-        locn = (ny - 2) - ny_start + 1
-    endif
-    ny_end = ny_start + locn - 1
-    ny_start = ny_start
-!   border area
-    bnd_y1 = ny_start - len_y1
-!    if (bnd_y1 < 1) bnd_y1 = 1
-    bnd_y2 = ny_end + len_y2
-!    if (bnd_y2 > ny) bnd_y2 = ny
-
-    print *, "nx ", rank, p_coord, nx_start, nx_end, ny_start, ny_end
-    print *, "bnd", rank, p_coord, bnd_x1, bnd_x2, bnd_y1, bnd_y2
-
-!    call MPI_FINALIZE(ierr)
-!    stop
-
-endsubroutine mpi_array_boundary_definition
 
 !-----------------------------------------allocation of arrays
    subroutine model_grid_allocate
@@ -126,7 +56,7 @@ endsubroutine mpi_array_boundary_definition
              dxb(bnd_x1:bnd_x2,bnd_y1:bnd_y2),dyb(bnd_x1:bnd_x2,bnd_y1:bnd_y2),      &  !horizontal grid steps between v,u-points (in radians or meters)
                    xt(bnd_x1:bnd_x2),yt(bnd_y1:bnd_y2),        &  !horizontal t-grid            x- and y-coordinates (in degrees)
                    xu(bnd_x1:bnd_x2),yv(bnd_y1:bnd_y2)    )       !horizontal u-grid and v-grid x- and y-coordinates (in degrees)
-
+     
       allocate  (  geo_lon_t(bnd_x1:bnd_x2,bnd_y1:bnd_y2),   &    !geographical longitudes of T-points
                    geo_lat_t(bnd_x1:bnd_x2,bnd_y1:bnd_y2),   &    !geographical latitudes  of T-points
                    geo_lon_u(bnd_x1:bnd_x2,bnd_y1:bnd_y2),   &    !geographical longitudes of U-points
@@ -153,8 +83,8 @@ endsubroutine mpi_array_boundary_definition
          lu=0.0; lu1=0.0; luu=0.0; luh=0.0; lcu=0.0; lcv=0.0; llu=0.0; llv=0.0; lbasins=0
          hhh=0.0d0; hhhp=0.0d0; hhhn=0.0d0; hhq_rest=0.0d0
          hhq=0.0d0; hhqp=0.0d0; hhqn=0.0d0
-         hhu=0.0d0; hhup=0.0d0; hhun=0.0d0
-         hhv=0.0d0; hhvp=0.0d0; hhvn=0.0d0
+         hhu=0.0d0; hhup=0.0d0; hhun=0.0d0 
+         hhv=0.0d0; hhvp=0.0d0; hhvn=0.0d0 
          rlh_s=0.0d0; rlh_c=0.0d0
          z=0.0d0; zw=0.0d0; hzt=0.0d0; dz=0.0d0
          dxt=0.0d0; dyt=0.0d0; dx=0.0d0; dy=0.0d0; dxh=0.0d0; dyh=0.0d0; dxb=0.0d0; dyb=0.0d0
@@ -163,11 +93,11 @@ endsubroutine mpi_array_boundary_definition
          geo_lon_t=0.0d0; geo_lat_t=0.0d0; geo_lon_u=0.0d0; geo_lat_u=0.0d0
          geo_lon_v=0.0d0; geo_lat_v=0.0d0; geo_lon_h=0.0d0; geo_lat_h=0.0d0
          rotvec_coeff=0.0d0
-
+         
          hhh_e=0.0d0; hhhp_e=0.0d0; hhhn_e=0.0d0
          hhq_e=0.0d0; hhqp_e=0.0d0; hhqn_e=0.0d0
-         hhu_e=0.0d0; hhup_e=0.0d0; hhun_e=0.0d0
-         hhv_e=0.0d0; hhvp_e=0.0d0; hhvn_e=0.0d0
+         hhu_e=0.0d0; hhup_e=0.0d0; hhun_e=0.0d0 
+         hhv_e=0.0d0; hhvp_e=0.0d0; hhvn_e=0.0d0    
 
   endsubroutine model_grid_allocate
 
@@ -175,18 +105,18 @@ endsubroutine mpi_array_boundary_definition
   subroutine model_grid_deallocate
   use basin_grid
   implicit none
-           deallocate(hhvn_e,hhvp_e,hhv_e,hhun_e,hhup_e,hhu_e,hhqn_e,hhqp_e,hhq_e,hhhn_e,hhhp_e,hhh_e)
+           deallocate(hhvn_e,hhvp_e,hhv_e,hhun_e,hhup_e,hhu_e,hhqn_e,hhqp_e,hhq_e,hhhn_e,hhhp_e,hhh_e)           
            deallocate(rotvec_coeff)
            deallocate(geo_lat_h,geo_lon_h,geo_lat_v,geo_lon_v,geo_lat_u,geo_lon_u,geo_lat_t,geo_lon_t)
            deallocate(yv,xu,yt,xt,dyb,dxb,dyh,dxh,dy,dx,dyt,dxt,dz,hzt,zw,z,rlh_c,rlh_s)
            deallocate(hhvn,hhvp,hhv,hhun,hhup,hhu,hhqn,hhqp,hhq,hhq_rest,hhhn,hhhp,hhh)
            deallocate(lbasins)
            deallocate(llv,llu,lcv,lcu,luh,luu,lu1,lu)
-
+  
   endsubroutine model_grid_deallocate
 !-------------------------------------------------------------------------------------------
 
-!allocation of arrays
+!allocation of arrays   
 !--------------------------------------------------------------------------------------------
    subroutine ocean_variables_allocate
    use main_basin_pars
@@ -202,21 +132,21 @@ endsubroutine mpi_array_boundary_definition
                vbrtr_i(bnd_x1:bnd_x2,bnd_y1:bnd_y2),     &  !barotropic velocity meridional[m/s] at current  time step [m] (internal mode)
                 RHSx2d(bnd_x1:bnd_x2,bnd_y1:bnd_y2),     &  !x-component of external force(barotropic)
                 RHSy2d(bnd_x1:bnd_x2,bnd_y1:bnd_y2)      )  !y-component of external force(barotropic)
-
+      
       allocate (ssh_e(bnd_x1:bnd_x2,bnd_y1:bnd_y2),      &  !sea surface height (SSH) at current  time step [m] (external mode)
                sshp_e(bnd_x1:bnd_x2,bnd_y1:bnd_y2),      &  !sea surface height (SSH) at previous time step [m] (external mode)
               ubrtr_e(bnd_x1:bnd_x2,bnd_y1:bnd_y2),      &  !barotropic velocity      zonal[m/s]                           (external mode)
              ubrtrp_e(bnd_x1:bnd_x2,bnd_y1:bnd_y2),      &  !barotropic velocity      zonal[m/s] at previous time step [m] (external mode)
               vbrtr_e(bnd_x1:bnd_x2,bnd_y1:bnd_y2),      &  !barotropic velocity meridional[m/s]                           (external mode)
              vbrtrp_e(bnd_x1:bnd_x2,bnd_y1:bnd_y2)  )       !barotropic velocity meridional[m/s] at previous time step [m] (external mode)
-
+      
       allocate (uu(bnd_x1:bnd_x2,bnd_y1:bnd_y2,nz),    &  !     zonal velocity [m/s]
                uup(bnd_x1:bnd_x2,bnd_y1:bnd_y2,nz),    &  !     zonal velocity [m/s]
                 vv(bnd_x1:bnd_x2,bnd_y1:bnd_y2,nz),    &  !meridional velocity [m/s]
                vvp(bnd_x1:bnd_x2,bnd_y1:bnd_y2,nz),    &  !meridional velocity [m/s]
                 ww(bnd_x1:bnd_x2,bnd_y1:bnd_y2,nz+1),  &  !  vertical velocity in sigma-coord [m/s]
-                tt(bnd_x1:bnd_x2,bnd_y1:bnd_y2,nz),    &  !potential temperature[ï¿½C]
-               ttp(bnd_x1:bnd_x2,bnd_y1:bnd_y2,nz),    &  !potential temperature[ï¿½C]
+                tt(bnd_x1:bnd_x2,bnd_y1:bnd_y2,nz),    &  !potential temperature[°C]
+               ttp(bnd_x1:bnd_x2,bnd_y1:bnd_y2,nz),    &  !potential temperature[°C]
                 ss(bnd_x1:bnd_x2,bnd_y1:bnd_y2,nz),    &  !salinity [psu-35ppt]
                ssp(bnd_x1:bnd_x2,bnd_y1:bnd_y2,nz),    &  !salinity [psu-35ppt]
                den(bnd_x1:bnd_x2,bnd_y1:bnd_y2,nz),    &  !in-situ density  [kg/m^3]
@@ -230,41 +160,49 @@ endsubroutine mpi_array_boundary_definition
                xxt(bnd_x1:bnd_x2,bnd_y1:bnd_y2,nz),    &  !auxiliary array 1
                yyt(bnd_x1:bnd_x2,bnd_y1:bnd_y2,nz)     )  !auxiliary array 2
 
-      allocate (uu2d(bnd_x1:bnd_x2,bnd_y1:bnd_y2),    &
+     allocate ( q2(bnd_x1:bnd_x2,bnd_y1:bnd_y2,nz+1),   &  !turbulent kinetic energy (m/s)^2
+               q2p(bnd_x1:bnd_x2,bnd_y1:bnd_y2,nz+1),   &  !turbulent kinetic energy at the previous time step (m/s)^2
+               q2l(bnd_x1:bnd_x2,bnd_y1:bnd_y2,nz+1),   &  !turbulent kinetic energy by turbulent length scale (m/s)^2*m
+              q2lp(bnd_x1:bnd_x2,bnd_y1:bnd_y2,nz+1)    )  !turbulent kinetic energy by turbulent length scale at the previous time step (m/s)^2*m
+
+     allocate ( RHS_q2 (bnd_x1:bnd_x2,bnd_y1:bnd_y2,nz+1),    &  !RHS for turbulent kinetic energy
+                RHS_q2l(bnd_x1:bnd_x2,bnd_y1:bnd_y2,nz+1) )      !RHS for turbulent kinetic energy by turbulent length scale
+
+      allocate (uu2d(bnd_x1:bnd_x2,bnd_y1:bnd_y2),    &  
                 vv2d(bnd_x1:bnd_x2,bnd_y1:bnd_y2),    &
-               uup2d(bnd_x1:bnd_x2,bnd_y1:bnd_y2),    &
+               uup2d(bnd_x1:bnd_x2,bnd_y1:bnd_y2),    &  
                vvp2d(bnd_x1:bnd_x2,bnd_y1:bnd_y2),    &
          RHSx2d_tran(bnd_x1:bnd_x2,bnd_y1:bnd_y2),    &  !x-component of external force(baroclinic)
-         RHSy2d_tran(bnd_x1:bnd_x2,bnd_y1:bnd_y2) )      !y-component of external force(baroclinic) )
+         RHSy2d_tran(bnd_x1:bnd_x2,bnd_y1:bnd_y2) )      !y-component of external force(baroclinic) )      
 
       allocate (stress_t(bnd_x1:bnd_x2,bnd_y1:bnd_y2,nz),   &      !Horizontal tension tensor component
-                stress_s(bnd_x1:bnd_x2,bnd_y1:bnd_y2,nz),   &      !Horizontal shearing tensor component
+                stress_s(bnd_x1:bnd_x2,bnd_y1:bnd_y2,nz),   &      !Horizontal shearing tensor component      
                   r_vort(bnd_x1:bnd_x2,bnd_y1:bnd_y2,nz) )
-
+      
       allocate (igrzts_surf(bnd_x1:bnd_x2,bnd_y1:bnd_y2),   &     ! igrz[T,S]= 1 : f = f0
-                 igrzts_bot(bnd_x1:bnd_x2,bnd_y1:bnd_y2)  )       !          = 2 : df/dz = f0
-
-      allocate (amts(bnd_x1:bnd_x2,bnd_y1:bnd_y2,nz),     &   !T lateral diffusion in T-points [m^2/s]
+                 igrzts_bot(bnd_x1:bnd_x2,bnd_y1:bnd_y2)  )       !          = 2 : df/dz = f0 
+      
+      allocate (amts(bnd_x1:bnd_x2,bnd_y1:bnd_y2,nz),     &   !T lateral diffusion in T-points [m^2/s]               
                 amuv(bnd_x1:bnd_x2,bnd_y1:bnd_y2,nz),     &   !U and V 2th order lateral diffusion in T-points[m^2/s]
-               amuv4(bnd_x1:bnd_x2,bnd_y1:bnd_y2,nz)  )       !U and V 4th order lateral viscosity in T-points[m^4/s]^(1/2)
-
+               amuv4(bnd_x1:bnd_x2,bnd_y1:bnd_y2,nz)  )       !U and V 4th order lateral viscosity in T-points[m^4/s]^(1/2) 
+                                     
       allocate (slrx(bnd_x1:bnd_x2,bnd_y1:bnd_y2,nz+1),   &   !isopycnal diffusion slope in x-direction
                 slry(bnd_x1:bnd_x2,bnd_y1:bnd_y2,nz+1),   &   !isopycnal diffusion slope in y-direction
                 slzx(bnd_x1:bnd_x2,bnd_y1:bnd_y2,nz+1),   &   !horizontal diffusion slope in x-direction
                 slzy(bnd_x1:bnd_x2,bnd_y1:bnd_y2,nz+1)     )  !horizontal diffusion slope in y-direction
-
+   
       allocate (rit(bnd_x1:bnd_x2,bnd_y1:bnd_y2,nz+1),     &     !Richardson number
                anzt(bnd_x1:bnd_x2,bnd_y1:bnd_y2,nz+1),     &     !T vertical diffusion [m^2/s]
-               anzu(bnd_x1:bnd_x2,bnd_y1:bnd_y2,nz+1)      )     !U and V vertical viscosity [m^2/s]
-
-      allocate (tflux_surf(bnd_x1:bnd_x2,bnd_y1:bnd_y2),      &       !total surface heat flux [ï¿½C*m/s]
-                tflux_bot(bnd_x1:bnd_x2,bnd_y1:bnd_y2),       &       !total bottom heat flux [ï¿½C*m/s]
+               anzu(bnd_x1:bnd_x2,bnd_y1:bnd_y2,nz+1)      )     !U and V vertical viscosity [m^2/s]   
+      
+      allocate (tflux_surf(bnd_x1:bnd_x2,bnd_y1:bnd_y2),      &       !total surface heat flux [°C*m/s]
+                tflux_bot(bnd_x1:bnd_x2,bnd_y1:bnd_y2),       &       !total bottom heat flux [°C*m/s] 
                 sflux_surf(bnd_x1:bnd_x2,bnd_y1:bnd_y2),      &       !total surface salt flux [   m/s]
                 sflux_bot(bnd_x1:bnd_x2,bnd_y1:bnd_y2),       &       !total bottom salt flux [   m/s]
             surf_stress_x(bnd_x1:bnd_x2,bnd_y1:bnd_y2),       &       !wind      zonal stress per water density [m^2/s^2]
             surf_stress_y(bnd_x1:bnd_x2,bnd_y1:bnd_y2),       &       !wind meridional stress per water density [m^2/s^2]
              bot_stress_x(bnd_x1:bnd_x2,bnd_y1:bnd_y2),       &       !bottom      zonal stress per water density [m^2/s^2]
-             bot_stress_y(bnd_x1:bnd_x2,bnd_y1:bnd_y2),       &       !bottom meridional stress per water density [m^2/s^2]
+             bot_stress_y(bnd_x1:bnd_x2,bnd_y1:bnd_y2),       &       !bottom meridional stress per water density [m^2/s^2]          
                  divswrad(bnd_x1:bnd_x2,bnd_y1:bnd_y2,nz),    &       !shortwave radiation divergence coefficients
                      dkft(bnd_x1:bnd_x2,bnd_y1:bnd_y2),       &       !relaxation coefficient for SST, [m/s]
                      dkfs(bnd_x1:bnd_x2,bnd_y1:bnd_y2),       &       !relaxation coefficient for SSS, [m/s]
@@ -275,8 +213,12 @@ endsubroutine mpi_array_boundary_definition
                    hf_tot(bnd_x1:bnd_x2,bnd_y1:bnd_y2),       &       !total heat flux
                    wf_tot(bnd_x1:bnd_x2,bnd_y1:bnd_y2) )              !total water flux
 
-
-      allocate (tatm(bnd_x1:bnd_x2,bnd_y1:bnd_y2),   &    !Air temperature, [ï¿½C]
+      allocate (q2_surf(bnd_x1:bnd_x2,bnd_y1:bnd_y2),      &     !surface boundary condition for q2
+                 q2_bot(bnd_x1:bnd_x2,bnd_y1:bnd_y2),      &     !bottom  boundary condition for q2
+               q2l_surf(bnd_x1:bnd_x2,bnd_y1:bnd_y2),      &     !surface boundary condition for q2l
+                q2l_bot(bnd_x1:bnd_x2,bnd_y1:bnd_y2) )           !bottom  boundary condition for q2l             
+      
+      allocate (tatm(bnd_x1:bnd_x2,bnd_y1:bnd_y2),   &    !Air temperature, [°C]
                 qatm(bnd_x1:bnd_x2,bnd_y1:bnd_y2),   &    !Air humidity, [kg/kg]
                 rain(bnd_x1:bnd_x2,bnd_y1:bnd_y2),   &    !rain, [m/s]
                 snow(bnd_x1:bnd_x2,bnd_y1:bnd_y2),   &    !snow, [m/s]
@@ -289,29 +231,30 @@ endsubroutine mpi_array_boundary_definition
                 taux(bnd_x1:bnd_x2,bnd_y1:bnd_y2),   &    !Zonal      wind speed, [m/s]
                 tauy(bnd_x1:bnd_x2,bnd_y1:bnd_y2) )       !Meridional wind speed, [m/s]
 
-
+      
       allocate( BottomFriction(bnd_x1:bnd_x2,bnd_y1:bnd_y2),        &
                        r_diss(bnd_x1:bnd_x2,bnd_y1:bnd_y2) )
 
-      allocate ( hice(bnd_x1:bnd_x2,bnd_y1:bnd_y2,mgrad),    &
-                 aice(bnd_x1:bnd_x2,bnd_y1:bnd_y2,mgrad),    &
-                aice0(bnd_x1:bnd_x2,bnd_y1:bnd_y2)      ,    &
+      allocate ( hice(bnd_x1:bnd_x2,bnd_y1:bnd_y2,mgrad),    &    
+                 aice(bnd_x1:bnd_x2,bnd_y1:bnd_y2,mgrad),    &    
+                aice0(bnd_x1:bnd_x2,bnd_y1:bnd_y2)      ,    &    
                 hsnow(bnd_x1:bnd_x2,bnd_y1:bnd_y2,mgrad),    &
                  tice(bnd_x1:bnd_x2,bnd_y1:bnd_y2,mgrad),    &
-                tsnow(bnd_x1:bnd_x2,bnd_y1:bnd_y2,mgrad),    &
-              dhsnowt(bnd_x1:bnd_x2,bnd_y1:bnd_y2),          &
-               dhicet(bnd_x1:bnd_x2,bnd_y1:bnd_y2),          &
-                swice(bnd_x1:bnd_x2,bnd_y1:bnd_y2),          &
-           heatice2oc(bnd_x1:bnd_x2,bnd_y1:bnd_y2),          &
-           ice_stress11(bnd_x1:bnd_x2,bnd_y1:bnd_y2),        &
-           ice_stress22(bnd_x1:bnd_x2,bnd_y1:bnd_y2),        &
-           ice_stress12(bnd_x1:bnd_x2,bnd_y1:bnd_y2),        &
-                   uice(bnd_x1:bnd_x2,bnd_y1:bnd_y2),        &
+                tsnow(bnd_x1:bnd_x2,bnd_y1:bnd_y2,mgrad),    &  
+              dhsnowt(bnd_x1:bnd_x2,bnd_y1:bnd_y2),          & 
+               dhicet(bnd_x1:bnd_x2,bnd_y1:bnd_y2),          & 
+                swice(bnd_x1:bnd_x2,bnd_y1:bnd_y2),          & 
+           heatice2oc(bnd_x1:bnd_x2,bnd_y1:bnd_y2),          & 
+           ice_stress11(bnd_x1:bnd_x2,bnd_y1:bnd_y2),        &    
+           ice_stress22(bnd_x1:bnd_x2,bnd_y1:bnd_y2),        &    
+           ice_stress12(bnd_x1:bnd_x2,bnd_y1:bnd_y2),        &    
+                   uice(bnd_x1:bnd_x2,bnd_y1:bnd_y2),        &    
                    vice(bnd_x1:bnd_x2,bnd_y1:bnd_y2)       )
-
-      allocate ( RHS_tem(bnd_x1:bnd_x2,bnd_y1:bnd_y2,nz),   &
-                 RHS_sal(bnd_x1:bnd_x2,bnd_y1:bnd_y2,nz)  )
-
+      
+      allocate (Flux_tem_x(bnd_x1:bnd_x2,bnd_y1:bnd_y2,4), &       !Total temperature flux along x-direction
+                Flux_tem_y(bnd_x1:bnd_x2,bnd_y1:bnd_y2,4), &       !Total temperature flux along y-direction
+                Flux_sal_x(bnd_x1:bnd_x2,bnd_y1:bnd_y2,4), &       !Total   salinity  flux along x-direction
+                Flux_sal_y(bnd_x1:bnd_x2,bnd_y1:bnd_y2,4)  )       !Total   salinity  flux along y-direction
 
       allocate( amuv2d(bnd_x1:bnd_x2,bnd_y1:bnd_y2),     &    !depth mean lateral viscosity
                amuv42d(bnd_x1:bnd_x2,bnd_y1:bnd_y2),     &    !depth mean lateral viscosity
@@ -333,17 +276,16 @@ endsubroutine mpi_array_boundary_definition
                 tyo_calc(bnd_x1:bnd_x2,bnd_y1:bnd_y2),        &
                uwnd_calc(bnd_x1:bnd_x2,bnd_y1:bnd_y2),        &
                vwnd_calc(bnd_x1:bnd_x2,bnd_y1:bnd_y2),        &
-               RHSt_calc(bnd_x1:bnd_x2,bnd_y1:bnd_y2),        &
-               RHSs_calc(bnd_x1:bnd_x2,bnd_y1:bnd_y2) )
-
-     allocate (ssh_err(bnd_x1:bnd_x2,bnd_y1:bnd_y2))
-     ssh_err = 0.0d0
+             Fltx_calc(bnd_x1:bnd_x2,bnd_y1:bnd_y2,4),        &
+             Flty_calc(bnd_x1:bnd_x2,bnd_y1:bnd_y2,4),        &
+             Flsx_calc(bnd_x1:bnd_x2,bnd_y1:bnd_y2,4),        &
+             Flsy_calc(bnd_x1:bnd_x2,bnd_y1:bnd_y2,4) )
 
      ssh_i =0.0d0; sshp_i=0.0d0
-     pgrx=0.0d0; pgry=0.0d0
+     pgrx=0.0d0; pgry=0.0d0 
      ubrtr_i=0.0d0;  vbrtr_i=0.0d0
      RHSx2d=0.0d0; RHSy2d=0.0d0
-
+     
      ssh_e=0.0d0; sshp_e=0.0d0
      ubrtr_e=0.0d0; ubrtrp_e=0.0d0
      vbrtr_e=0.0d0; vbrtrp_e=0.0d0
@@ -355,6 +297,9 @@ endsubroutine mpi_array_boundary_definition
      RHSx3d_tran=0.0d0; RHSy3d_tran=0.0d0
      age=0.0d0; agep=0.0d0
      xxt=0.0d0; yyt=0.0d0
+
+     q2=0.0d0; q2p=0.0d0; q2l=0.0d0; q2lp=0.0d0
+     RHS_q2=0.0d0; RHS_q2l=0.0d0
 
      uu2d=0.0d0; vv2d=0.0d0; uup2d=0.0d0; vvp2d=0.0d0
      RHSx2d_tran =0.0d0; RHSy2d_tran=0.0d0
@@ -370,11 +315,13 @@ endsubroutine mpi_array_boundary_definition
 
      tflux_surf=0.0d0; tflux_bot=0.0d0
      sflux_surf=0.0d0; sflux_bot=0.0d0
-     surf_stress_x=0.0d0; surf_stress_y=0.0d0
+     surf_stress_x=0.0d0; surf_stress_y=0.0d0 
       bot_stress_x=0.0d0;  bot_stress_y=0.0d0
      divswrad=0.0d0; dkft=0.0d0; dkfs=0.0d0
      sensheat=0.0d0; latheat=0.0d0; lw_bal=0.0d0; sw_bal=0.0d0
      hf_tot=0.0d0; wf_tot=0.0d0
+
+     q2_surf=0.0d0; q2_bot=0.0d0; q2l_surf=0.0d0; q2l_bot=0.0d0
 
      tatm=0.0d0; qatm=0.0d0; rain=0.0d0; snow=0.0d0; wind=0.0d0
      lwr=0.0d0; swr=0.0d0; slpr=0.0d0; uwnd=0.0d0; vwnd=0.0d0
@@ -386,8 +333,8 @@ endsubroutine mpi_array_boundary_definition
      uice=0.0d0; vice=0.0d0; tice=0.0d0; tsnow=0.0d0
      dhsnowt=0.0d0; dhicet=0.0d0; swice=0.0d0; heatice2oc=0.0d0
 
-     RHS_tem=0.0d0; RHS_sal=0.0d0
-
+     Flux_tem_x=0.0d0; Flux_tem_y=0.0d0; Flux_sal_x=0.0d0; Flux_sal_y=0.0d0
+     
      amuv2d=0.0d0; amuv42d=0.0d0; r_vort2d=0.0d0
      stress_t2d=0.0d0; stress_s2d=0.0d0
      RHSx2d_tran_disp=0.0d0; RHSy2d_tran_disp=0.0d0
@@ -395,8 +342,9 @@ endsubroutine mpi_array_boundary_definition
 
        tt_calc=0.0d0;   ss_calc=0.0d0;   uu_calc=0.0d0;   vv_calc=0.0d0
       sfl_calc=0.0d0;  ssh_calc=0.0d0;  txo_calc=0.0d0;  tyo_calc=0.0d0
-     uwnd_calc=0.0d0; vwnd_calc=0.0d0; RHSt_calc=0.0d0; RHSs_calc=0.0d0
-
+     uwnd_calc=0.0d0; vwnd_calc=0.0d0 
+     Fltx_calc=0.0d0; Flty_calc=0.0d0; Flsx_calc=0.0d0; Flsy_calc=0.0d0
+   
      meancalc=0
 
    endsubroutine ocean_variables_allocate
@@ -405,18 +353,22 @@ endsubroutine mpi_array_boundary_definition
    subroutine ocean_variables_deallocate
    use ocean_variables
    implicit none
-
-      deallocate(RHSs_calc, RHSt_calc, vwnd_calc, uwnd_calc,      &
+      
+      deallocate(Flsy_calc, Flsx_calc, Flty_calc, Fltx_calc,      &
+                  vwnd_calc, uwnd_calc,                           &
                   tyo_calc,  txo_calc,  ssh_calc,  sfl_calc,      &
                    vv_calc,   uu_calc,   ss_calc,   tt_calc)
       deallocate(RHSy2d_diff_disp,RHSx2d_diff_disp,RHSy2d_tran_disp,RHSx2d_tran_disp,     &
                  stress_s2d,stress_t2d,r_vort2d,amuv42d,amuv2d)
-      deallocate(RHS_sal, RHS_tem)
-      deallocate (vice, uice, ice_stress12, ice_stress22, ice_stress11,       &
-                  heatice2oc, swice, dhicet, dhsnowt,                         &
-                  tsnow, tice, hsnow, aice0, aice, hice)
+      deallocate(Flux_sal_y, Flux_sal_x, Flux_tem_y, Flux_tem_x)
+      deallocate(vice, uice, ice_stress12, ice_stress22, ice_stress11,       &
+                 heatice2oc, swice, dhicet, dhsnowt,                         &
+                 tsnow, tice, hsnow, aice0, aice, hice) 
       deallocate(r_diss, BottomFriction)
       deallocate(tauy,taux,vwnd,uwnd,slpr,swr,lwr,wind,snow,rain,qatm,tatm)
+      
+      deallocate(q2l_bot,q2l_surf,q2_bot,q2_surf)
+      
       deallocate(wf_tot,hf_tot,sw_bal,lw_bal,latheat,sensheat,dkfs,dkft,           &
                  divswrad,bot_stress_y,bot_stress_x,surf_stress_y,surf_stress_x,   &
                  sflux_bot,sflux_surf,tflux_bot,tflux_surf)
@@ -424,13 +376,15 @@ endsubroutine mpi_array_boundary_definition
       deallocate(igrzts_bot,igrzts_surf)
       deallocate(r_vort,stress_s, stress_t)
       deallocate(RHSy2d_tran,RHSx2d_tran,vvp2d,uup2d,vv2d,uu2d)
+
+      deallocate(RHS_q2l,RHS_q2)      
+      deallocate(q2lp,q2l,q2p,q2)
+
       deallocate(yyt,xxt,agep,age,RHSy3d_tran,RHSx3d_tran,RHSy3d,RHSx3d,den_pot,den,     &
                  ssp,ss,ttp,tt,ww,vvp,vv,uup,uu)
       deallocate(vbrtrp_e,vbrtr_e,ubrtrp_e,ubrtr_e,sshp_e,ssh_e)
       deallocate(RHSy2d,RHSx2d,vbrtr_i,ubrtr_i,pgry,pgrx,sshp_i,ssh_i)
-
-      deallocate(ssh_err)
-
+   
    endsubroutine ocean_variables_deallocate
    !Allocation of arrays
 !---------------------------------------------------------------------------------
@@ -439,7 +393,7 @@ endsubroutine mpi_array_boundary_definition
    use mpi_parallel_tools
    use ocean_variables
    implicit none
-
+    
       allocate (pass_tracer(bnd_x1:bnd_x2,bnd_y1:bnd_y2,nz), &     !Passive tracer
                pass_tracerp(bnd_x1:bnd_x2,bnd_y1:bnd_y2,nz), &     !Passive tracer
                 pt_forc_surf(bnd_x1:bnd_x2,bnd_y1:bnd_y2),   &     !Passive tracer surface forcing
@@ -448,8 +402,8 @@ endsubroutine mpi_array_boundary_definition
                 pt_diff_y(bnd_x1:bnd_x2,bnd_y1:bnd_y2,nz),   &     !Passive y-diffusion [m^2/s]
                 igrzpt_surf(bnd_x1:bnd_x2,bnd_y1:bnd_y2),    &     !Types of boundary condition
                 igrzpt_bot(bnd_x1:bnd_x2,bnd_y1:bnd_y2)      )
-
-          pass_tracer=0.0d0; pass_tracerp=0.0d0
+          
+          pass_tracer=0.0d0; pass_tracerp=0.0d0 
           pt_forc_surf=0.0d0; pt_forc_bot=0.0d0
           pt_diff_x=0.0d0; pt_diff_y=0.0d0
           igrzpt_surf=0; igrzpt_bot=0
@@ -460,9 +414,9 @@ endsubroutine mpi_array_boundary_definition
    subroutine pass_tracer_deallocate
    use ocean_variables
    implicit none
-
-      deallocate(igrzpt_bot,igrzpt_surf,pt_diff_y,pt_diff_x,pt_forc_bot,pt_forc_surf,pass_tracer)
-
+   
+      deallocate(igrzpt_bot,igrzpt_surf,pt_diff_y,pt_diff_x,pt_forc_bot,pt_forc_surf,pass_tracer)   
+   
    endsubroutine pass_tracer_deallocate
 !========================================================================
   subroutine oceanbc_arrays_allocate
@@ -470,11 +424,11 @@ endsubroutine mpi_array_boundary_definition
   use mpi_parallel_tools
   use ocean_bc
   implicit none
-
-   allocate (sst_obs(bnd_x1:bnd_x2,bnd_y1:bnd_y2),     &       !Observed SST [ï¿½C]
+   
+   allocate (sst_obs(bnd_x1:bnd_x2,bnd_y1:bnd_y2),     &       !Observed SST [°C]
              sss_obs(bnd_x1:bnd_x2,bnd_y1:bnd_y2),     &       !Observed SSS [psu-35ppt])
               runoff(bnd_x1:bnd_x2,bnd_y1:bnd_y2)   )          !River runoff, [m/s]
-
+   
    allocate(lqpx(numb_of_lqp_max),        &
             lqpy(numb_of_lqp_max),        &
             tlqbw(numb_of_lqp_max,nz),    &
@@ -482,7 +436,7 @@ endsubroutine mpi_array_boundary_definition
             ulqbw(numb_of_lqp_max,nz),    &
             vlqbw(numb_of_lqp_max,nz),    &
           sshlqbw(numb_of_lqp_max))
-
+   
    allocate(index_of_lb(numb_of_lqp_max))
 
       sst_obs=0.0; sss_obs=0.0; runoff=0.0
@@ -505,18 +459,18 @@ use atm_forcing
 implicit none
 
  allocate(xa(nxa),ya(nya))
-
- allocate( a_hflux(nxa,nya),       &   !heat balance [w/m**2]
+ 
+ allocate( a_hflux(nxa,nya),       &   !heat balance [w/m**2] 
            a_swrad(nxa,nya),       &   !sw radiation balance[w/m**2]
            a_wflux(nxa,nya),       &   !precipitation-evaporation[m/s]
-           a_stress_x(nxa,nya),    &   !zonal wind stress[pA=n/m**2]
+           a_stress_x(nxa,nya),    &   !zonal wind stress[pA=n/m**2] 
            a_stress_y(nxa,nya),    &   !meridional wind stress[pA=n/m**2]
            a_slpr(nxa,nya),        &   !pressure at sea surface
            a_lwr(nxa,nya),         &   !dw-lw-rad[w/m**2]
            a_swr(nxa,nya),         &   !dw-sw-rad[w/m**2]
            a_rain(nxa,nya),        &   !precipit[m/s]
            a_snow(nxa,nya),        &   !precipit[m/s]
-           a_tatm(nxa,nya),        &   !temp of atmosphere[ï¿½c]
+           a_tatm(nxa,nya),        &   !temp of atmosphere[°c]
            a_qatm(nxa,nya),        &   !humidity [g/kg]
            a_uwnd(nxa,nya),        &   !u-wind speed[m/s]
            a_vwnd(nxa,nya)  )          !v-wind speed[m/s]
@@ -553,7 +507,7 @@ subroutine atm_arrays_deallocate
 use atm_pars
 use atm_forcing
 implicit none
-
+ 
  deallocate(a_vwnd,a_uwnd,a_qatm,a_tatm,a_snow,a_rain,a_swr,a_lwr,     &
              a_slpr,a_stress_y,a_stress_x,a_wflux,a_swrad,a_hflux)
  deallocate(ya,xa)

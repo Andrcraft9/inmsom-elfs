@@ -2,37 +2,37 @@
 module key_switches
 implicit none
 
-integer ksw_ts,         &     !Temperature and salinity equation solving (0 - no, 1 - yes)
-        ksw_age,        &     !Ideal age equation solving (0 - no, 1 - yes)
-        ksw_pt,         &     !Passive tracer equation solving (0 - no, 1 - yes)
-        ksw_uv,         &     !Momentum equation solving (0 - no, 1 - yes)
+integer ksw_ts,         &     !Temperature and salinity equation solving (0 - no, 1 - yes)                                                                                                      
+        ksw_age,        &     !Ideal age equation solving (0 - no, 1 - yes)                                                                                                                     
+        ksw_pt,         &     !Passive tracer equation solving (0 - no, 1 - yes)                                                                                                                
+        ksw_uv,         &     !Momentum equation solving (0 - no, 1 - yes)       
         ksw_lat,        &     !Lateral 2nd order mix parametrization (0 - constant coeff, 1 - Smagorinski)
-        ksw_lat4,       &     !Lateral 4nd order momentum mix parametrization (0 - no, 1 - yes)
-        ksw_vert,       &     !vertical mix parametrization (0 - constant coeff, 1 - Pacanowski&Philander)
-        ksw_dens,       &     !pressure gradient computation (0 - no (constant density), 1 - yes)
-        ksw_ice_th,     &     !sea ice thermodynamics using (0 - no, 1 - yes)
-        ksw_ice_tran,   &     !sea ice transport using (0 - no, 1 - yes)
-        ksw_ice_dyn,    &     !sea ice dynamics using (0 - no, 1 - yes)
+        ksw_lat4,       &     !Lateral 4nd order momentum mix parametrization (0 - no, 1 - yes)                                                                                                                         
+        ksw_vert,       &     !vertical mix parametrization (0 - constant coeff, 1 - Pacanowski&Philander)                                                                                      
+        ksw_dens,       &     !pressure gradient computation (0 - no (constant density), 1 - yes)                                                                                               
+        ksw_ice_th,     &     !sea ice thermodynamics using (0 - no, 1 - yes)                                                                                                                   
+        ksw_ice_tran,   &     !sea ice transport using (0 - no, 1 - yes)                                                                                                                        
+        ksw_ice_dyn,    &     !sea ice dynamics using (0 - no, 1 - yes)                                                                                                                         
         ksw_ssbc,       &     !Type of surface boundary conditions (1 - surface T&S and wind stress are set; 2 - T&S fluxes and wind stress are set; 3 - T&S fluxes and wind stress are computed
-        ksw_wflux,      &     !normalize global mean salt balance (0 - no, 1 - normalize water flux, 2 - normalize salinity flux)
-        ksw_lbc_ts,     &     !open boundary conditions for T&S using (0 - no, 1 - yes)
-        ksw_lbc_uv,     &     !open boundary conditions for U&V using (0 - no, 1 - yes)
-        ksw_lbc_ssh           !open boundary conditions for SSH using (0 - no, 1 - yes)
+        ksw_wflux,      &     !normalize global mean salt balance (0 - no, 1 - normalize water flux, 2 - normalize salinity flux)                                                               
+        ksw_lbc_ts,     &     !open boundary conditions for T&S using (0 - no, 1 - yes)                                                                                                         
+        ksw_lbc_uv,     &     !open boundary conditions for U&V using (0 - no, 1 - yes)                                                                                                         
+        ksw_lbc_ssh           !open boundary conditions for SSH using (0 - no, 1 - yes)                                                                                                         
 
-real(8) sst_relax,      &     !Relaxation coefficient for temperature [m/s]
-        sss_relax,      &     !Relaxation coefficient for salinity [m/s]
-        ldiff_ts,       &     !lateral diffusion for temperature [m**2/s]
-        lvisc_2,        &     !lateral  vicosity(2nd order)[m**2/s]
-        lvisc_4,        &     !lateral  vicosity(4th order) [undim]
+real(8) sst_relax,      &     !Relaxation coefficient for temperature [m/s]            
+        sss_relax,      &     !Relaxation coefficient for salinity [m/s]                                          
+        ldiff_ts,       &     !lateral diffusion for temperature [m**2/s]                               
+        lvisc_2,        &     !lateral  vicosity(2nd order)[m**2/s]                    
+        lvisc_4,        &     !lateral  vicosity(4th order) [undim]          
      tsfrac_lat,        &     !fraction of salinity lateral diffusion due to one for temperature
         vdiff_ts_min,   &     !vertical background diffusion coefficient for T [m**2/s]
-        vdiff_ts_max,   &     !vertical max(top) diffusion coefficient for T [m**2/s]
-        vvisc_min,      &     !vertical background viscous coefficient [m**2/s]
-        vvisc_max,      &     !vertical max(top) viscous coefficient [m**2/s]
+        vdiff_ts_max,   &     !vertical max(top) diffusion coefficient for T [m**2/s]  
+        vvisc_min,      &     !vertical background viscous coefficient [m**2/s]        
+        vvisc_max,      &     !vertical max(top) viscous coefficient [m**2/s]          
       tsfrac_vert,      &     !fraction of salinity lateral diffusion due to one for temperature
-        z_frac,         &     !weight coefficient for lateral Z-Diffusion
-        r_frac,         &     !weight coefficient for lateral R-Diffusion
-        gm_ratio              !weight coefficient for Gent&McWilliams transport
+        z_frac,         &     !weight coefficient for lateral Z-Diffusion              
+        r_frac,         &     !weight coefficient for lateral R-Diffusion              
+        gm_ratio              !weight coefficient for Gent&McWilliams transport        
 
 endmodule key_switches
 
@@ -48,8 +48,7 @@ real(8),allocatable:: ssh_i(:,:),     &  !sea surface height (SSH) at current  t
                     ubrtr_i(:,:),     &  !barotropic velocity      zonal[m/s] at current time step (internal mode)
                     vbrtr_i(:,:),     &  !barotropic velocity meridional[m/s] at current time step (internal mode)
                      RHSx2d(:,:),     &  !x-component of external force(barotropic)
-                     RHSy2d(:,:),     &  !y-component of external force(barotropic)
-                     ssh_err(:,:)
+                     RHSy2d(:,:)         !y-component of external force(barotropic)
 
 real(8), allocatable:: ssh_e(:,:),   &  !sea surface height (SSH) at current  time step [m] (external mode)
                       sshp_e(:,:),   &  !sea surface height (SSH) at previous time step [m] (external mode)
@@ -64,8 +63,8 @@ real(8),allocatable::  uu(:,:,:),   &  !     zonal velocity [m/s]
                        vv(:,:,:),   &  !meridional velocity [m/s]
                        vvp(:,:,:),  &  !meridional velocity [m/s] at previous time step
                        ww(:,:,:),   &  !  vertical velocity in sigma-coord [m/s]
-                       tt(:,:,:),   &  !potential temperature[ï¿½C]
-                       ttp(:,:,:),  &  !potential temperature[ï¿½C] at previous time step
+                       tt(:,:,:),   &  !potential temperature[°C]
+                       ttp(:,:,:),  &  !potential temperature[°C] at previous time step
                        ss(:,:,:),   &  !salinity [psu]
                        ssp(:,:,:),  &  !salinity [psu] at previous time step
                       den(:,:,:),   &  !in-situ density  [kg/m^3]
@@ -79,6 +78,14 @@ real(8),allocatable::  uu(:,:,:),   &  !     zonal velocity [m/s]
                       xxt(:,:,:),   &  !auxiliary array 1
                       yyt(:,:,:)       !auxiliary array 2
 
+real(8),allocatable::  q2(:,:,:),   &  !turbulent kinetic energy (m/s)^2
+                      q2p(:,:,:),   &  !turbulent kinetic energy at the previous time step (m/s)^2
+                      q2l(:,:,:),   &  !turbulent kinetic energy by turbulent length scale (m/s)^2*m
+                     q2lp(:,:,:)       !turbulent kinetic energy by turbulent length scale at the previous time step (m/s)^2*m
+
+real(8),allocatable:: RHS_q2 (:,:,:),   &  !turbulent kinetic energy (m/s)^2
+                      RHS_q2l(:,:,:)       !turbulent kinetic energy by turbulent length scale (m/s)^2*m
+
 real(8),allocatable:: uu2d(:,:),    &
                       vv2d(:,:),    &
                      uup2d(:,:),    &
@@ -90,7 +97,7 @@ real(8),allocatable:: stress_t(:,:,:),    &     !Horizontal tension tensor compo
                       stress_s(:,:,:),    &     !Horizontal shearing tensor component
                         r_vort(:,:,:)           !Part of relative vorticity
 
-!surface and bottom boundary condition types                ! igrz[T,S]= 1 : f = f0
+!surface and bottom boundary condition types                ! igrz[T,S]= 1 : f = f0 
 integer,allocatable:: igrzts_surf(:,:), igrzts_bot(:,:)     !          = 2 : df/dz = f0
 
 !Passive tracer arrays
@@ -114,7 +121,7 @@ real(8),allocatable::  amts(:,:,:),     &   !T lateral diffusion in T-points [m^
 real(8),allocatable::  slrx(:,:,:),   &     !universal isopycnal diffusion slope in x-direction
                        slry(:,:,:),   &     !universal isopycnal diffusion slope in y-direction
                        slzx(:,:,:),   &     !universal horizontal diffusion slope in x-direction
-                       slzy(:,:,:)          !universal horizontal diffusion slope in y-direction
+                       slzy(:,:,:)          !universal horizontal diffusion slope in y-direction 
 
 ! vertical viscous and diffusion functions
 real(8),allocatable:: rit(:,:,:),     &     !Richardson number
@@ -122,8 +129,8 @@ real(8),allocatable:: rit(:,:,:),     &     !Richardson number
                      anzu(:,:,:)            !U and V vertical viscosity [m^2/s]
 
 ! sea surface boundary condition
-real(8), allocatable:: tflux_surf(:,:),      &       !total surface heat flux [ï¿½C*m/s]
-                       tflux_bot(:,:),       &       !total bottom heat flux [ï¿½C*m/s]
+real(8), allocatable:: tflux_surf(:,:),      &       !total surface heat flux [°C*m/s]
+                       tflux_bot(:,:),       &       !total bottom heat flux [°C*m/s] 
                        sflux_surf(:,:),      &       !total surface salt flux [psu*m/s]
                        sflux_bot(:,:),       &       !total bottom salt flux [psu*m/s]
                    surf_stress_x(:,:),       &       !wind      zonal stress per water density [m^2/s^2]
@@ -140,8 +147,13 @@ real(8), allocatable:: tflux_surf(:,:),      &       !total surface heat flux [ï
                           hf_tot(:,:),       &       !total heat flux
                           wf_tot(:,:)                !total water flux
 
+real(8), allocatable:: q2_surf(:,:),      &     !surface boundary condition for q2
+                        q2_bot(:,:),      &     !bottom  boundary condition for q2
+                      q2l_surf(:,:),      &     !surface boundary condition for q2l
+                       q2l_bot(:,:)             !bottom  boundary condition for q2l
+
 !Atmospheric arrays for bulk-formulae
-real(8),allocatable:: tatm(:,:),   &    !Air temperature, [ï¿½C]
+real(8),allocatable:: tatm(:,:),   &    !Air temperature, [°C]
                       qatm(:,:),   &    !Air humidity, [kg/kg]
                       rain(:,:),   &    !rain, [kg/m^2/s]
                       snow(:,:),   &    !snow, [kg/m^2/s]
@@ -173,8 +185,10 @@ real(8), allocatable:: hice(:,:,:),    &       !Ice mass, [m]
                          uice(:,:),    &       !Ice zonal velocity, [m/s]
                          vice(:,:)             !Ice meridional velocity, [m/s]
 
-real(8), allocatable:: RHS_tem(:,:,:), &       !Right hand side of temperature transport-diffusion
-                       RHS_sal(:,:,:)          !Right hand side of salinity    transport-diffusion
+real(8), allocatable:: Flux_tem_x(:,:,:), &       !Total temperature flux along x-direction
+                       Flux_tem_y(:,:,:), &       !Total temperature flux along y-direction
+                       Flux_sal_x(:,:,:), &       !Total   salinity  flux along x-direction
+                       Flux_sal_y(:,:,:)          !Total   salinity  flux along y-direction
 
 
 real(8), allocatable::   amuv2d(:,:),     &    !depth mean lateral viscosity
@@ -197,8 +211,10 @@ real(8),allocatable:: tt_calc(:,:,:),     &
                      tyo_calc(:,:),       &
                     uwnd_calc(:,:),       &
                     vwnd_calc(:,:),       &
-                    RHSt_calc(:,:),       &
-                    RHSs_calc(:,:)
+                  Fltx_calc(:,:,:),       &
+                  Flty_calc(:,:,:),       &
+                  Flsx_calc(:,:,:),       &
+                  Flsy_calc(:,:,:)
 
 integer meancalc             !calculator for time mean output
 

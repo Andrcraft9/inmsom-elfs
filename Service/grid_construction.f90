@@ -20,7 +20,7 @@ implicit none
 ! reading mask from:
  open (11,file=ftemask,status='old',recl=nx*lrecl)
   read (11,  '(a)') comment(1:min(80,nx))
-  if (rank .eq. 0) write(*,'(1x,a)') comment
+  write(*,'(1x,a)') comment
   do n=ny,1,-1
    read(11,frmt,end=99) (lbasins(m,n),m=1,nx)
   enddo
@@ -40,10 +40,7 @@ implicit none
 !  forming mask for depth grid points
 !  forming luh from lu, which have land neibours in luh.
 ! constructing array luh for relief hh.
-
-!print *, 'lu_noperiod: ',  lu(2, :)
-!print *, '----------------------------------------------------------------------'
-
+ 
  if(periodicity_x/=0) then
    call cyclize_x(lu,nx,ny,1,mmm,mm)
  endif
@@ -51,11 +48,10 @@ implicit none
  if(periodicity_y/=0) then
    call cyclize_y(lu,nx,ny,1,nnn,nn)
  endif
-
- if (rank .eq. 0) then
-    write(*,*) 'Construction of H-grid masks: '
-    write(*,*) 'LUH (includes boundary) and LUU (does not include boundary)'
- endif
+       
+ write(*,*) 'Construction of H-grid masks: '
+ write(*,*) 'LUH (includes boundary) and LUU (does not include boundary)'
+      
  do n=ny_start-1,ny_end
     do m=nx_start-1,nx_end
       if(lu(m,n)+lu(m+1,n)+lu(m,n+1)+lu(m+1,n+1)>0.5)  then
@@ -82,13 +78,12 @@ implicit none
    call cyclize_y(luu,nx,ny,1,nnn,nn)
  endif
 
- if (rank .eq. 0) then
-     write(*,*) 'Construction of U- and V-grid masks: '
-     write(*,*) 'LCU and LCV (do not include boundary) and LLU and LLV (include boundary)'
- endif
+ write(*,*) 'Construction of U- and V-grid masks: '
+ write(*,*) 'LCU and LCV (do not include boundary) and LLU and LLV (include boundary)'
+
  do n=ny_start-1,ny_end
     do m=nx_start-1,nx_end
-
+     
      if(lu(m,n)+lu(m+1,n)>0.5)  then
       llu(m,n)=1.0
      endif
@@ -104,20 +99,15 @@ implicit none
      if(lu(m,n)*lu(m,n+1)>0.5)  then
       lcv(m,n)=1.0
      endif
-
+            
     enddo
  enddo
 
- !print *, 'lcu_noperiod: ', lcu(2, :)
- !print *, '----------------------------------------------------------------------'
- !print *, 'lcv_noperiod: ', lcv(2, :)
- !print *, '----------------------------------------------------------------------'
-
  if (periodicity_x/=0) then
-  if (rank .eq. 0) write(*,*)'  set periodicity to u-grid mask(lcu,llu).'
+  write(*,*)'  set periodicity to u-grid mask(lcu,llu).'
   call cyclize_x(lcu,nx,ny,1,mmm,mm)
   call cyclize_x(llu,nx,ny,1,mmm,mm)
-  if (rank .eq. 0) write(*,*)'  set periodicity to v-grid mask(lcv,llv).'
+  write(*,*)'  set periodicity to v-grid mask(lcv,llv).'
   call cyclize_x(lcv,nx,ny,1,mmm,mm)
   call cyclize_x(llv,nx,ny,1,mmm,mm)
  endif
@@ -128,13 +118,6 @@ implicit none
   call cyclize_y(lcv,nx,ny,1,nnn,nn)
   call cyclize_y(llv,nx,ny,1,nnn,nn)
  endif
-
-!print *, 'lu: ',  lu(2, :)
-!print *, '----------------------------------------------------------------------'
-!print *, 'lcu: ', lcu(2, :)
-!print *, '----------------------------------------------------------------------'
-!print *, 'lcv: ', lcv(2, :)
-!print *, '----------------------------------------------------------------------'
 
 return
 99    write(*,*)'  error in reading file ',ftemask(1:len_trim(ftemask))

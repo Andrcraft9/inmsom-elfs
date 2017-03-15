@@ -1,13 +1,13 @@
 !Grid parameters for atmospheric data
-integer, parameter::   nxa=100,     &      !atm. array dim. on lon
-                       nya=50             !atm. array dim. on lat
+integer, parameter::   nxa=480,     &      !atm. array dim. on lon
+                       nya=241             !atm. array dim. on lat
 
-real(8), parameter::   dxa=0.1d0,      &   !step on lon (used in case of regular grid)
-                       dya=0.1d0,      &   !step on lat (-#-)
-                       x0a= 0.05d0,      &   !initial lon point for m=mmma (-#-)
-                       y0a=42.55d0          !initial lat point for n=nnna (-#-)
+real(8), parameter::   dxa=0.75d0,      &   !step on lon (used in case of regular grid)
+                       dya=0.75d0,      &   !step on lat (-#-)
+                       x0a= 0.0d0,      &   !initial lon point for m=mmma (-#-)
+                       y0a=-90.0d0          !initial lat point for n=nnna (-#-)
             
-integer, parameter::   indper=0       !index of periodicity (0 - non-periodic, 1 - periodic)
+integer, parameter::   indper=1       !index of periodicity (0 - non-periodic, 1 - periodic)
 
 !-------------------------------------------------------------------------------------------
 ! Parameters of atmosperic grid

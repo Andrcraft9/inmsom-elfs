@@ -2,31 +2,31 @@
     0   :Ideal age equation solving (0 - no, 1 - yes)
     0   :Passive tracer equation solving (0 - no, 1 - yes)
     1   :Momentum equation solving (0 - no, 1 - yes)
-    0   :Lateral 2nd order mix parametrization (0 - constant coeff, 1 - Smagorinski)
-    0   :Lateral 4nd order momentum mix parametrization (0 - no, 1 - yes)
-    0   :vertical mix parametrization (0 - constant coeff, 1 - Pacanowski&Philander)
-    0   :pressure gradient computation (0 - no (constant density), 1 - yes)
+    1   :Lateral 2nd order mix parametrization (0 - constant coeff, 1 - Smagorinski)
+    1   :Lateral 4nd order momentum mix parametrization (0 - no, 1 - yes)
+    1   :vertical mix parametrization (0 - constant coeff, 1 - Pacanowski&Philander, 2 - Mellor-Yamada)
+    1   :pressure gradient computation (0 - no (constant density), 1 - yes)
     0   :sea ice thermodynamics using (0 - no, 1 - yes)
     0   :sea ice transport using (0 - no, 1 - yes)
     0   :sea ice dynamics using (0 - no, 1 - yes)
-    2   :Type of surface boundary conditions (1 - surface T&S and wind stress are set; 2 - T&S fluxes and wind stress are set; 3 - T&S fluxes and wind stress are computed)
-    0   :normalize global mean salt balance (0 - no, 1 - normalize water flux, 2 - normalize salinity flux)
+    3   :Type of surface boundary conditions (1 - surface T&S and wind stress are set; 2 - T&S fluxes and wind stress are set; 3 - T&S fluxes and wind stress are computed)
+    1   :normalize global mean salt balance (0 - no, 1 - normalize water flux, 2 - normalize salinity flux)
     0   :open boundary conditions for T&S using (0 - no, 1 - yes)
     0   :open boundary conditions for U&V using (0 - no, 1 - yes)
     0   :open boundary conditions for SSH using (0 - no, 1 - yes)
   0.0D-05    :Relaxation coefficient for temperature [m/s]
-  0.0D-05    :Relaxation coefficient for salinity [m/s]
+  1.0D-05    :Relaxation coefficient for salinity [m/s]
   1.0d+02    :lateral diffusion for temperature [m**2/s]
   1.0d+03    :lateral  vicosity(2nd order)[m**2/s] 
-  0.0d+04    :lateral  vicosity(4th order)[undim]
+  0.001d0    :lateral  vicosity(4th order)[undim]
   0.2d0      :fraction of salinity lateral diffusion due to one for temperature
   0.05d-04   :vertical background diffusion coefficient for T [m**2/s]
-  1.0d-04    :vertical max(top) diffusion coefficient for T [m**2/s]
-  10.0d-04    :vertical background viscous coefficient [m**2/s]
-  10.0d-04    :vertical max(top) viscous coefficient [m**2/s]
+  0.5d-04    :vertical max(top) diffusion coefficient for T [m**2/s]
+  1.0d-04    :vertical background viscous coefficient [m**2/s]
+ 50.0d-04    :vertical max(top) viscous coefficient [m**2/s]
   0.2d0      :fraction of salinity vertical diffusion due to one for temperature
 0.00d0       :weight coefficient for lateral Z-Diffusion
-0.00d0       :weight coefficient for lateral R-Diffusion
-0.00d0       :weight coefficient for Gent&McWilliams transport
-mask_planet2.txt        :file with temperature mask(0-ocean,1-land)(a32)
-hh.dat        :file with bottom topography[m](a32)
+1.00d0       :weight coefficient for lateral R-Diffusion
+1.00d0       :weight coefficient for Gent&McWilliams transport
+mask.txt        :file with temperature mask(0-ocean,1-land)(a32)
+topo.dat        :file with bottom topography[m](a32)
