@@ -30,10 +30,6 @@ subroutine mpi_array_boundary_definition
 
     period = (/1,1/)
     p_size = (/0,0/)
-    len_x1 = 1
-    len_x2 = 1
-    len_y1 = 1
-    len_y2 = 1
     ierr = 0
 
     call mpi_comm_rank(mpi_comm_world, rank, ierr)
@@ -51,9 +47,9 @@ subroutine mpi_array_boundary_definition
     nx_end = nx_start + locn - 1
     nx_start = nx_start
 !   border area
-    bnd_x1 = nx_start - len_x1
+    bnd_x1 = nx_start - 2
 !    if (bnd_x1 < 1) bnd_x1 = 1
-    bnd_x2 = nx_end + len_x2
+    bnd_x2 = nx_end + 2
 !    if (bnd_x2 > nx) bnd_x2 = nx
 
 !-----------------------------------NY------------------------------------------!
@@ -65,9 +61,9 @@ subroutine mpi_array_boundary_definition
     ny_end = ny_start + locn - 1
     ny_start = ny_start
 !   border area
-    bnd_y1 = ny_start - len_y1
+    bnd_y1 = ny_start - 2
 !    if (bnd_y1 < 1) bnd_y1 = 1
-    bnd_y2 = ny_end + len_y2
+    bnd_y2 = ny_end + 2
 !    if (bnd_y2 > ny) bnd_y2 = ny
 
     print *, "nx ", rank, p_coord, nx_start, nx_end, ny_start, ny_end
