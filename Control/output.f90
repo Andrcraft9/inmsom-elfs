@@ -1,7 +1,160 @@
+subroutine print_basin_grid
+    use main_basin_pars
+    use mpi_parallel_tools
+    use basin_grid
+    use ocean_variables
+    use ocean_bc
+
+    implicit none
+
+    integer :: m, n, k, procn, ierr
+
+    call mpi_comm_size(cart_comm, procn, ierr)
+    do k = 0, procn-1
+        if (rank .eq. k) then
+            print *, "RANK IS ", rank
+            ! LU mask
+            print *, "|------------------------- LU MASK: --------------------------|"
+            print *, "m ", "n "
+            do m=bnd_x1, bnd_x2
+              do n=bnd_y1, bnd_y2
+                  print *, m, n, lu(m, n)
+              enddo
+            enddo
+
+            ! LCU mask
+            print *, "|------------------------- LCU MASK: --------------------------|"
+            print *, "m ", "n "
+            do m=bnd_x1, bnd_x2
+              do n=bnd_y1, bnd_y2
+                  print *, m, n, lcu(m, n)
+              enddo
+            enddo
+
+            ! LCV mask
+            print *, "|------------------------- LCV MASK: --------------------------|"
+            print *, "m ", "n "
+            do m=bnd_x1, bnd_x2
+              do n=bnd_y1, bnd_y2
+                  print *, m, n, lcv(m, n)
+              enddo
+            enddo
+        endif
+        call mpi_barrier(cart_comm, ierr)
+    enddo
+
+end subroutine print_basin_grid
+
+subroutine parallel_local_output(path2data,  &
+                                 nrec,       &
+                                 year,       &
+                                month,       &
+                                  day,       &
+                                 hour,       &
+                               minute,       &
+                               tstep,        &
+                               calendar  )
+use main_basin_pars
+use mpi_parallel_tools
+use basin_grid
+use ocean_variables
+use ocean_bc
+use rec_length
+
+implicit none
+include 'locout.fi'
+
+integer nrec, year, month, day, hour, minute, calendar, ierr
+character fname*256
+character*(*) path2data
+real(4) array4_2d(bnd_x1:bnd_x2,bnd_y1:bnd_y2),       &
+        array4_3d(bnd_x1:bnd_x2,bnd_y1:bnd_y2,nz) !,    &
+!        array4_2dn(nx_start:nx_end, ny_start:ny_end)
+real(4) tstep
+integer m,n,k
+
+if (rank .eq. 0) write(*,*) 'Writing local output, record number ', nrec
+
+if(nrec==1) then
+!writing HHQ
+ ierr=0
+ array4_2d=sngl(hhq_rest)
+! array4_2dn(nx_start:nx_end, ny_start:ny_end) = sngl(hhq_rest(nx_start:nx_end, ny_start:ny_end))
+! call wdstd(path2data,'LOCAL/hhq.dat',nrec,array4_2d,lu,nx,ny,1,m1loc,m2loc,n1loc,n2loc,1,1,ierr)
+ call pwdstd(path2data,'LOCAL/hhq.dat',nrec,array4_2d,lu,nx,ny,1,m1loc,m2loc,n1loc,n2loc,1,1,ierr)
+
+ call fulfname(fname,path2data,'LOCAL/hhq.dat',ierr)
+ if (rank .eq. 0) then
+     call ctl_file_write(fname,    &     !file name
+                     undef,    &     !value for undefined points
+                     nx_loc,   &     !x-dimension
+                     ny_loc,   &     !y-dimension
+                          1,   &     !z-dimension
+                       nrec,   &     !t-dimension
+                   xgr_type,   &     !x-grid type (0 - linear, 1 - levels)
+                  xt(m1loc),   &     !first x-value (if linear) or x-array (if levels)
+                      dxst,    &     !x-step (if linear)
+                  ygr_type,    &     !y-grid type (0 - linear, 1 - levels)
+                  yt(n1loc),   &     !first y-value (if linear) or x-array (if levels)
+                      dyst,    &     !y-step (if linear)
+                      0,       &     !z-grid type (0 - linear, 1 - levels)
+                      0.0d0,   &     !first z-value (if linear) or x-array (if levels)
+                      1.0d0,   &     !z-step (if linear)
+                   calendar,   &     !type   of calendar (0 - without leap-year, 1 - with leap-year)
+                       year,   &     !year   of the first field
+                      month,   &     !month  of the first field
+                        day,   &     !day    of the first field
+                       hour,   &     !hour   of the first field
+                     minute,   &     !minute of the first field
+                      tstep,   &     !time step (in seconds)
+                   'HHQ, m',   &     !title of dataset
+                      'hhq'   )      !variable name
+ endif
+endif
+
+if(ssh_output>0) then
+!if (0 .eq. 1) then
+! writing SSH
+ ierr=0
+ array4_2d=sngl(ssh_i)
+! call wdstd(path2data,'LOCAL/ssh.dat',nrec,array4_2d,lu,nx,ny,1,m1loc,m2loc,n1loc,n2loc,1,1,ierr)
+ call pwdstd(path2data,'LOCAL/ssh.dat',nrec,array4_2d,lu,nx,ny,1,m1loc,m2loc,n1loc,n2loc,1,1,ierr)
+
+ call fulfname(fname,path2data,'LOCAL/ssh.dat',ierr)
+ if (rank .eq. 0) then
+     call ctl_file_write(fname,    &     !file name
+                     undef,    &     !value for undefined points
+                     nx_loc,   &     !x-dimension
+                     ny_loc,   &     !y-dimension
+                          1,   &     !z-dimension
+                       nrec,   &     !t-dimension
+                   xgr_type,   &     !x-grid type (0 - linear, 1 - levels)
+                  xt(m1loc),   &     !first x-value (if linear) or x-array (if levels)
+                      dxst,    &     !x-step (if linear)
+                  ygr_type,    &     !y-grid type (0 - linear, 1 - levels)
+                  yt(n1loc),   &     !first y-value (if linear) or x-array (if levels)
+                      dyst,    &     !y-step (if linear)
+                      0,       &     !z-grid type (0 - linear, 1 - levels)
+                      0.0d0,   &     !first z-value (if linear) or x-array (if levels)
+                      1.0d0,   &     !z-step (if linear)
+                   calendar,   &     !type   of calendar (0 - without leap-year, 1 - with leap-year)
+                       year,   &     !year   of the first field
+                      month,   &     !month  of the first field
+                        day,   &     !day    of the first field
+                       hour,   &     !hour   of the first field
+                     minute,   &     !minute of the first field
+                      tstep,   &     !time step (in seconds)
+                   'SSH, m',   &     !title of dataset
+                      'ssh'   )      !variable name
+ endif
+endif
+
+endsubroutine parallel_local_output
+
 subroutine local_output(path2data,  &
                         nrec,       &
                         year,       &
-                       month,       & 
+                       month,       &
                          day,       &
                         hour,       &
                       minute,       &
@@ -91,7 +244,7 @@ if(ssh_output>0) then
                       'ssh'   )      !variable name
 endif
 
-if(uv_output>0) then 
+if(uv_output>0) then
 !-----------------------------------------------------------------------------------------------------
 !writing zonal velocity
  ierr=0
@@ -123,10 +276,10 @@ if(uv_output>0) then
                        tstep,   &     !time step (in seconds
         'zonal velocity, m/s',  &     !title of dataset
                          'u'   )      !variable name
- 
+
  else !writing on T-grid
- 
- !$omp parallel do 
+
+ !$omp parallel do
   do n=ny_start, ny_end
    do m=nx_start, nx_end
     if(lu(m,n)>0.5) then
@@ -138,7 +291,7 @@ if(uv_output>0) then
    enddo
   enddo
  !$omp end parallel do
-  
+
   call wdstd(path2data,'LOCAL/uu.dat',nrec,array4_3d,lu,nx,ny,nz,m1loc,m2loc,n1loc,n2loc,1,nz,ierr)
   call fulfname(fname,path2data,'LOCAL/uu.dat',ierr)
   call ctl_file_write(fname,    &     !file name
@@ -166,7 +319,7 @@ if(uv_output>0) then
         'zonal velocity, m/s',  &     !title of dataset
                          'u'   )      !variable name
  endif
- 
+
 !------------------------------------------------------------------------------------------------------
 !writing meridional velocity
  ierr=0
@@ -198,10 +351,10 @@ if(uv_output>0) then
                        tstep,   &     !time step (in seconds
    'meridional velocity, m/s',  &     !title of dataset
                          'v'   )      !variable name
- 
+
  else !writing on T-grid
- 
- !$omp parallel do 
+
+ !$omp parallel do
   do n=ny_start, ny_end
    do m=nx_start, nx_end
     if(lu(m,n)>0.5) then
@@ -213,7 +366,7 @@ if(uv_output>0) then
    enddo
   enddo
  !$omp end parallel do
-  
+
   call wdstd(path2data,'LOCAL/vv.dat',nrec,array4_3d,lu,nx,ny,nz,m1loc,m2loc,n1loc,n2loc,1,nz,ierr)
   call fulfname(fname,path2data,'LOCAL/vv.dat',ierr)
   call ctl_file_write(fname,    &     !file name
@@ -275,10 +428,10 @@ if(wstr_output>0) then
                        tstep,   &     !time step (in seconds
  'zonal wind stress, (m/s)^2',  &     !title of dataset
                          'tx'   )      !variable name
- 
+
  else !writing on T-grid
- 
- !$omp parallel do 
+
+ !$omp parallel do
   do n=ny_start, ny_end
    do m=nx_start, nx_end
     if(lu(m,n)>0.5) then
@@ -288,7 +441,7 @@ if(wstr_output>0) then
    enddo
   enddo
  !$omp end parallel do
-  
+
   call wdstd(path2data,'LOCAL/tx.dat',nrec,array4_2d,lu,nx,ny,1,m1loc,m2loc,n1loc,n2loc,1,1,ierr)
   call fulfname(fname,path2data,'LOCAL/tx.dat',ierr)
   call ctl_file_write(fname,    &     !file name
@@ -316,7 +469,7 @@ if(wstr_output>0) then
  'zonal wind stress, (m/s)^2',  &     !title of dataset
                         'tx'   )      !variable name
  endif
- 
+
 !------------------------------------------------------------------------------------------------------
 !writing meridional wind stress
  ierr=0
@@ -348,10 +501,10 @@ if(wstr_output>0) then
                        tstep,   &     !time step (in seconds
  'meridional wind stress, (m/s)^2',  &     !title of dataset
                          'ty'   )      !variable name
- 
+
  else !writing on T-grid
- 
- !$omp parallel do 
+
+ !$omp parallel do
   do n=ny_start, ny_end
    do m=nx_start, nx_end
     if(lu(m,n)>0.5) then
@@ -361,7 +514,7 @@ if(wstr_output>0) then
    enddo
   enddo
  !$omp end parallel do
-  
+
   call wdstd(path2data,'LOCAL/ty.dat',nrec,array4_2d,lu,nx,ny,1,m1loc,m2loc,n1loc,n2loc,1,1,ierr)
   call fulfname(fname,path2data,'LOCAL/ty.dat',ierr)
   call ctl_file_write(fname,    &     !file name
@@ -420,7 +573,7 @@ if(tt_output>0) then
                        hour,   &     !hour   of the first field
                      minute,   &     !minute of the first field
                       tstep,   &     !time step (in seconds)
-          'Temperature, °C',   &     !title of dataset
+          'Temperature, ï¿½C',   &     !title of dataset
                        'tt'   )      !variable name
 endif
 
@@ -460,7 +613,7 @@ endif
 !--------------------------------------------------------------------------------------------------
 !writing surface fluxes
 if(sfl_output>0) then
- !$omp parallel do 
+ !$omp parallel do
   do n=ny_start, ny_end
    do m=nx_start, nx_end
     if(lu(m,n)>0.5) then
@@ -477,9 +630,9 @@ if(sfl_output>0) then
      array4_3d(m,n,11)=sngl(rain(m,n))
      array4_3d(m,n,12)=sngl(snow(m,n))
      array4_3d(m,n,13)=runoff(m,n)
-     array4_3d(m,n,14)=sngl(wf_tot(m,n))          
+     array4_3d(m,n,14)=sngl(wf_tot(m,n))
      array4_3d(m,n,15)=sngl(tflux_surf(m,n))
-     array4_3d(m,n,16)=sngl(sflux_surf(m,n))       
+     array4_3d(m,n,16)=sngl(sflux_surf(m,n))
     endif
    enddo
   enddo
@@ -680,7 +833,7 @@ endsubroutine local_output
 !===================================================================================================================
 subroutine ocpwrite(path2data,  &
                         year,       &
-                       month,       & 
+                       month,       &
                          day,       &
                         hour,       &
                       minute,       &
@@ -1092,7 +1245,7 @@ integer m,n,k
       uu_calc(m,n,k)=  uu_calc(m,n,k)+uu(m,n,k)*hhu(m,n)
       vv_calc(m,n,k)=  vv_calc(m,n,k)+vv(m,n,k)*hhv(m,n)
     enddo
-      ssh_calc(m,n)=  ssh_calc(m,n)+ ssh_i(m,n)      
+      ssh_calc(m,n)=  ssh_calc(m,n)+ ssh_i(m,n)
      uwnd_calc(m,n)= uwnd_calc(m,n)+uwnd(m,n)
      vwnd_calc(m,n)= vwnd_calc(m,n)+vwnd(m,n)
       txo_calc(m,n)=  txo_calc(m,n)+surf_stress_x(m,n)
@@ -1110,10 +1263,10 @@ integer m,n,k
       sfl_calc(m,n,11)= sfl_calc(m,n,11)+    rain(m,n)
       sfl_calc(m,n,12)= sfl_calc(m,n,12)+    snow(m,n)
       sfl_calc(m,n,13)= sfl_calc(m,n,13)+  runoff(m,n)
-      sfl_calc(m,n,14)= sfl_calc(m,n,14)+  wf_tot(m,n)      
+      sfl_calc(m,n,14)= sfl_calc(m,n,14)+  wf_tot(m,n)
       sfl_calc(m,n,15)= sfl_calc(m,n,15)+  tflux_surf(m,n)
       sfl_calc(m,n,16)= sfl_calc(m,n,16)+  sflux_surf(m,n)
-      
+
       Fltx_calc(m,n,:)= Fltx_calc(m,n,:) + Flux_tem_x(m,n,:)
       Flty_calc(m,n,:)= Flty_calc(m,n,:) + Flux_tem_y(m,n,:)
       Flsx_calc(m,n,:)= Flsx_calc(m,n,:) + Flux_sal_x(m,n,:)
@@ -1129,7 +1282,7 @@ endsubroutine data_calc
 subroutine global_output(path2data,  &
                          nrec,       &
                          year,       &
-                        month,       & 
+                        month,       &
                           day,       &
                          hour,       &
                        minute,       &
@@ -1220,7 +1373,7 @@ if(ssh_output>0) then
                       'ssh'   )      !variable name
 endif
 
-if(uv_output>0) then 
+if(uv_output>0) then
 !-----------------------------------------------------------------------------------------------------
 !writing zonal velocity
  ierr=0
@@ -1266,14 +1419,14 @@ if(uv_output>0) then
                        tstep,   &     !time step (in seconds
         'zonal velocity, m/s',  &     !title of dataset
                          'u'   )      !variable name
- 
+
  else !writing on T-grid
- 
+
  !$omp parallel do private(sht)
   do n=ny_start, ny_end
    do m=nx_start, nx_end
     if(lu(m,n)>0.5) then
-     
+
      sht=( ssh_calc(m,n)/dfloat(meancalc) + hhq_rest(m,n))
 
      do k=1,nz
@@ -1284,7 +1437,7 @@ if(uv_output>0) then
    enddo
   enddo
  !$omp end parallel do
-  
+
   call wdstd(path2data,'GLOBAL/uu.dat',nrec,array4_3d,lu,nx,ny,nz,mmm,mm,nnn,nn,1,nz,ierr)
   call fulfname(fname,path2data,'GLOBAL/uu.dat',ierr)
   call ctl_file_write(fname,    &     !file name
@@ -1318,7 +1471,7 @@ if(uv_output>0) then
 !writing meridional velocity
  ierr=0
  if(grid_shift==0) then !writing on the model grid
-  
+
  !$omp parallel do private(shv)
   do n=ny_start-1, ny_end
    do m=nx_start, nx_end
@@ -1359,14 +1512,14 @@ if(uv_output>0) then
                        tstep,   &     !time step (in seconds
    'meridional velocity, m/s',  &     !title of dataset
                          'v'   )      !variable name
- 
+
  else !writing on T-grid
- 
+
  !$omp parallel do private(sht)
   do n=ny_start, ny_end
    do m=nx_start, nx_end
     if(lu(m,n)>0.5) then
-     
+
      sht=( ssh_calc(m,n)/dfloat(meancalc) + hhq_rest(m,n))
 
      do k=1,nz
@@ -1377,7 +1530,7 @@ if(uv_output>0) then
    enddo
   enddo
  !$omp end parallel do
-  
+
   call wdstd(path2data,'GLOBAL/vv.dat',nrec,array4_3d,lu,nx,ny,nz,mmm,mm,nnn,nn,1,nz,ierr)
   call fulfname(fname,path2data,'GLOBAL/vv.dat',ierr)
   call ctl_file_write(fname,    &     !file name
@@ -1440,10 +1593,10 @@ if(wstr_output>0) then
                        tstep,   &     !time step (in seconds
  'zonal wind stress, (m/s)^2',  &     !title of dataset
                          'tx'   )      !variable name
- 
+
  else !writing on T-grid
- 
- !$omp parallel do 
+
+ !$omp parallel do
   do n=ny_start, ny_end
    do m=nx_start, nx_end
     if(lu(m,n)>0.5) then
@@ -1453,7 +1606,7 @@ if(wstr_output>0) then
    enddo
   enddo
  !$omp end parallel do
-  
+
   call wdstd(path2data,'GLOBAL/tx.dat',nrec,array4_2d,lu,nx,ny,1,mmm,mm,nnn,nn,1,1,ierr)
   call fulfname(fname,path2data,'GLOBAL/tx.dat',ierr)
   call ctl_file_write(fname,    &     !file name
@@ -1514,10 +1667,10 @@ if(wstr_output>0) then
                        tstep,   &     !time step (in seconds
  'meridional wind stress, (m/s)^2',  &     !title of dataset
                          'ty'   )      !variable name
- 
+
  else !writing on T-grid
- 
- !$omp parallel do 
+
+ !$omp parallel do
   do n=ny_start, ny_end
    do m=nx_start, nx_end
     if(lu(m,n)>0.5) then
@@ -1527,7 +1680,7 @@ if(wstr_output>0) then
    enddo
   enddo
  !$omp end parallel do
-  
+
   call wdstd(path2data,'GLOBAL/ty.dat',nrec,array4_2d,lu,nx,ny,1,mmm,mm,nnn,nn,1,1,ierr)
   call fulfname(fname,path2data,'GLOBAL/ty.dat',ierr)
   call ctl_file_write(fname,    &     !file name
@@ -1567,7 +1720,7 @@ if(tt_output>0) then
   do n=ny_start, ny_end
    do m=nx_start, nx_end
     if(lu(m,n)>0.5) then
-     
+
      sht=( ssh_calc(m,n)/dfloat(meancalc) + hhq_rest(m,n))
 
      do k=1,nz
@@ -1602,7 +1755,7 @@ if(tt_output>0) then
                        hour,   &     !hour   of the first field
                      minute,   &     !minute of the first field
                       tstep,   &     !time step (in seconds)
-          'Temperature, °C',   &     !title of dataset
+          'Temperature, ï¿½C',   &     !title of dataset
                        'tt'   )      !variable name
 endif
 tt_calc=0.0d0
@@ -1616,7 +1769,7 @@ if(ss_output>0) then
   do n=ny_start, ny_end
    do m=nx_start, nx_end
     if(lu(m,n)>0.5) then
-     
+
      sht=( ssh_calc(m,n)/dfloat(meancalc) + hhq_rest(m,n))
 
      do k=1,nz
@@ -1659,12 +1812,12 @@ ss_calc=0.0d0
 !--------------------------------------------------------------------------------------------------
 !writing surface fluxes
 if(sfl_output>0) then
- !$omp parallel do 
+ !$omp parallel do
   do n=ny_start, ny_end
    do m=nx_start, nx_end
     if(lu(m,n)>0.5) then
      do k=1,16
-      array4_3d(m,n,k)=sngl(sfl_calc(m,n,k)/dfloat(meancalc))      
+      array4_3d(m,n,k)=sngl(sfl_calc(m,n,k)/dfloat(meancalc))
      enddo
     endif
    enddo
