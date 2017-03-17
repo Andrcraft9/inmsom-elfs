@@ -143,7 +143,7 @@ call atm2oc_allocate
 
 !Initializing ocean model parameters
 call ocean_model_parameters(time_step)
-if (rank .eq. 0) print *, "end of ocean_model_parameters"
+if (rank .eq. 0) print *, "--------------------END OF OCEAN MODEL PARAMETERS----------------------"
 
 !Initializing open boundary parameters
 if (ksw_lbc_ts>0) then
@@ -151,25 +151,26 @@ if (ksw_lbc_ts>0) then
 endif
 
 !------------------------------- Test init -------------------------------------!
-call test_init
-call  parallel_local_output(path2ocp,  &
-                          1,  &
-                   year_loc,  &
-                    mon_loc,  &
-                    day_loc,  &
-                   hour_loc,  &
-                    min_loc,  &
-             loc_data_tstep,  &
-                    yr_type  )
-call mpi_finalize(ierr)
-stop
+!call test_init
+!call  parallel_local_output(path2ocp,  &
+!                          1,  &
+!                   year_loc,  &
+!                    mon_loc,  &
+!                    day_loc,  &
+!                   hour_loc,  &
+!                    min_loc,  &
+!             loc_data_tstep,  &
+!                    yr_type  )
+!call mpi_finalize(ierr)
+!stop
+!-------------------------------------------------------------------------------!
 
 !Reading initial conditions
 call ocinicond(start_type,path2ocp)
-if (rank .eq. 0) print *, "end of ocinicod"
+if (rank .eq. 0) print *, "--------------------END OF OCINICOND----------------------"
 
 call icinicond(start_type,path2ocp,nstep_icedyn)
-if (rank .eq. 0) print *, "end of icinicond"
+if (rank .eq. 0) print *, "--------------------END OF ICINICOND----------------------"
 
 if(ksw_pt>0) then
  call ptinicond(path2ocp)
@@ -177,7 +178,8 @@ endif
 
 !constructing matrix for spatial interpolation
 call build_intrp_mtrx(path2atmssdata,atmask)
-if (rank .eq. 0) print *, "end of built_intpr"
+if (rank .eq. 0) print *, "--------------------END OF BUILD INTPR MTRX----------------------"
+
 !-----------------------------------------------------------------------
 if (rank .eq. 0) then
     write(*,'(2x,5hstep:,f7.2,4hhrs;,f9.2,4hsec;,f9.5,4hday.)')     &
@@ -215,8 +217,15 @@ if (rank .eq. 0) then
     write(*,*)'=================================================================='
 endif
 
-call mpi_finalize(ierr)
-stop
+call  parallel_local_output(path2ocp,  &
+                          1,  &
+                   year_loc,  &
+                    mon_loc,  &
+                    day_loc,  &
+                   hour_loc,  &
+                    min_loc,  &
+             loc_data_tstep,  &
+                    yr_type  )
 
 do while(num_step<num_step_max)
 ! atmospheric data time interpolation on atmospheric grid
@@ -225,6 +234,10 @@ do while(num_step<num_step_max)
   call atm_data_spatial_interpol
 ! oceanic data time interpolation
   call oc_data_time_interpol
+
+  call mpi_finalize(ierr)
+  stop
+  
 !computing one step of ocean dynamics
   call ocean_model_step(time_step,nstep_barotrop)
 

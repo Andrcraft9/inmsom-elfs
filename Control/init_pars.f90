@@ -113,7 +113,7 @@ close(90)
    array4=0.0
    call prdstd(' ',bottom_topography_file,1,array4,lu,nx,ny,1, mmm,mm,nnn,nn,1,1,ierr)
    hhq_rest=dble(array4)
-!    hhq_rest = 1000.0
+   call syncborder_real8(hhq_rest, 1)
 
    if(periodicity_x/=0) then
        call cyclize8_x(hhq_rest,nx,ny,1,mmm,mm)
@@ -235,19 +235,22 @@ character*(*) path2ocp
 integer m, n, k, ierr, lqp
 integer start_type
 real(8) density, hx2, hy2
-real(4) array4(nx,ny,nz)
+real(4) array4(bnd_x1:bnd_x2,bnd_y1:bnd_y2,nz)
 
 ! initial conditions for temperature, salinity
       if (start_type==0) then
 
 !read potential temperature
        array4=0.0
-       call rdstd(path2ocp,'cptt.dat', 1,array4,lu,nx,ny,nz, mmm,mm,nnn,nn,1,nz,ierr)
+       call prdstd(path2ocp,'cptt.dat', 1,array4,lu,nx,ny,nz, mmm,mm,nnn,nn,1,nz,ierr)
        tt=dble(array4)
+
+       call syncborder_real8(tt, nz)
 !read salinity
        array4=0.0
-       call rdstd(path2ocp,'cpss.dat', 1,array4,lu,nx,ny,nz, mmm,mm,nnn,nn,1,nz,ierr)
+       call prdstd(path2ocp,'cpss.dat', 1,array4,lu,nx,ny,nz, mmm,mm,nnn,nn,1,nz,ierr)
        ss=dble(array4)
+       call syncborder_real8(ss, nz)
 
 	 if(periodicity_x/=0) then
           call cyclize8_x(tt, nx,ny,nz,mmm,mm)
@@ -384,8 +387,8 @@ real(4) array4(nx,ny,nz)
 
   !compute depth mean and vertical velocity
 
-  xxt=uu
-  yyt=vv
+    xxt=uu
+    yyt=vv
 
     call depth_ave(xxt,uu2d ,llu,1)
     call depth_ave(yyt,vv2d ,llv,1)
@@ -423,6 +426,7 @@ real(4) array4(nx,ny,nz)
           enddo
          enddo
 !$omp end parallel do
+       call syncborder_real8(r_diss, 1)
 
        if(periodicity_x/=0) then
            call cyclize8_x( r_diss, nx,ny,1,mmm,mm)
@@ -449,27 +453,35 @@ endsubroutine ocinicond
       if(start_type>0.and.nstep>0) then    !if model is running from control point
 ! reading hice - ice layer thicknesses=>
        call rdstd8(path2ocp,'cphice8.dat',1,hice,lu,nx,ny,mgrad, mmm,mm,nnn,nn,1,mgrad,ierr)
+       call syncborder_real8(hice, mgrad)
 
 ! reading aice - ice square
        call rdstd8(path2ocp,'cpaice8.dat',1,aice,lu,nx,ny,mgrad, mmm,mm,nnn,nn,1,mgrad,ierr)
+       call syncborder_real8(aice, mgrad)
 
 ! reading hsnow - snow thickness
        call rdstd8(path2ocp,'cphsnow8.dat',1,hsnow,lu,nx,ny,mgrad, mmm,mm,nnn,nn,1,mgrad,ierr)
+       call syncborder_real8(hsnow, mgrad)
 
 ! read zonal ice velocity
        call rdstd8(path2ocp,'cpuice8.dat', 1,uice, llu,nx,ny,1, mmm-1,mm,nnn  ,nn,1,1,ierr)
+       call syncborder_real8(uice, 1)
 
 ! read meridional ice velocity
        call rdstd8(path2ocp,'cpvice8.dat', 1,vice, llv,nx,ny,1, mmm  ,mm,nnn-1,nn,1,1,ierr)
+       call syncborder_real8(vice, 1)
 
 ! read sigma1 ice stress
        call rdstd8(path2ocp,'cpsig18.dat', 1,ice_stress11,lu,nx,ny,1, mmm  ,mm,nnn,nn,1,1,ierr)
+       call syncborder_real8(ice_stress11, 1)
 
 ! read sigma2 ice deformation rate
        call rdstd8(path2ocp,'cpsig28.dat', 1,ice_stress22,lu,nx,ny,1, mmm  ,mm,nnn,nn,1,1,ierr)
+       call syncborder_real8(ice_stress22, 1)
 
 ! read sigma12 ice deformation rate
        call rdstd8(path2ocp,'cpsig128.dat', 1,ice_stress12,luh,nx,ny,1,  mmm-1,mm,nnn-1,nn,1,1,ierr)
+       call syncborder_real8(ice_stress12, 1)
 
       end if
 
@@ -477,9 +489,10 @@ endsubroutine ocinicond
 
        do k=1,mgrad
         aice0(:,:)=aice0(:,:)-aice(:,:,k)
-	 end do
+	   end do
 
-	  aice0=min(max(aice0,0.0d0),1.0d0)
+	   aice0=min(max(aice0,0.0d0),1.0d0)
+       call syncborder_real8(aice0, 1)
 
        if(periodicity_x/=0) then
         call cyclize8_x( aice ,nx,ny,mgrad,mmm,mm)
@@ -519,6 +532,7 @@ character*(*) path2ocp
 ! initial conditions for pass_tracer
 
       call rdstd8(path2ocp,'cppt8.dat', 1, pass_tracer,lu ,nx,ny,nz, mmm,mm,nnn,nn,1,nz,ierr)
+      call syncborder_real8(pass_tracer, nz)
 
 	if(periodicity_x/=0) then
        call cyclize8_x(pass_tracer,nx,ny,nz,mmm,mm)

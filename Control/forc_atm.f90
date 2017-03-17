@@ -118,7 +118,9 @@ implicit none
  if(iabs(ksw_ssbc)<=2) then
 
    if(ind_change_stress>0) then
-    write(*,'(4(a,i4))') 'Spatial interpolation of wind stress:     from ',nxa,' x',nya,' to ',mm-mmm+1,' x',nn-nnn+1
+        if (rank .eq. 0) then
+            write(*,'(4(a,i4))') 'Spatial interpolation of wind stress:     from ',nxa,' x',nya,' to ',mm-mmm+1,' x',nn-nnn+1
+        endif
        !spatial interpolation of wind stress
         call interpolrot_vec(nxa,         &  !number of x-grid points(input)
                              nya,         &  !number of y-grid points(input)
@@ -146,9 +148,11 @@ implicit none
  if(iabs(ksw_ssbc)==2) then
 
    if(ind_change_heat>0) then
-   write(*,'(4(a,i4))') 'Spatial interpolation of heat balance:    from ',nxa,' x',nya,' to ',mm-mmm+1,' x',nn-nnn+1
+       if (rank .eq. 0) then
+           write(*,'(4(a,i4))') 'Spatial interpolation of heat balance:    from ',nxa,' x',nya,' to ',mm-mmm+1,' x',nn-nnn+1
+       endif
       !spatial interpolation of heat balance
-      call interpolrot_scal(nxa,         &  !number of x-grid points(input)
+       call interpolrot_scal(nxa,         &  !number of x-grid points(input)
                             nya,         &  !number of y-grid points(input)
                          bnd_x1,bnd_x2,  &  !number of x-grid points(output)
                          bnd_y1,bnd_y2,  &  !number of y-grid points(output)
@@ -164,9 +168,11 @@ implicit none
                             ny_start-1,  &  !first significant point in y-direction (output)
                               ny_end+1 )    ! last significant point in y-direction (output)
 
-    write(*,'(4(a,i4))') 'Spatial interpolation of SW-balance:      from ',nxa,' x',nya,' to ',mm-mmm+1,' x',nn-nnn+1
+       if (rank .eq. 0) then
+           write(*,'(4(a,i4))') 'Spatial interpolation of SW-balance:      from ',nxa,' x',nya,' to ',mm-mmm+1,' x',nn-nnn+1
+       endif
       !spatial interpolation of SW-rad balance
-      call interpolrot_scal(nxa,         &  !number of x-grid points(input)
+       call interpolrot_scal(nxa,         &  !number of x-grid points(input)
                             nya,         &  !number of y-grid points(input)
                          bnd_x1,bnd_x2,  &  !number of x-grid points(output)
                          bnd_y1,bnd_y2,  &  !number of y-grid points(output)
@@ -185,9 +191,11 @@ implicit none
 
 
    if(ind_change_water>0) then
-    write(*,'(4(a,i4))') 'Spatial interpolation of freshwater balance: from ',nxa,' x',nya,' to ',mm-mmm+1,' x',nn-nnn+1
+       if (rank .eq. 0) then
+           write(*,'(4(a,i4))') 'Spatial interpolation of freshwater balance: from ',nxa,' x',nya,' to ',mm-mmm+1,' x',nn-nnn+1
+       endif
       !spatial interpolation of fresh water balance
-      call interpolrot_scal(nxa,         &  !number of x-grid points(input)
+       call interpolrot_scal(nxa,         &  !number of x-grid points(input)
                             nya,         &  !number of y-grid points(input)
                          bnd_x1,bnd_x2,  &  !number of x-grid points(output)
                          bnd_y1,bnd_y2,  &  !number of y-grid points(output)
@@ -211,7 +219,9 @@ implicit none
 
   if(ind_change_slpr>0) then
      !spatial interpolation of SLP
-    write(*,'(4(a,i4))') 'Spatial interpolation of slp:             from ',nxa,' x',nya,' to ',mm-mmm+1,' x',nn-nnn+1
+     if (rank .eq. 0) then
+         write(*,'(4(a,i4))') 'Spatial interpolation of slp:             from ',nxa,' x',nya,' to ',mm-mmm+1,' x',nn-nnn+1
+     endif
      call interpolrot_scal(nxa,         &  !number of x-grid points(input)
                            nya,         &  !number of y-grid points(input)
                         bnd_x1,bnd_x2,  &  !number of x-grid points(output)
@@ -231,7 +241,9 @@ implicit none
 
 
   if(ind_change_rad>0) then
-    write(*,'(4(a,i4))') 'Spatial interpolation of DW-LW-rad:       from ',nxa,' x',nya,' to ',mm-mmm+1,' x',nn-nnn+1
+       if (rank .eq. 0) then
+          write(*,'(4(a,i4))') 'Spatial interpolation of DW-LW-rad:       from ',nxa,' x',nya,' to ',mm-mmm+1,' x',nn-nnn+1
+       endif
        !spatial interpolation of downwelling LW-radiation
        call interpolrot_scal(nxa,         &  !number of x-grid points(input)
                              nya,         &  !number of y-grid points(input)
@@ -249,7 +261,9 @@ implicit none
                              ny_start-1,  &  !first significant point in y-direction (output)
                                ny_end+1 )    ! last significant point in y-direction (output)
 
-    write(*,'(4(a,i4))') 'Spatial interpolation of DW-SW-rad:       from ',nxa,' x',nya,' to ',mm-mmm+1,' x',nn-nnn+1
+       if (rank .eq. 0) then
+           write(*,'(4(a,i4))') 'Spatial interpolation of DW-SW-rad:       from ',nxa,' x',nya,' to ',mm-mmm+1,' x',nn-nnn+1
+       endif
        !spatial interpolation of downwelling SW-radiation
        call interpolrot_scal(nxa,         &  !number of x-grid points(input)
                              nya,         &  !number of y-grid points(input)
@@ -269,7 +283,9 @@ implicit none
   endif
 
   if(ind_change_prec>0) then
-    write(*,'(4(a,i4))') 'Spatial interpolation of rain:            from ',nxa,' x',nya,' to ',mm-mmm+1,' x',nn-nnn+1
+        if (rank .eq. 0) then
+          write(*,'(4(a,i4))') 'Spatial interpolation of rain:            from ',nxa,' x',nya,' to ',mm-mmm+1,' x',nn-nnn+1
+        endif
        !spatial interpolation of rain precipitation
         call interpolrot_scal(nxa,         &  !number of x-grid points(input)
                               nya,         &  !number of y-grid points(input)
@@ -288,7 +304,9 @@ implicit none
                                 ny_end+1 )    ! last significant point in y-direction (output)
 
    if(prec_split>0) then
-    write(*,'(4(a,i4))') 'Spatial interpolation of snow:            from ',nxa,' x',nya,' to ',mm-mmm+1,' x',nn-nnn+1
+       if (rank .eq. 0) then
+           write(*,'(4(a,i4))') 'Spatial interpolation of snow:            from ',nxa,' x',nya,' to ',mm-mmm+1,' x',nn-nnn+1
+       endif
        !spatial interpolation of snow precipitation
        call interpolrot_scal(nxa,         &  !number of x-grid points(input)
                              nya,         &  !number of y-grid points(input)
@@ -312,7 +330,9 @@ implicit none
   endif
 
   if(ind_change_tatm>0) then
-    write(*,'(4(a,i4))') 'Spatial interpolation of air temperature: from ',nxa,' x',nya,' to ',mm-mmm+1,' x',nn-nnn+1
+       if (rank .eq. 0) then
+           write(*,'(4(a,i4))') 'Spatial interpolation of air temperature: from ',nxa,' x',nya,' to ',mm-mmm+1,' x',nn-nnn+1
+       endif
        !spatial interpolation of air temperature
        call interpolrot_scal(nxa,         &  !number of x-grid points(input)
                              nya,         &  !number of y-grid points(input)
@@ -332,7 +352,9 @@ implicit none
   endif
 
   if(ind_change_qatm>0) then
-    write(*,'(4(a,i4))') 'Spatial interpolation of air humidity:    from ',nxa,' x',nya,' to ',mm-mmm+1,' x',nn-nnn+1
+       if (rank .eq. 0) then
+          write(*,'(4(a,i4))') 'Spatial interpolation of air humidity:    from ',nxa,' x',nya,' to ',mm-mmm+1,' x',nn-nnn+1
+       endif
        !spatial interpolation of air humidity
        call interpolrot_scal(nxa,         &  !number of x-grid points(input)
                              nya,         &  !number of y-grid points(input)
@@ -352,7 +374,9 @@ implicit none
   endif
 
   if(ind_change_wind>0) then
-    write(*,'(4(a,i4))') 'Spatial interpolation of wind speed:      from ',nxa,' x',nya,' to ',mm-mmm+1,' x',nn-nnn+1
+    if (rank .eq. 0) then
+        write(*,'(4(a,i4))') 'Spatial interpolation of wind speed:      from ',nxa,' x',nya,' to ',mm-mmm+1,' x',nn-nnn+1
+    endif
     !spatial interpolation of wind speed
     call interpolrot_vec(nxa,         &  !number of x-grid points(input)
                          nya,         &  !number of y-grid points(input)
@@ -386,7 +410,7 @@ implicit none
   endif
 
   if(prec_split==0.and.(ind_change_tatm>0.or.ind_change_prec>0)) then
-   write(*,*) 'Getting snow data from total precipitation'
+   if (rank .eq. 0) write(*,*) 'Getting snow data from total precipitation'
 !if rain and snow are mixed
 !$omp parallel do private(m,n)
    do n=ny_start-1, ny_end+1

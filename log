@@ -1,0 +1,189 @@
+ Boundary arrays:
+ nx            0           0           0           3         144           3          81
+ bnd           0           0           0           1         146           1          83
+ nx            1           0           1           3         144          82         161
+ bnd           1           0           1           1         146          80         163
+ nx            2           1           0         145         287           3          81
+ bnd           2           1           0         143         289           1          83
+ nx            3           1           1         145         287          82         161
+ bnd           3           1           1         143         289          80         163
+ Input ocean task parameters from ocean_run.par
+             0  : 0 - start from minimum conditions, 1 - start from the full checkpoint
+        600.0d0 : Model time step in seconds
+           1.0  : Duration of the run (in days)
+             0  : Time step number (0 matches to 01 January 00:00:00)
+          2007  : Initial year (i4.4)
+          10.0  : Periodicity for writing local  instantaneous data (in minutes). If >1440.0, then output is once per day. If <=0 then no local output is done
+        1440.0  : Periodicity for writing global time averaged data (in minutes). If >1440.0, then output is once per month. If <0 then only checkpoints are written
+             0  : Number of internal steps for ice dynamics (0 - do not use ice block at all)
+            60  : Number of internal steps for barotropic dynamics
+ ../CP0/                                   : Path to the checkpoints and results
+ ../BC_OGRID            : Path to the sea surface data on the oceanic grid
+ sst.dat                         : Sea surface temperature
+ sss.dat                         : Sea surface salinity
+ rof.dat                         : River runoff
+ tlbc.dat                        : Temperature at the open boundary
+ slbc.dat                        : Salinity at the open boundary
+ ulbc.dat                        : Zonal velocity at the open boundary
+ vlbc.dat                        : Meridional velocity at the open boundary
+ hlbc.dat                        : SSH at the open boundary
+ ../ERA                          : Path to the sea surface data on the oceanic grid
+ taux.dat                        : SS Zonal wind stress (prescribed)
+ tauy.dat                        : SS Meridional wind stress (prescribed)
+ qbal.dat                        : SS Heat balance (prescribed)
+ qswr.dat                        : SS Solar radiation balance (prescribed)
+ qsal.dat                        : SS fresh water balance (prescribed)
+ t2mE0.dat                         : Air temperature at some height
+ q2mE0.dat                         : Air humidity at some height
+ u10E0.dat                         : Air zonal wind speed at some height
+ v10E0.dat                         : Air meridional wind speed at some height
+ slpE0.dat                         : Sea level pressure
+ trdE12.dat                        : Downwelling thermal radiation
+ srdE12.dat                        : Downwelling solar radiation
+ tprE12.dat                        : Liquid precipitation rate (rain)
+ snow.dat                        : Liquid precipitation rate (snow)
+ NONE                            : Sea-land mask on atmospheric grid (if available, NONE otherwise)
+
+      0 - Temperature and salinity equation solving
+      0 - Ideal age equation solving
+      0 - Passive tracer equation solving
+      1 - Momentum equation solving
+      1 - Lateral 2nd order mix parametrization
+      1 - Lateral 4nd order momentum mix parametrization
+      1 - Vertical mix parametrization
+      1 - Pressure gradient computation
+      0 - Sea ice thermodynamics using
+      0 - Sea ice transport using
+      0 - Sea ice dynamics using
+      3 - Type of surface boundary conditions
+      1 - Normalize global mean salt balance
+      0 - Open boundary conditions for T&S using
+      0 - Open boundary conditions for U&V using
+      0 - Open boundary conditions for SSH using
+  0.0000E+00 - Relaxation coefficient for temperature [m/s]
+  0.1000E-04 - Relaxation coefficient for salinity [m/s]
+  0.1000E+03 - Lateral diffusion for temperature [m**2/s]
+  0.1000E+04 - Lateral  vicosity(2nd order)[m**2/s]
+  0.1000E-02 - Lateral  vicosity(4th order)[undim]
+  0.2000E+00 - fraction of salinity lateral diffusion
+  0.5000E-05 - Vertical background diffusion coefficient for T [m**2/s]
+  0.5000E-04 - Vertical max(top) diffusion coefficient for T [m**2/s]
+  0.1000E-03 - Vertical background viscosity coefficient [m**2/s]
+  0.5000E-02 - Vertical max(top) viscosity coefficient [m**2/s]
+  0.2000E+00 - fraction of salinity vertical diffusion
+  0.0000E+00 - Weight coefficient for lateral Z-Diffusion
+  0.1000E+01 - Weight coefficient for lateral R-Diffusion
+  0.1000E+01 - Weight coefficient for Gent&McWilliams transport
+ file with T-point sea-land mask: imask.txt
+     file with bottom topography: topo.dat
+ Black Sea mask 1/20x1/25                                                        
+ Construction of H-grid masks: 
+ LUH (includes boundary) and LUU (does not include boundary)
+ Construction of U- and V-grid masks: 
+ LCU and LCV (do not include boundary) and LLU and LLV (include boundary)
+ --------------------END OF GRIDCON----------------------
+ number of levitus horizonts: 29 for h= 3500.00
+   w-levels are arranged in the middles of t-layers.
+  w-levels w-steps  t-levels t-steps *1000.00
+      4.51    4.51      2.26    2.26
+      9.74    5.23      6.77    4.51
+     16.60    6.87     12.71    5.95
+     25.57    8.97     20.50    7.79
+     37.17   11.60     30.65   10.16
+     51.92   14.74     43.69   13.04
+     70.34   18.43     60.14   16.45
+     93.04   22.69     80.55   20.41
+    120.63   27.60    105.52   24.97
+    153.86   33.23    135.74   30.22
+    193.56   39.70    171.98   36.24
+    240.72   47.16    215.14   43.16
+    296.52   55.80    266.30   51.16
+    362.36   65.84    326.73   60.43
+    439.97   77.61    397.99   71.25
+    531.43   91.46    481.94   83.96
+    639.32  107.90    580.91   98.97
+    766.85  127.52    697.74  116.83
+    890.64  123.79    835.96  138.22
+   1000.00  109.36    945.32  109.36
+ --------------------END OF VGRID----------------------
+   Basin parameters from 1basinpar.inc:
+ Coordinate system is undistorted sphere
+ rotation angle on longitude is =     0.000
+ rotation angle on  latitude is =     0.000
+ X-grid is uniform
+ initial x-coordinate (m=mmm) =    27.525 step on x =     0.050[dgr] 
+ Y-grid is uniform
+ initial y-coordinate (n=nnn) =    40.940 step on y =     0.040[dgr] 
+Periodicity on X = 0, Periodicity on Y = 0
+  nx= 289;  ny= 163;  nz=  20
+ mmm=   3;  mm= 287; nnn=   3;  nn= 161
+   Earth radius =  6371000.    (m)
+  Earth angular velocity(omega) = 0.7292116E-04[rad/sec]
+  Heat capacity of water =  4000.000    [J/kg/�C] for 35%. sal
+  reference density =  1025.000    [kg/m**3]
+  free fall acceleration(grv)=     9.800[m/s**2]
+ --------------------END OF BASINPAR----------------------
+  sum of SW divergence coefficient =  11440.00
+  for   11440.00 t-grid points
+ --------------------END OF OCEAN MODEL PARAMETERS----------------------
+ BEGIN READ
+ END READ
+ BEGIN SYNC
+ END SYNC
+ --------------------END OF OCINICOND----------------------
+ --------------------END OF ICINICOND----------------------
+ building matrix for interpolation from atm to ocean
+ --------------------END OF BUILD INTPR MTRX----------------------
+  step:   0.17hrs;   600.00sec;  0.00694day.
+  duration of run     1.00 days.
+   time step:        0   model time: 00:00:00  01Jan2007;  day in year:001,  day in 4yrs:0731   month of all:    1
+ ==================================================================
+ ------------------Starting model time integration-----------------
+ ==================================================================
+ Writing local output, record number            1
+ ---------------------SSH OUT-------------------------
+ ---------------------UU OUT-------------------------
+ ---------------------VV OUT-------------------------
+
+Program received signal SIGSEGV: Segmentation fault - invalid memory reference.
+
+Program received signal SIGSEGV: Segmentation fault - invalid memory reference.
+
+Backtrace for this error:
+
+Program received signal SIGSEGV: Segmentation fault - invalid memory reference.
+
+Backtrace for this error:
+
+Program received signal SIGSEGV: Segmentation fault - invalid memory reference.
+
+Backtrace for this error:
+
+Backtrace for this error:
+#0  0x7F330AF9DE08
+#1  0x7F330AF9CF90
+#2  0x7F330A6CF4AF
+#3  0x7F330B2D1653
+#4  0x473187 in parallel_local_output_
+#5  0x40553A in MAIN__ at inmsom_head.f90:?
+#0  0x7F6439256E08
+#0  0x7F4B2484EE08
+#1  0x7F4B2484DF90
+#0  0x7F0098AB1E08
+#2  0x7F4B23F804AF
+#3  0x7F4B24B82653
+#1  0x7F0098AB0F90
+#4  0x473187 in parallel_local_output_
+#2  0x7F00981E34AF
+#5  0x40553A in MAIN__ at inmsom_head.f90:?
+#3  0x7F0098DE5653
+#4  0x473187 in parallel_local_output_
+#5  0x40553A in MAIN__ at inmsom_head.f90:?
+#1  0x7F6439255F90
+#2  0x7F64389884AF
+#3  0x7F643958A653
+#4  0x473187 in parallel_local_output_
+#5  0x40553A in MAIN__ at inmsom_head.f90:?
+--------------------------------------------------------------------------
+mpirun noticed that process rank 1 with PID 17315 on node andr-UX42VS exited on signal 11 (Segmentation fault).
+--------------------------------------------------------------------------

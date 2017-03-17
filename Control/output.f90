@@ -148,8 +148,628 @@ if(ssh_output>0) then
                       'ssh'   )      !variable name
  endif
 endif
+!if (rank .eq. 0) print *, "---------------------SSH OUT-------------------------"
+
+if(uv_output>0) then
+!-----------------------------------------------------------------------------------------------------
+!writing zonal velocity
+ ierr=0
+ if(grid_shift==0) then !writing on the model grid
+  array4_3d=sngl(uu)
+  call pwdstd(path2data,'LOCAL/uu.dat',nrec,array4_3d,llu,nx,ny,nz,m1loc-1,m2loc,n1loc,n2loc,1,nz,ierr)
+  call fulfname(fname,path2data,'LOCAL/vv.dat',ierr)
+  if (rank .eq. 0) then
+      call ctl_file_write(fname,    &     !file name
+                      undef,    &     !value for undefined points
+                    nx_loc+1,   &     !x-dimension
+                      ny_loc,   &     !y-dimension
+                          nz,   &     !z-dimension
+                        nrec,   &     !t-dimension
+                    xgr_type,   &     !x-grid type (0 - linear, 1 - levels)
+                 xu(m1loc-1),   &     !first x-value (if linear) or x-array (if levels)
+                       dxst,    &     !x-step (if linear)
+                   ygr_type,    &     !y-grid type (0 - linear, 1 - levels)
+                   yt(n1loc),   &     !first y-value (if linear) or x-array (if levels)
+                       dyst,    &     !y-step (if linear)
+                       1,       &     !z-grid type (0 - linear, 1 - levels)
+                  z*1000.0d0,   &     !first z-value (if linear) or x-array (if levels)
+                       1.0d0,   &     !z-step (if linear)
+                    calendar,   &     !type   of calendar (0 - without leap-year, 1 - with leap-year)
+                        year,   &     !year   of the first field
+                       month,   &     !month  of the first field
+                         day,   &     !day    of the first field
+                        hour,   &     !hour   of the first field
+                      minute,   &     !minute of the first field
+                       tstep,   &     !time step (in seconds
+        'zonal velocity, m/s',  &     !title of dataset
+                         'u'   )      !variable name
+  endif
+ else !writing on T-grid
+
+ !$omp parallel do
+  do n=ny_start, ny_end
+   do m=nx_start, nx_end
+    if(lu(m,n)>0.5) then
+     do k=1,nz
+     array4_3d(m,n,k)=sngl( (uu(m  ,n,k)*dxt(m  ,n)*dyh(m  ,n)*hhu(m  ,n)   &
+                            +uu(m-1,n,k)*dxt(m-1,n)*dyh(m-1,n)*hhu(m-1,n))/2.0d0/hhq(m,n)/dx(m,n)/dy(m,n) )
+     enddo
+    endif
+   enddo
+  enddo
+ !$omp end parallel do
+  call pwdstd(path2data,'LOCAL/uu.dat',nrec,array4_3d,lu,nx,ny,nz,m1loc,m2loc,n1loc,n2loc,1,nz,ierr)
+  call fulfname(fname,path2data,'LOCAL/uu.dat',ierr)
+  if (rank .eq. 0) then
+      call ctl_file_write(fname,    &     !file name
+                      undef,    &     !value for undefined points
+                      nx_loc,   &     !x-dimension
+                      ny_loc,   &     !y-dimension
+                          nz,   &     !z-dimension
+                        nrec,   &     !t-dimension
+                    xgr_type,   &     !x-grid type (0 - linear, 1 - levels)
+                   xt(m1loc),   &     !first x-value (if linear) or x-array (if levels)
+                       dxst,    &     !x-step (if linear)
+                   ygr_type,    &     !y-grid type (0 - linear, 1 - levels)
+                   yt(n1loc),   &     !first y-value (if linear) or x-array (if levels)
+                       dyst,    &     !y-step (if linear)
+                       1,       &     !z-grid type (0 - linear, 1 - levels)
+                  z*1000.0d0,   &     !first z-value (if linear) or x-array (if levels)
+                       1.0d0,   &     !z-step (if linear)
+                    calendar,   &     !type   of calendar (0 - without leap-year, 1 - with leap-year)
+                        year,   &     !year   of the first field
+                       month,   &     !month  of the first field
+                         day,   &     !day    of the first field
+                        hour,   &     !hour   of the first field
+                      minute,   &     !minute of the first field
+                       tstep,   &     !time step (in seconds
+        'zonal velocity, m/s',  &     !title of dataset
+                         'u'   )      !variable name
+  endif
+ endif
+!if (rank .eq. 0) print *, "---------------------UU OUT-------------------------"
+
+!------------------------------------------------------------------------------------------------------
+!writing meridional velocity
+ ierr=0
+ if(grid_shift==0) then !writing on the model grid
+  array4_3d=sngl(vv)
+  call pwdstd(path2data,'LOCAL/vv.dat',nrec,array4_3d,llv,nx,ny,nz,m1loc,m2loc,n1loc-1,n2loc,1,nz,ierr)
+  call fulfname(fname,path2data,'LOCAL/vv.dat',ierr)
+  if (rank .eq. 0) then
+      call ctl_file_write(fname,    &     !file name
+                      undef,    &     !value for undefined points
+                      nx_loc,   &     !x-dimension
+                    ny_loc+1,   &     !y-dimension
+                          nz,   &     !z-dimension
+                        nrec,   &     !t-dimension
+                    xgr_type,   &     !x-grid type (0 - linear, 1 - levels)
+                   xt(m1loc),   &     !first x-value (if linear) or x-array (if levels)
+                       dxst,    &     !x-step (if linear)
+                   ygr_type,    &     !y-grid type (0 - linear, 1 - levels)
+                 yv(n1loc-1),   &     !first y-value (if linear) or x-array (if levels)
+                       dyst,    &     !y-step (if linear)
+                       1,       &     !z-grid type (0 - linear, 1 - levels)
+                  z*1000.0d0,   &     !first z-value (if linear) or x-array (if levels)
+                       1.0d0,   &     !z-step (if linear)
+                    calendar,   &     !type   of calendar (0 - without leap-year, 1 - with leap-year)
+                        year,   &     !year   of the first field
+                       month,   &     !month  of the first field
+                         day,   &     !day    of the first field
+                        hour,   &     !hour   of the first field
+                      minute,   &     !minute of the first field
+                       tstep,   &     !time step (in seconds
+   'meridional velocity, m/s',  &     !title of dataset
+                         'v'   )      !variable name
+  endif
+ else !writing on T-grid
+
+ !$omp parallel do
+  do n=ny_start, ny_end
+   do m=nx_start, nx_end
+    if(lu(m,n)>0.5) then
+     do k=1,nz
+     array4_3d(m,n,k)=sngl( (vv(m,n  ,k)*dxh(m,n  )*dyt(m,n  )*hhv(m,n  )    &
+                            +vv(m,n-1,k)*dxh(m,n-1)*dyt(m,n-1)*hhv(m,n-1))/2.0d0/hhq(m,n)/dx(m,n)/dy(m,n) )
+     enddo
+    endif
+   enddo
+  enddo
+ !$omp end parallel do
+  call pwdstd(path2data,'LOCAL/vv.dat',nrec,array4_3d,lu,nx,ny,nz,m1loc,m2loc,n1loc,n2loc,1,nz,ierr)
+  call fulfname(fname,path2data,'LOCAL/vv.dat',ierr)
+  if (rank .eq. 0) then
+      call ctl_file_write(fname,    &     !file name
+                      undef,    &     !value for undefined points
+                      nx_loc,   &     !x-dimension
+                      ny_loc,   &     !y-dimension
+                          nz,   &     !z-dimension
+                        nrec,   &     !t-dimension
+                    xgr_type,   &     !x-grid type (0 - linear, 1 - levels)
+                   xt(m1loc),   &     !first x-value (if linear) or x-array (if levels)
+                       dxst,    &     !x-step (if linear)
+                   ygr_type,    &     !y-grid type (0 - linear, 1 - levels)
+                   yt(n1loc),   &     !first y-value (if linear) or x-array (if levels)
+                       dyst,    &     !y-step (if linear)
+                       1,       &     !z-grid type (0 - linear, 1 - levels)
+                  z*1000.0d0,   &     !first z-value (if linear) or x-array (if levels)
+                       1.0d0,   &     !z-step (if linear)
+                    calendar,   &     !type   of calendar (0 - without leap-year, 1 - with leap-year)
+                        year,   &     !year   of the first field
+                       month,   &     !month  of the first field
+                         day,   &     !day    of the first field
+                        hour,   &     !hour   of the first field
+                      minute,   &     !minute of the first field
+                       tstep,   &     !time step (in seconds
+   'meridional velocity, m/s',  &     !title of dataset
+                         'v'   )      !variable name
+  endif
+ endif
+endif
+!if (rank .eq. 0) print *, "---------------------VV OUT-------------------------"
+
+!-----------------------------------------------------------------------------------------------------
+if(wstr_output>0) then
+!writing zonal wind stress
+ ierr=0
+ if(grid_shift==0) then !writing on the model grid
+  array4_2d=sngl(surf_stress_x)
+  call pwdstd(path2data,'LOCAL/tx.dat',nrec,array4_2d,llu,nx,ny,1,m1loc-1,m2loc,n1loc,n2loc,1,1,ierr)
+  call fulfname(fname,path2data,'LOCAL/tx.dat',ierr)
+  if (rank .eq. 0) then
+      call ctl_file_write(fname,    &     !file name
+                      undef,    &     !value for undefined points
+                    nx_loc+1,   &     !x-dimension
+                      ny_loc,   &     !y-dimension
+                           1,   &     !z-dimension
+                        nrec,   &     !t-dimension
+                    xgr_type,   &     !x-grid type (0 - linear, 1 - levels)
+                 xu(m1loc-1),   &     !first x-value (if linear) or x-array (if levels)
+                       dxst,    &     !x-step (if linear)
+                   ygr_type,    &     !y-grid type (0 - linear, 1 - levels)
+                   yt(n1loc),   &     !first y-value (if linear) or x-array (if levels)
+                       dyst,    &     !y-step (if linear)
+                       1,       &     !z-grid type (0 - linear, 1 - levels)
+                       0.0d0,   &     !first z-value (if linear) or x-array (if levels)
+                       1.0d0,   &     !z-step (if linear)
+                    calendar,   &     !type   of calendar (0 - without leap-year, 1 - with leap-year)
+                        year,   &     !year   of the first field
+                       month,   &     !month  of the first field
+                         day,   &     !day    of the first field
+                        hour,   &     !hour   of the first field
+                      minute,   &     !minute of the first field
+                       tstep,   &     !time step (in seconds
+ 'zonal wind stress, (m/s)^2',  &     !title of dataset
+                         'tx'   )      !variable name
+  endif
+ else !writing on T-grid
+
+ !$omp parallel do
+  do n=ny_start, ny_end
+   do m=nx_start, nx_end
+    if(lu(m,n)>0.5) then
+     array4_2d(m,n)=sngl( (surf_stress_x(m  ,n)*dxt(m  ,n)*dyh(m  ,n)      &
+                          +surf_stress_x(m-1,n)*dxt(m-1,n)*dyh(m-1,n))/2.0d0/dx(m,n)/dy(m,n) )
+    endif
+   enddo
+  enddo
+ !$omp end parallel do
+
+  call pwdstd(path2data,'LOCAL/tx.dat',nrec,array4_2d,lu,nx,ny,1,m1loc,m2loc,n1loc,n2loc,1,1,ierr)
+  call fulfname(fname,path2data,'LOCAL/tx.dat',ierr)
+  if (rank .eq. 0) then
+      call ctl_file_write(fname,    &     !file name
+                      undef,    &     !value for undefined points
+                      nx_loc,   &     !x-dimension
+                      ny_loc,   &     !y-dimension
+                           1,   &     !z-dimension
+                        nrec,   &     !t-dimension
+                    xgr_type,   &     !x-grid type (0 - linear, 1 - levels)
+                   xt(m1loc),   &     !first x-value (if linear) or x-array (if levels)
+                       dxst,    &     !x-step (if linear)
+                   ygr_type,    &     !y-grid type (0 - linear, 1 - levels)
+                   yt(n1loc),   &     !first y-value (if linear) or x-array (if levels)
+                       dyst,    &     !y-step (if linear)
+                       1,       &     !z-grid type (0 - linear, 1 - levels)
+                       0.0d0,   &     !first z-value (if linear) or x-array (if levels)
+                       1.0d0,   &     !z-step (if linear)
+                    calendar,   &     !type   of calendar (0 - without leap-year, 1 - with leap-year)
+                        year,   &     !year   of the first field
+                       month,   &     !month  of the first field
+                         day,   &     !day    of the first field
+                        hour,   &     !hour   of the first field
+                      minute,   &     !minute of the first field
+                       tstep,   &     !time step (in seconds
+ 'zonal wind stress, (m/s)^2',  &     !title of dataset
+                        'tx'   )      !variable name
+  endif
+ endif
+!if (rank .eq. 0) print *, "---------------------TX OUT-------------------------"
+!------------------------------------------------------------------------------------------------------
+!writing meridional wind stress
+ ierr=0
+ if(grid_shift==0) then !writing on the model grid
+  array4_2d=sngl(surf_stress_y)
+  call pwdstd(path2data,'LOCAL/ty.dat',nrec,array4_2d,llv,nx,ny,1,m1loc,m2loc,n1loc-1,n2loc,1,1,ierr)
+  call fulfname(fname,path2data,'LOCAL/ty.dat',ierr)
+  if (rank .eq. 0) then
+      call ctl_file_write(fname,    &     !file name
+                      undef,    &     !value for undefined points
+                      nx_loc,   &     !x-dimension
+                    ny_loc+1,   &     !y-dimension
+                           1,   &     !z-dimension
+                        nrec,   &     !t-dimension
+                    xgr_type,   &     !x-grid type (0 - linear, 1 - levels)
+                   xt(m1loc),   &     !first x-value (if linear) or x-array (if levels)
+                       dxst,    &     !x-step (if linear)
+                   ygr_type,    &     !y-grid type (0 - linear, 1 - levels)
+                 yv(n1loc-1),   &     !first y-value (if linear) or x-array (if levels)
+                       dyst,    &     !y-step (if linear)
+                       1,       &     !z-grid type (0 - linear, 1 - levels)
+                       0.0d0,   &     !first z-value (if linear) or x-array (if levels)
+                       1.0d0,   &     !z-step (if linear)
+                    calendar,   &     !type   of calendar (0 - without leap-year, 1 - with leap-year)
+                        year,   &     !year   of the first field
+                       month,   &     !month  of the first field
+                         day,   &     !day    of the first field
+                        hour,   &     !hour   of the first field
+                      minute,   &     !minute of the first field
+                       tstep,   &     !time step (in seconds
+ 'meridional wind stress, (m/s)^2',  &     !title of dataset
+                         'ty'   )      !variable name
+  endif
+ else !writing on T-grid
+
+ !$omp parallel do
+  do n=ny_start, ny_end
+   do m=nx_start, nx_end
+    if(lu(m,n)>0.5) then
+     array4_2d(m,n)=sngl( (surf_stress_y(m,n  )*dxh(m,n  )*dyt(m,n  )  &
+                          +surf_stress_y(m,n-1)*dxh(m,n-1)*dyt(m,n-1))/2.0d0/dx(m,n)/dy(m,n) )
+    endif
+   enddo
+  enddo
+ !$omp end parallel do
+
+  call pwdstd(path2data,'LOCAL/ty.dat',nrec,array4_2d,lu,nx,ny,1,m1loc,m2loc,n1loc,n2loc,1,1,ierr)
+  call fulfname(fname,path2data,'LOCAL/ty.dat',ierr)
+  if (rank .eq. 0) then
+      call ctl_file_write(fname,    &     !file name
+                      undef,    &     !value for undefined points
+                      nx_loc,   &     !x-dimension
+                      ny_loc,   &     !y-dimension
+                           1,   &     !z-dimension
+                        nrec,   &     !t-dimension
+                    xgr_type,   &     !x-grid type (0 - linear, 1 - levels)
+                   xt(m1loc),   &     !first x-value (if linear) or x-array (if levels)
+                       dxst,    &     !x-step (if linear)
+                   ygr_type,    &     !y-grid type (0 - linear, 1 - levels)
+                   yt(n1loc),   &     !first y-value (if linear) or x-array (if levels)
+                       dyst,    &     !y-step (if linear)
+                       1,       &     !z-grid type (0 - linear, 1 - levels)
+                       0.0d0,   &     !first z-value (if linear) or x-array (if levels)
+                       1.0d0,   &     !z-step (if linear)
+                    calendar,   &     !type   of calendar (0 - without leap-year, 1 - with leap-year)
+                        year,   &     !year   of the first field
+                       month,   &     !month  of the first field
+                         day,   &     !day    of the first field
+                        hour,   &     !hour   of the first field
+                      minute,   &     !minute of the first field
+                       tstep,   &     !time step (in seconds
+ 'meridional wind stress, (m/s)^2',  &     !title of dataset
+                         'ty'   )      !variable name
+  endif
+ endif
+! if (rank .eq. 0) print *, "---------------------TY OUT-------------------------"
+endif
+
+!--------------------------------------------------------------------------------
+if(tt_output>0) then
+!writing temperature
+ ierr=0
+ array4_3d=sngl(tt)
+ call pwdstd(path2data,'LOCAL/tt.dat',nrec,array4_3d,lu,nx,ny,nz,m1loc,m2loc,n1loc,n2loc,1,nz,ierr)
+ call fulfname(fname,path2data,'LOCAL/tt.dat',ierr)
+ if (rank .eq. 0) then
+     call ctl_file_write(fname,    &     !file name
+                     undef,    &     !value for undefined points
+                     nx_loc,   &     !x-dimension
+                     ny_loc,   &     !y-dimension
+                         nz,   &     !z-dimension
+                       nrec,   &     !t-dimension
+                   xgr_type,   &     !x-grid type (0 - linear, 1 - levels)
+                  xt(m1loc),   &     !first x-value (if linear) or x-array (if levels)
+                      dxst,    &     !x-step (if linear)
+                  ygr_type,    &     !y-grid type (0 - linear, 1 - levels)
+                  yt(n1loc),   &     !first y-value (if linear) or x-array (if levels)
+                      dyst,    &     !y-step (if linear)
+                      1,       &     !z-grid type (0 - linear, 1 - levels)
+                 z*1000.0d0,   &     !first z-value (if linear) or x-array (if levels)
+                      1.0d0,   &     !z-step (if linear)
+                   calendar,   &     !type   of calendar (0 - without leap-year, 1 - with leap-year)
+                       year,   &     !year   of the first field
+                      month,   &     !month  of the first field
+                        day,   &     !day    of the first field
+                       hour,   &     !hour   of the first field
+                     minute,   &     !minute of the first field
+                      tstep,   &     !time step (in seconds)
+          'Temperature, C',   &     !title of dataset
+                       'tt'   )      !variable name
+ endif
+endif
+!if (rank .eq. 0) print *, "---------------------TT OUT-------------------------"
+
+!--------------------------------------------------------------------------------
+if(ss_output>0) then
+!writing temperature
+ ierr=0
+ array4_3d=sngl(ss)
+ call pwdstd(path2data,'LOCAL/ss.dat',nrec,array4_3d,lu,nx,ny,nz,m1loc,m2loc,n1loc,n2loc,1,nz,ierr)
+ call fulfname(fname,path2data,'LOCAL/ss.dat',ierr)
+ if (rank .eq. 0) then
+     call ctl_file_write(fname,    &     !file name
+                     undef,    &     !value for undefined points
+                     nx_loc,   &     !x-dimension
+                     ny_loc,   &     !y-dimension
+                         nz,   &     !z-dimension
+                       nrec,   &     !t-dimension
+                   xgr_type,   &     !x-grid type (0 - linear, 1 - levels)
+                  xt(m1loc),   &     !first x-value (if linear) or x-array (if levels)
+                      dxst,    &     !x-step (if linear)
+                  ygr_type,    &     !y-grid type (0 - linear, 1 - levels)
+                  yt(n1loc),   &     !first y-value (if linear) or x-array (if levels)
+                      dyst,    &     !y-step (if linear)
+                      1,       &     !z-grid type (0 - linear, 1 - levels)
+                 z*1000.0d0,   &     !first z-value (if linear) or x-array (if levels)
+                      1.0d0,   &     !z-step (if linear)
+                   calendar,   &     !type   of calendar (0 - without leap-year, 1 - with leap-year)
+                       year,   &     !year   of the first field
+                      month,   &     !month  of the first field
+                        day,   &     !day    of the first field
+                       hour,   &     !hour   of the first field
+                     minute,   &     !minute of the first field
+                      tstep,   &     !time step (in seconds)
+            'Salinity, PSU',   &     !title of dataset
+                       'ss'   )      !variable name
+ endif
+endif
+!if (rank .eq. 0) print *, "---------------------SS OUT-------------------------"
+
+!--------------------------------------------------------------------------------------------------
+!writing surface fluxes
+if(sfl_output>0) then
+ !$omp parallel do
+  do n=ny_start, ny_end
+   do m=nx_start, nx_end
+    if(lu(m,n)>0.5) then
+     array4_3d(m,n,1)=sngl(tatm(m,n))
+     array4_3d(m,n,2)=sngl(qatm(m,n))
+     array4_3d(m,n,3)=sngl( lwr(m,n))
+     array4_3d(m,n,4)=sngl( swr(m,n))
+     array4_3d(m,n,5)=sngl(slpr(m,n))
+     array4_3d(m,n,6)=sngl(sensheat(m,n))
+     array4_3d(m,n,7)=sngl( latheat(m,n))
+     array4_3d(m,n,8)=sngl(   lw_bal(m,n))
+     array4_3d(m,n,9)=sngl(   sw_bal(m,n))
+     array4_3d(m,n,10)=sngl(  hf_tot(m,n))
+     array4_3d(m,n,11)=sngl(rain(m,n))
+     array4_3d(m,n,12)=sngl(snow(m,n))
+     array4_3d(m,n,13)=runoff(m,n)
+     array4_3d(m,n,14)=sngl(wf_tot(m,n))
+     array4_3d(m,n,15)=sngl(tflux_surf(m,n))
+     array4_3d(m,n,16)=sngl(sflux_surf(m,n))
+    endif
+   enddo
+  enddo
+ !$omp end parallel do
+ierr=0
+ call pwdstd(path2data,'LOCAL/sfl.dat',nrec,array4_3d,lu,nx,ny,16,m1loc,m2loc,n1loc,n2loc,1,16,ierr)
+ call fulfname(fname,path2data,'LOCAL/sfl.dat',ierr)
+ if (rank .eq. 0) then
+     call ctl_file_write(fname,    &     !file name
+                     undef,    &     !value for undefined points
+                     nx_loc,   &     !x-dimension
+                     ny_loc,   &     !y-dimension
+                         16,   &     !z-dimension
+                       nrec,   &     !t-dimension
+                   xgr_type,   &     !x-grid type (0 - linear, 1 - levels)
+                  xt(m1loc),   &     !first x-value (if linear) or x-array (if levels)
+                      dxst,    &     !x-step (if linear)
+                  ygr_type,    &     !y-grid type (0 - linear, 1 - levels)
+                  yt(n1loc),   &     !first y-value (if linear) or x-array (if levels)
+                      dyst,    &     !y-step (if linear)
+                      0,       &     !z-grid type (0 - linear, 1 - levels)
+                      1.0d0,   &     !first z-value (if linear) or x-array (if levels)
+                      1.0d0,   &     !z-step (if linear)
+                   calendar,   &     !type   of calendar (0 - without leap-year, 1 - with leap-year)
+                       year,   &     !year   of the first field
+                      month,   &     !month  of the first field
+                        day,   &     !day    of the first field
+                       hour,   &     !hour   of the first field
+                     minute,   &     !minute of the first field
+                      tstep,   &     !time step (in seconds)
+'1-TA, 2-QA, 3-LWdw, 4-SWdw, 5-SLP, 6-SensBal, 7-LatBal, 8-LWbal, 9-SWbal, 10-HFtot, 11-rain, 12-snow, 13-roff, 14-WFtot, 15-Tflux, 16-Sflux',   &     !title of dataset
+                      'sfl'   )      !variable name
+ endif
+endif
+
+!-----------------------------------------------------------------------------------------------
+!write wind speed
+if(wind_output>0) then
+
+  array4_2d=sngl(uwnd)
+
+  call pwdstd(path2data,'LOCAL/uwnd.dat',nrec,array4_2d,lu,nx,ny,1,m1loc,m2loc,n1loc,n2loc,1,1,ierr)
+  call fulfname(fname,path2data,'LOCAL/uwnd.dat',ierr)
+  if (rank .eq. 0) then
+      call ctl_file_write(fname,    &     !file name
+                      undef,    &     !value for undefined points
+                      nx_loc,   &     !x-dimension
+                      ny_loc,   &     !y-dimension
+                           1,   &     !z-dimension
+                        nrec,   &     !t-dimension
+                    xgr_type,   &     !x-grid type (0 - linear, 1 - levels)
+                   xt(m1loc),   &     !first x-value (if linear) or x-array (if levels)
+                       dxst,    &     !x-step (if linear)
+                   ygr_type,    &     !y-grid type (0 - linear, 1 - levels)
+                   yt(n1loc),   &     !first y-value (if linear) or x-array (if levels)
+                       dyst,    &     !y-step (if linear)
+                       1,       &     !z-grid type (0 - linear, 1 - levels)
+                       0.0d0,   &     !first z-value (if linear) or x-array (if levels)
+                       1.0d0,   &     !z-step (if linear)
+                    calendar,   &     !type   of calendar (0 - without leap-year, 1 - with leap-year)
+                        year,   &     !year   of the first field
+                       month,   &     !month  of the first field
+                         day,   &     !day    of the first field
+                        hour,   &     !hour   of the first field
+                      minute,   &     !minute of the first field
+                       tstep,   &     !time step (in seconds
+      'zonal wind speed, m/s',  &     !title of dataset
+                         'u'   )      !variable name
+  endif
+  array4_2d=sngl(vwnd)
+
+  call pwdstd(path2data,'LOCAL/vwnd.dat',nrec,array4_2d,lu,nx,ny,1,m1loc,m2loc,n1loc,n2loc,1,1,ierr)
+  call fulfname(fname,path2data,'LOCAL/vwnd.dat',ierr)
+  if (rank .eq. 0) then
+      call ctl_file_write(fname,    &     !file name
+                      undef,    &     !value for undefined points
+                      nx_loc,   &     !x-dimension
+                      ny_loc,   &     !y-dimension
+                           1,   &     !z-dimension
+                        nrec,   &     !t-dimension
+                    xgr_type,   &     !x-grid type (0 - linear, 1 - levels)
+                   xt(m1loc),   &     !first x-value (if linear) or x-array (if levels)
+                       dxst,    &     !x-step (if linear)
+                   ygr_type,    &     !y-grid type (0 - linear, 1 - levels)
+                   yt(n1loc),   &     !first y-value (if linear) or x-array (if levels)
+                       dyst,    &     !y-step (if linear)
+                       1,       &     !z-grid type (0 - linear, 1 - levels)
+                       0.0d0,   &     !first z-value (if linear) or x-array (if levels)
+                       1.0d0,   &     !z-step (if linear)
+                    calendar,   &     !type   of calendar (0 - without leap-year, 1 - with leap-year)
+                        year,   &     !year   of the first field
+                       month,   &     !month  of the first field
+                         day,   &     !day    of the first field
+                        hour,   &     !hour   of the first field
+                      minute,   &     !minute of the first field
+                       tstep,   &     !time step (in seconds
+ 'meridional wind speed, m/s',  &     !title of dataset
+                         'v'   )      !variable name
+  endif
+endif
+
+!--------------------------------------------------------------------------------
+if(amuv_output>0) then
+!writing lateral viscocity
+ ierr=0
+ array4_3d=sngl(amuv)
+ call pwdstd(path2data,'LOCAL/amuv.dat',nrec,array4_3d,lu,nx,ny,nz,m1loc,m2loc,n1loc,n2loc,1,nz,ierr)
+ call fulfname(fname,path2data,'LOCAL/amuv.dat',ierr)
+ if (rank .eq. 0) then
+     call ctl_file_write(fname,    &     !file name
+                     undef,    &     !value for undefined points
+                     nx_loc,   &     !x-dimension
+                     ny_loc,   &     !y-dimension
+                         nz,   &     !z-dimension
+                       nrec,   &     !t-dimension
+                   xgr_type,   &     !x-grid type (0 - linear, 1 - levels)
+                  xt(m1loc),   &     !first x-value (if linear) or x-array (if levels)
+                      dxst,    &     !x-step (if linear)
+                  ygr_type,    &     !y-grid type (0 - linear, 1 - levels)
+                  yt(n1loc),   &     !first y-value (if linear) or x-array (if levels)
+                      dyst,    &     !y-step (if linear)
+                      1,       &     !z-grid type (0 - linear, 1 - levels)
+                 z*1000.0d0,   &     !first z-value (if linear) or x-array (if levels)
+                      1.0d0,   &     !z-step (if linear)
+                   calendar,   &     !type   of calendar (0 - without leap-year, 1 - with leap-year)
+                       year,   &     !year   of the first field
+                      month,   &     !month  of the first field
+                        day,   &     !day    of the first field
+                       hour,   &     !hour   of the first field
+                     minute,   &     !minute of the first field
+                      tstep,   &     !time step (in seconds)
+ 'Lateral viscosity, m^2/s',   &     !title of dataset
+                       'mu'   )      !variable name
+ endif
+endif
+
+!--------------------------------------------------------------------------------
+if(anzu_output>0) then
+!writing vertical viscosity
+ ierr=0
+ array4_3d(:,:,1:nz)=sngl(anzu(:,:,1:nz))
+ call pwdstd(path2data,'LOCAL/anzu.dat',nrec,array4_3d,lu,nx,ny,nz,m1loc,m2loc,n1loc,n2loc,1,nz,ierr)
+ call fulfname(fname,path2data,'LOCAL/anzu.dat',ierr)
+ if (rank .eq. 0) then
+     call ctl_file_write(fname,    &     !file name
+                     undef,    &     !value for undefined points
+                     nx_loc,   &     !x-dimension
+                     ny_loc,   &     !y-dimension
+                         nz,   &     !z-dimension
+                       nrec,   &     !t-dimension
+                   xgr_type,   &     !x-grid type (0 - linear, 1 - levels)
+                  xt(m1loc),   &     !first x-value (if linear) or x-array (if levels)
+                      dxst,    &     !x-step (if linear)
+                  ygr_type,    &     !y-grid type (0 - linear, 1 - levels)
+                  yt(n1loc),   &     !first y-value (if linear) or x-array (if levels)
+                      dyst,    &     !y-step (if linear)
+                      1,       &     !z-grid type (0 - linear, 1 - levels)
+                zw*1000.0d0,   &     !first z-value (if linear) or x-array (if levels)
+                      1.0d0,   &     !z-step (if linear)
+                   calendar,   &     !type   of calendar (0 - without leap-year, 1 - with leap-year)
+                       year,   &     !year   of the first field
+                      month,   &     !month  of the first field
+                        day,   &     !day    of the first field
+                       hour,   &     !hour   of the first field
+                     minute,   &     !minute of the first field
+                      tstep,   &     !time step (in seconds)
+'vertical viscosity, m^2/s',   &     !title of dataset
+                       'nu'   )      !variable name
+ endif
+endif
+
+!--------------------------------------------------------------------------------
+if(ww_output>0) then
+!writing vertical velocity
+ ierr=0
+ array4_3d(:,:,1:nz)=sngl(ww(:,:,1:nz))
+ call pwdstd(path2data,'LOCAL/ww.dat',nrec,array4_3d,lu,nx,ny,nz,m1loc,m2loc,n1loc,n2loc,1,nz,ierr)
+ call fulfname(fname,path2data,'LOCAL/ww.dat',ierr)
+ if (rank .eq. 0) then
+     call ctl_file_write(fname,    &     !file name
+                     undef,    &     !value for undefined points
+                     nx_loc,   &     !x-dimension
+                     ny_loc,   &     !y-dimension
+                         nz,   &     !z-dimension
+                       nrec,   &     !t-dimension
+                   xgr_type,   &     !x-grid type (0 - linear, 1 - levels)
+                  xt(m1loc),   &     !first x-value (if linear) or x-array (if levels)
+                      dxst,    &     !x-step (if linear)
+                  ygr_type,    &     !y-grid type (0 - linear, 1 - levels)
+                  yt(n1loc),   &     !first y-value (if linear) or x-array (if levels)
+                      dyst,    &     !y-step (if linear)
+                      1,       &     !z-grid type (0 - linear, 1 - levels)
+                zw*1000.0d0,   &     !first z-value (if linear) or x-array (if levels)
+                      1.0d0,   &     !z-step (if linear)
+                   calendar,   &     !type   of calendar (0 - without leap-year, 1 - with leap-year)
+                       year,   &     !year   of the first field
+                      month,   &     !month  of the first field
+                        day,   &     !day    of the first field
+                       hour,   &     !hour   of the first field
+                     minute,   &     !minute of the first field
+                      tstep,   &     !time step (in seconds)
+   'vertical velocity, m/s',   &     !title of dataset
+                        'w'   )      !variable name
+ endif
+endif
+!if (rank .eq. 0) print *, "---------------------END OUT-------------------------"
 
 endsubroutine parallel_local_output
+
+!-------------------------------------------------------------------------------!
+!-------------------------------------------------------------------------------!
+!-------------------------------------------------------------------------------!
 
 subroutine local_output(path2data,  &
                         nrec,       &
