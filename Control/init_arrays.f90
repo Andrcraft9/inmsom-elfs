@@ -490,9 +490,14 @@ endsubroutine mpi_array_boundary_definition
   use ocean_bc
   implicit none
 
-   allocate (sst_obs(bnd_x1:bnd_x2,bnd_y1:bnd_y2),     &       !Observed SST [�C]
-             sss_obs(bnd_x1:bnd_x2,bnd_y1:bnd_y2),     &       !Observed SSS [psu-35ppt])
-              runoff(bnd_x1:bnd_x2,bnd_y1:bnd_y2)   )          !River runoff, [m/s]
+!   allocate (sst_obs(bnd_x1:bnd_x2,bnd_y1:bnd_y2),     &       !Observed SST [�C]
+!             sss_obs(bnd_x1:bnd_x2,bnd_y1:bnd_y2),     &       !Observed SSS [psu-35ppt])
+!              runoff(bnd_x1:bnd_x2,bnd_y1:bnd_y2)   )          !River runoff, [m/s]
+
+   allocate (sst_obs(nx, ny),     &       !Observed SST [�C]
+             sss_obs(nx, ny),     &       !Observed SSS [psu-35ppt])
+              runoff(nx, ny)   )          !River runoff, [m/s]
+
 
    allocate(lqpx(numb_of_lqp_max),        &
             lqpy(numb_of_lqp_max),        &

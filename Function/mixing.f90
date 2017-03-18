@@ -28,7 +28,7 @@ implicit none
               + vv(m,n-1,1)*hhv(m,n-1)*dxh(m,n-1)*dyt(m,n-1))/2.0d0/hhq(m,n)/dx(m,n)/dy(m,n)       !v on t-grid
 
 	   do k=2,nz
-          r1 = r2  
+          r1 = r2
           u1 = u2
           v1 = v2
 
@@ -55,7 +55,7 @@ use main_basin_pars
 use mpi_parallel_tools
 use basin_grid
 implicit none
-   
+
  real(8) dimdepth1, dimdepth2, undimdepth1, undimdepth2
  parameter(dimdepth1=3.0d0,dimdepth2=20000.0d0)
 
@@ -70,12 +70,12 @@ real(8) anumaxu,anubgru,anumaxt,anubgrt
        do m=nx_start,nx_end
 
         if (lu(m,n)>0.5) then
-          undimdepth1 = dimdepth1/hhq(m,n)          
-          undimdepth2 = dimdepth2/hhq(m,n) 
+          undimdepth1 = dimdepth1/hhq(m,n)
+          undimdepth2 = dimdepth2/hhq(m,n)
           do k=2,nz
-           
+
            if(zw(k)<undimdepth2) then
-            
+
             if(rit(m,n,k)>0.0.and.zw(k)>undimdepth1) then
              anzt(m,n,k) = (anumaxt-anubgrt)/(1.0+5.0*rit(m,n,k))**2 + anubgrt
              anzu(m,n,k) = (anumaxu-anubgru)/(1.0+5.0*rit(m,n,k))**3 + anubgru
@@ -83,7 +83,7 @@ real(8) anumaxu,anubgru,anumaxt,anubgrt
              anzt(m,n,k) = anumaxt
              anzu(m,n,k) = anumaxu
             end if
-           
+
            else
              anzt(m,n,k) = anubgrt
             if(rit(m,n,k)>0.0) then
@@ -99,11 +99,13 @@ real(8) anumaxu,anubgru,anumaxt,anubgrt
       enddo
 !$omp end parallel do
 
-      if(periodicity_x/=0) then 
+      call syncborder_real8(anzu, nz+1)
+
+      if(periodicity_x/=0) then
         call cyclize8_x(anzu,nx,ny,nz+1,mmm,mm)
       endif
 
-      if(periodicity_y/=0) then 
+      if(periodicity_y/=0) then
         call cyclize8_y(anzu,nx,ny,nz+1,nnn,nn)
       endif
 
@@ -121,44 +123,47 @@ subroutine stress_components(u,v,str_t,str_s,nlev)
          v(bnd_x1:bnd_x2,bnd_y1:bnd_y2,nlev),    &
      str_t(bnd_x1:bnd_x2,bnd_y1:bnd_y2,nlev),    &
      str_s(bnd_x1:bnd_x2,bnd_y1:bnd_y2,nlev)
- 
+
  integer m,n,k
 
- !$omp parallel do private(m,n,k) 
+ !$omp parallel do private(m,n,k)
  do n=ny_start, ny_end
    do m=nx_start, nx_end
     if(lu(m,n)>0.5) then
-     do k=1,nlev 
+     do k=1,nlev
       str_t(m,n,k)=dy(m,n)/dx(m,n)*(u(m,n,k)/dyh(m,n)-u(m-1,n,k)/dyh(m-1,n))     &
-                  -dx(m,n)/dy(m,n)*(v(m,n,k)/dxh(m,n)-v(m,n-1,k)/dxh(m,n-1)) 
+                  -dx(m,n)/dy(m,n)*(v(m,n,k)/dxh(m,n)-v(m,n-1,k)/dxh(m,n-1))
      enddo
     endif
    enddo
  enddo
 !$omp end parallel do
 
-!$omp parallel do private(m,n,k) 
+!$omp parallel do private(m,n,k)
  do n=ny_start, ny_end
    do m=nx_start, nx_end
     if(luu(m,n)>0.5) then
      do k=1,nlev
       str_s(m,n,k)=dxb(m,n)/dyb(m,n)*(u(m,n+1,k)/dxt(m,n+1)-u(m,n,k)/dxt(m,n))     &
-                  +dyb(m,n)/dxb(m,n)*(v(m+1,n,k)/dyt(m+1,n)-v(m,n,k)/dyt(m,n))    
+                  +dyb(m,n)/dxb(m,n)*(v(m+1,n,k)/dyt(m+1,n)-v(m,n,k)/dyt(m,n))
      enddo
     endif
    enddo
  enddo
 !$omp end parallel do
 
+      call syncborder_real8(str_t, nlev)
+      call syncborder_real8(str_s, nlev)
+
       if(periodicity_x/=0) then
        call cyclize8_x(str_t,nx,ny,nlev,mmm,mm)
        call cyclize8_x(str_s,nx,ny,nlev,mmm,mm)
-	end if
+	  end if
 
       if(periodicity_y/=0) then
        call cyclize8_y(str_t,nx,ny,nlev,nnn,nn)
        call cyclize8_y(str_s,nx,ny,nlev,nnn,nn)
-	end if
+	  end if
 
 endsubroutine stress_components
 
@@ -178,17 +183,17 @@ subroutine smagorinsky_coeff(visc2, dift, str_t,str_s, amts, amuv)
            amuv(bnd_x1:bnd_x2,bnd_y1:bnd_y2,nz)
 
  integer m,n,k
- 
 
- !$omp parallel do private(m,n,k,str_s2,mu_smag) 
+
+ !$omp parallel do private(m,n,k,str_s2,mu_smag)
  do n=ny_start, ny_end
    do m=nx_start, nx_end
 
     if(lu(m,n)>0.5) then
      do k=1,nz
       str_s2= ( str_s(m  ,n  ,k)**2 +str_s(m-1,n  ,k)**2    &
-               +str_s(m  ,n-1,k)**2 +str_s(m-1,n-1,k)**2 )/4.0d0     
-      mu_smag=(vonkarman/Pi)**2 *dx(m,n)*dy(m,n) *dsqrt(str_t(m,n,k)**2 + str_s2)  
+               +str_s(m  ,n-1,k)**2 +str_s(m-1,n-1,k)**2 )/4.0d0
+      mu_smag=(vonkarman/Pi)**2 *dx(m,n)*dy(m,n) *dsqrt(str_t(m,n,k)**2 + str_s2)
       amuv(m,n,k) =visc2+ mu_smag
       amts(m,n,k) =dift + mu_smag*prandtl
      enddo
@@ -197,6 +202,9 @@ subroutine smagorinsky_coeff(visc2, dift, str_t,str_s, amts, amuv)
    enddo
  enddo
 !$omp end parallel do
+
+      call syncborder_real8(amuv, nz)
+      call syncborder_real8(amts, nz)
 
       if(periodicity_x/=0) then
        call cyclize8_x(amuv ,nx,ny,nz,mmm,mm)
@@ -245,14 +253,14 @@ subroutine diffusion_slopes(den,slrx,slry,slzx,slzy)
             rhoz=(den(m,n,k  )+den(m+1,n,k  )     &
                 - den(m,n,k-1)-den(m+1,n,k-1)) /hhu(m,n)/hzt(k)/2.0d0
             rhoz=max(rhoz,epsrho)
-            
+
             slope=    ( den(m+1,n,k  ) - den(m,n,k  )     &
                       + den(m+1,n,k-1) - den(m,n,k-1)) /2.0d0/rhoz
-            slope_bot=( hhq(m+1,n) - hhq(m,n))*zw(k) 
+            slope_bot=( hhq(m+1,n) - hhq(m,n))*zw(k)
 
             slrx(m,n,k) = max( min(slope,slope_bot+angle_max*dxt(m,n)), slope_bot-angle_max*dxt(m,n) )
-            slzx(m,n,k) = slope_bot            
-          end do               
+            slzx(m,n,k) = slope_bot
+          end do
          end if
 
         if(lcv(m,n)>0.5) then
@@ -263,21 +271,24 @@ subroutine diffusion_slopes(den,slrx,slry,slzx,slzy)
             rhoz=(den(m,n,k  )+den(m,n+1,k  )     &
                 - den(m,n,k-1)-den(m,n+1,k-1))/hhv(m,n)/hzt(k)/2.0d0
             rhoz=max(rhoz,epsrho)
-            
+
             slope=    ( den(m,n+1,k  ) - den(m,n,k  )     &
                       + den(m,n+1,k-1) - den(m,n,k-1)) /2.0d0/rhoz
-            slope_bot=( hhq(m,n+1) - hhq(m,n))*zw(k) 
+            slope_bot=( hhq(m,n+1) - hhq(m,n))*zw(k)
 
             slry(m,n,k) = max( min(slope,slope_bot+angle_max*dyt(m,n)), slope_bot-angle_max*dyt(m,n) )
-            slzy(m,n,k) = slope_bot            
-          end do               
+            slzy(m,n,k) = slope_bot
+          end do
          end if
-       
+
 
         end do
      end do
 !$omp end parallel do
-      
+
+    call syncborder_real8(slrx, nz)
+    call syncborder_real8(slzx, nz)
+
 	if(periodicity_x/=0) then
 	 call cyclize8_x(slrx,nx,ny,nz,mmm,mm)
 	 call cyclize8_x(slzx,nx,ny,nz,mmm,mm)
@@ -285,7 +296,7 @@ subroutine diffusion_slopes(den,slrx,slry,slzx,slzy)
 
 	if(periodicity_y/=0) then
 	 call cyclize8_y(slry,nx,ny,nz,nnn,nn)
-	 call cyclize8_y(slzy,nx,ny,nz,nnn,nn)                
+	 call cyclize8_y(slzy,nx,ny,nz,nnn,nn)
       end if
 
 endsubroutine diffusion_slopes
@@ -330,25 +341,25 @@ real(8) flux_adv, flux_diff
 
 integer m,n,k
 
-real(8) a(nz+1),b(nz+1),c(nz+1),eta(nz+1),rksi(nz+1) 
-real(8) bp, bp0, dp, dm, nu_p, nu_m,rhs 
+real(8) a(nz+1),b(nz+1),c(nz+1),eta(nz+1),rksi(nz+1)
+real(8) bp, bp0, dp, dm, nu_p, nu_m,rhs
 
 real(8), allocatable::  flux_x(:,:,:), flux_y(:,:,:),      &
                         fn(:,:,:)
 
    allocate(flux_x(bnd_x1:bnd_x2,bnd_y1:bnd_y2,nz+1),     &
             flux_y(bnd_x1:bnd_x2,bnd_y1:bnd_y2,nz+1),     &
-                fn(bnd_x1:bnd_x2,bnd_y1:bnd_y2,nz+1) ) 
+                fn(bnd_x1:bnd_x2,bnd_y1:bnd_y2,nz+1) )
 
    flux_x=0.0d0
    flux_y=0.0d0
        fn=0.0d0
 
 
-!$omp parallel do private(m, n, k, flux_adv, flux_diff) 
+!$omp parallel do private(m, n, k, flux_adv, flux_diff)
    do n=ny_start,ny_end
-    do m=nx_start,nx_end    
-     
+    do m=nx_start,nx_end
+
      if(lcu(m,n)>0.5) then
       do k=2,nz
        flux_adv = -(uu(m,n,k)*dz(k)+uu(m,n,k-1)*dz(k-1))/2.0d0/hzt(k)    &
@@ -371,58 +382,61 @@ real(8), allocatable::  flux_x(:,:,:), flux_y(:,:,:),      &
 
     enddo
    enddo
-!$omp end parallel do        
+!$omp end parallel do
+
+    call syncborder_real8(flux_x, nz+1)
+    call syncborder_real8(flux_y, nz+1)
 
 	if(periodicity_x/=0) then
 	 call cyclize8_x( flux_x,nx,ny,nz+1,mmm,mm)
-      end if
+    end if
 
 	if(periodicity_y/=0) then
-	 call cyclize8_y( flux_y,nx,ny,nz+1,nnn,nn)            
-      end if
+	 call cyclize8_y( flux_y,nx,ny,nz+1,nnn,nn)
+    end if
 
 !$omp parallel do private(m,n,k,bp,bp0,dp,dm,a,b,c,eta,rksi,fz_p,fz_m, nu_p, nu_m, rhs)
       do n=ny_start,ny_end
        do m=nx_start,nx_end
         if (lu(m,n)>0.5) then
-        
+
          bp =  hhqn(m,n)*dx(m,n)*dy(m,n) / tau/2.0d0
          bp0=  hhqp(m,n)*dx(m,n)*dy(m,n) / tau/2.0d0
 
-!Upper layer          
+!Upper layer
           k=2
-          
+
           nu_m=(nu(m,n,k)+nu(m,n,k-1))/2.0d0*factor_nu
           nu_p=(nu(m,n,k)+nu(m,n,k+1))/2.0d0*factor_nu
-          
+
           fz_m= -(ww(m,n,k-1)+ww(m,n,k))/2.0d0*dx(m,n)*dy(m,n)*(ff(m,n,k)+ff_top(m,n))/2.0d0
           fz_p= -(ww(m,n,k+1)+ww(m,n,k))/2.0d0*dx(m,n)*dy(m,n)*(ff(m,n,k)+ff(m,n,k+1))/2.0d0
 
           dm = nu_m*dx(m,n)*dy(m,n) /hhqn(m,n)/dz(k-1)
           dp = nu_p*dx(m,n)*dy(m,n) /hhqn(m,n)/dz(k  )
 
-          rhs =  flux_x(m,n,k) - flux_x(m-1,n,k) + flux_y(m,n,k) - flux_y(m,n-1,k) + (fz_p - fz_m)/hzt(k)    &           
-                              + gendis(m,n,k)*dx(m,n)*dy(m,n) 
+          rhs =  flux_x(m,n,k) - flux_x(m-1,n,k) + flux_y(m,n,k) - flux_y(m,n-1,k) + (fz_p - fz_m)/hzt(k)    &
+                              + gendis(m,n,k)*dx(m,n)*dy(m,n)
 
 ! "2." above is due to aproximation.
           c(k) =  - dp/hzt(k)
           a(k) =  0.0d0
-          
+
           b(k) =  bp + (dp + dm)/hzt(k)
-          eta(k) = bp0*ffp(m,n,k) + rhs + dm*ff_top(m,n)/hzt(k) 
+          eta(k) = bp0*ffp(m,n,k) + rhs + dm*ff_top(m,n)/hzt(k)
 
 ! internal points.
          do k=3,nz-1
-          
+
           nu_p=(nu(m,n,k)+nu(m,n,k+1))/2.0d0*factor_nu
-          
+
           fz_m=fz_p
           fz_p= -(ww(m,n,k+1)+ww(m,n,k))/2.0d0*dx(m,n)*dy(m,n)*(ff(m,n,k)+ff(m,n,k+1))/2.0d0
 
           dm = dp
-          dp = nu_p*dx(m,n)*dy(m,n) /hhqn(m,n)/dz(k  )       
-          
-          rhs =  flux_x(m,n,k) - flux_x(m-1,n,k) + flux_y(m,n,k) - flux_y(m,n-1,k) + (fz_p - fz_m)/hzt(k)    &           
+          dp = nu_p*dx(m,n)*dy(m,n) /hhqn(m,n)/dz(k  )
+
+          rhs =  flux_x(m,n,k) - flux_x(m-1,n,k) + flux_y(m,n,k) - flux_y(m,n-1,k) + (fz_p - fz_m)/hzt(k)    &
                               + gendis(m,n,k)*dx(m,n)*dy(m,n)
 
 ! "2." above is due to aproximation.
@@ -442,18 +456,18 @@ real(8), allocatable::  flux_x(:,:,:), flux_y(:,:,:),      &
           fz_p= -(ww(m,n,k+1)+ww(m,n,k))/2.0d0*dx(m,n)*dy(m,n)*(ff(m,n,k)+ff_bot(m,n))/2.0d0
 
           dm = dp
-          dp = nu_p*dx(m,n)*dy(m,n) /hhqn(m,n)/dz(k  )  
-          
-          rhs =  flux_x(m,n,k) - flux_x(m-1,n,k) + flux_y(m,n,k) - flux_y(m,n-1,k) + (fz_p - fz_m)/hzt(k)    &           
+          dp = nu_p*dx(m,n)*dy(m,n) /hhqn(m,n)/dz(k  )
+
+          rhs =  flux_x(m,n,k) - flux_x(m-1,n,k) + flux_y(m,n,k) - flux_y(m,n-1,k) + (fz_p - fz_m)/hzt(k)    &
                               + gendis(m,n,k)*dx(m,n)*dy(m,n)
 
 ! "2." above is due to aproximation.
           c(k) =  0.0d0
           a(k) =  - dm/hzt(k)
-          
+
             b(k) =  bp + (dp + dm)/hzt(k)
-          eta(k) = bp0*ffp(m,n,k) + rhs + dp*ff_bot(m,n)/hzt(k) 
-         
+          eta(k) = bp0*ffp(m,n,k) + rhs + dp*ff_bot(m,n)/hzt(k)
+
          call factor8(nz+1,a,b,c,eta,rksi,2,nz)
          do k=2,nz
           fn(m,n,k)=rksi(k)
@@ -463,19 +477,21 @@ real(8), allocatable::  flux_x(:,:,:), flux_y(:,:,:),      &
       enddo
 !$omp end parallel do
 
+    call syncborder_real8(fn, nz)
+
 	if(periodicity_x/=0) then
 	 call cyclize8_x(fn,nx,ny,nz,mmm,mm)
-      end if
+    end if
 
 	if(periodicity_y/=0) then
 	 call cyclize8_y(fn,nx,ny,nz,nnn,nn)
-      end if
+    end if
 
 
 !$omp parallel do private(m,n,k)
       do n=ny_start-1,ny_end+1
        do m=nx_start-1,nx_end+1
-        
+
         if(lu(m,n)>0.5) then
          do k=2,nz
 !          ffp(m,n,k)=hhq(m,n)*ff(m,n,k)+time_smooth*(hhqn(m,n)*fn(m,n,k)-2.0d0*hhq(m,n)*ff(m,n,k)+hhqp(m,n)*ffp(m,n,k))/2.0d0
@@ -521,7 +537,7 @@ real(8)    q2(bnd_x1:bnd_x2,bnd_y1:bnd_y2,nz+1),     &
          anzt(bnd_x1:bnd_x2,bnd_y1:bnd_y2,nz+1),     &
          anzu(bnd_x1:bnd_x2,bnd_y1:bnd_y2,nz+1),     &
        rhs_q2(bnd_x1:bnd_x2,bnd_y1:bnd_y2,nz+1),     &
-       rhs_q2l(bnd_x1:bnd_x2,bnd_y1:bnd_y2,nz+1)     
+       rhs_q2l(bnd_x1:bnd_x2,bnd_y1:bnd_y2,nz+1)
 real(8) anubgrt, anubgru
 
 real(8) shf2, vbf2, q, lscl, rich
@@ -533,20 +549,20 @@ integer m, n, k
 
 
 !$omp parallel do private(m, n, k, u1, u2, v1, v2, r1, r2, shf2, vbf2, q, l_max, lscl, rich, stab_t, stab_u,    &
-!$omp                     wall, lm1, dpth ) 
+!$omp                     wall, lm1, dpth )
    do n=ny_start,ny_end
-    do m=nx_start,nx_end    
-     
+    do m=nx_start,nx_end
+
      if(lu(m,n)>0.5) then
-     
+
         r2=den(m,n,1)
         u2 = (uu(m  ,n,1)*dxt(m  ,n)*dyh(m  ,n)*hhu(m  ,n)    &
             + uu(m-1,n,1)*dxt(m-1,n)*dyh(m-1,n)*hhu(m-1,n))/2.0d0/hhq(m,n)/dx(m,n)/dy(m,n)       !u on t-grid
         v2 = (vv(m,n  ,1)*hhv(m,n  )*dxh(m,n  )*dyt(m,n  )    &
             + vv(m,n-1,1)*hhv(m,n-1)*dxh(m,n-1)*dyt(m,n-1))/2.0d0/hhq(m,n)/dx(m,n)/dy(m,n)       !v on t-grid
-     
+
       do k=2,nz
-        r1 = r2  
+        r1 = r2
         u1 = u2
         v1 = v2
 
@@ -555,22 +571,22 @@ integer m, n, k
             + uu(m-1,n,k)*dxt(m-1,n)*dyh(m-1,n)*hhu(m-1,n))/2.0d0/hhq(m,n)/dx(m,n)/dy(m,n)       !u on t-grid
         v2 = (vv(m,n  ,k)*hhv(m,n  )*dxh(m,n  )*dyt(m,n  )    &
             + vv(m,n-1,k)*hhv(m,n-1)*dxh(m,n-1)*dyt(m,n-1))/2.0d0/hhq(m,n)/dx(m,n)/dy(m,n)       !v on t-grid
-      
+
         shf2= ( (u2-u1)**2+(v2-v1)**2 )/(hzt(k)*hhq(m,n))**2
-        
+
         vbf2= FreeFallAcc/RefDen *(r2-r1)/(hzt(k)*hhq(m,n))
 
         q=dsqrt(q2p(m,n,k))
-        
+
         l_max= 0.53d0 * q/ dsqrt(max(vbf2,1.0d-10))
 
         lscl=min(q2lp(m,n,k)/q2p(m,n,k),l_max)
-        
+
         rich=min(-vbf2*lscl**2/q2p(m,n,k),0.028d0)
 
         stab_t=A2_t*(1.0d0-6.0d0*A1_t/B1_t)     &
                / (1.0d0 - (3.0d0*A2_t*B2_t+18.0d0*A1_t*A2_t)*rich)
-        
+
         stab_u=( A1_t*(1.0d0-3.0d0*C1_t-6.0d0*A1_t/B1_t)          &
                 +stab_t*((18.0d0*A1_t**2+9.0d0*A1_t*A2_t)*rich) ) &
                 /(1.0d0-9.0d0*A1_t*A2_t*rich)
@@ -591,18 +607,20 @@ integer m, n, k
                                 - hhq(m,n)*q2p(m,n,k)*q/B1_t*wall
 
       enddo
-     
+
      endif
 
     enddo
    enddo
-!$omp end parallel do        
+!$omp end parallel do
 
-      if(periodicity_x/=0) then 
+      call syncborder_real8(anzu, nz+1)
+
+      if(periodicity_x/=0) then
         call cyclize8_x(anzu,nx,ny,nz+1,mmm,mm)
       endif
 
-      if(periodicity_y/=0) then 
+      if(periodicity_y/=0) then
         call cyclize8_y(anzu,nx,ny,nz+1,nnn,nn)
       endif
 

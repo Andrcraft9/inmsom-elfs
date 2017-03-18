@@ -217,15 +217,15 @@ if (rank .eq. 0) then
     write(*,*)'=================================================================='
 endif
 
-call  parallel_local_output(path2ocp,  &
-                          1,  &
-                   year_loc,  &
-                    mon_loc,  &
-                    day_loc,  &
-                   hour_loc,  &
-                    min_loc,  &
-             loc_data_tstep,  &
-                    yr_type  )
+!call  parallel_local_output(path2ocp,  &
+!                          1,  &
+!                   year_loc,  &
+!                    mon_loc,  &
+!                    day_loc,  &
+!                   hour_loc,  &
+!                    min_loc,  &
+!             loc_data_tstep,  &
+!                    yr_type  )
 
 do while(num_step<num_step_max)
 ! atmospheric data time interpolation on atmospheric grid
@@ -235,9 +235,6 @@ do while(num_step<num_step_max)
 ! oceanic data time interpolation
   call oc_data_time_interpol
 
-  call mpi_finalize(ierr)
-  stop
-  
 !computing one step of ocean dynamics
   call ocean_model_step(time_step,nstep_barotrop)
 

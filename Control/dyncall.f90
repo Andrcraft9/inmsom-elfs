@@ -4,7 +4,7 @@ use mpi_parallel_tools
 use basin_grid
 use ocean_variables
 use ocean_bc
-	
+
 implicit none
 integer m, n, k, nstep, mark
 real(8) density, tau
@@ -36,7 +36,7 @@ real(8) density, tau
 ! Computing stress components
       call stress_components(uup,vvp,stress_t,stress_s,nz)
       call stress_components(uup2d,vvp2d,stress_t2d,stress_s2d,1)
-            
+
       if(ksw_lat>0) then
        call smagorinsky_coeff(lvisc_2, ldiff_ts, stress_t, stress_s, amts, amuv)
        call depth_ave(amuv ,amuv2d ,lu,0)
@@ -52,14 +52,14 @@ real(8) density, tau
        call sea_surface_fluxes
       endif
 !Computing bottom stresses
-      if(type_fric>0) then 
+      if(type_fric>0) then
        call sea_bottom_fluxes
       endif
 
 !--------------- velocity module-------------------------------
- 
+
 if(ksw_uv>0) then
- 
+
  RHSx3d=0.0d0; RHSy3d=0.0d0
  RHSx2d_diff_disp =0.0d0; RHSy2d_diff_disp =0.0d0
 !computing advective terms for 3d-velocity
@@ -80,7 +80,7 @@ if(ksw_uv>0) then
 !computing viscous terms for 2d-velocity
  call uv_diff2( amuv2d, stress_t2d, stress_s2d,  &
                 hhq, hhu, hhv, hhh,        &
-                RHSx2d_diff_disp, RHSy2d_diff_disp, 1 )                         
+                RHSx2d_diff_disp, RHSy2d_diff_disp, 1 )
 
 if(ksw_lat4>0) then
  call uv_diff4( amuv4, stress_t, stress_s,        &
@@ -98,7 +98,7 @@ endif
                              RHSx3d,     &
                              RHSy3d)
   endif
- 
+
    call depth_ave(RHSx3d,RHSx2d,llu,0) !computing barotrop. comp from zonal RHS
    call depth_ave(RHSy3d,RHSy2d,llv,0) !computing barotrop. comp from meridional RHS
 
@@ -106,10 +106,10 @@ endif
    call depth_ave(RHSy3d_tran,RHSy2d_tran,llv,0) !computing barotrop. comp from meridional RHS
 
 !add surface and bottom stresses to 2d RHS
- !$omp parallel do private(m,n,k) 
+ !$omp parallel do private(m,n,k)
       do n=ny_start,ny_end
        do m=nx_start,nx_end
-        
+
         if(lcu(m,n)>0.5) then
             RHSx2d(m,n)=RHSx2d(m,n)     -RHSx2d_diff_disp(m,n)               &
                        +RHSx2d_tran(m,n)-RHSx2d_tran_disp(m,n)               &
@@ -119,7 +119,7 @@ endif
 
         if(lcv(m,n)>0.5) then
             RHSy2d(m,n)=RHSy2d(m,n)     -RHSy2d_diff_disp(m,n)               &
-                       +RHSy2d_tran(m,n)-RHSy2d_tran_disp(m,n)               & 
+                       +RHSy2d_tran(m,n)-RHSy2d_tran_disp(m,n)               &
                        +( surf_stress_y(m,n)+bot_stress_y(m,n) )*dyt(m,n)*dxh(m,n)    &
                        -(slpr(m,n+1)-slpr(m,n))*hhv(m,n)*dxh(m,n)/RefDen
         endif
@@ -127,6 +127,9 @@ endif
        end do
 	end do
 !$omp end parallel do
+
+    call syncborder_real8(RHSx2d, 1)
+    call syncborder_real8(RHSy2d, 1)
 
    !computing 2d fast gravity waves in external mode and time-mean internal characteristics
    call barotropic_dynamics(tau,     &
@@ -158,19 +161,19 @@ endif
                   RHSx2d_diff_disp,  &
                   RHSy2d_diff_disp  )
 
-! removing barotropic component from 3d velocity  
+! removing barotropic component from 3d velocity
 !$omp parallel do	private(m,n,k)
   do n=ny_start-1,ny_end+1
    do m=nx_start-1,nx_end+1
-    
+
     if(lcu(m,n)>0.5) then
       uu(m,n,1:nz)=uu(m,n,1:nz)- uu2d(m,n)
     endif
-  
+
     if(lcv(m,n)>0.5) then
       vv(m,n,1:nz)=vv(m,n,1:nz)- vv2d(m,n)
     endif
-  
+
    enddo
   enddo
 !$omp end parallel do
@@ -182,17 +185,17 @@ endif
   !$omp parallel do private(m,n)
   do n=ny_start-1,ny_end+1
    do m=nx_start-1,nx_end+1
-    
+
     if(lcu(m,n)>0.5) then
       uu2d(m,n)=ubrtr_i(m,n)/hhu(m,n)
       pgrx(m,n)=pgrx(m,n)-(slpr(m+1,n)-slpr(m,n))*hhu(m,n)*dyh(m,n)/RefDen
     endif
-  
+
     if(lcv(m,n)>0.5) then
       vv2d(m,n)=vbrtr_i(m,n)/hhv(m,n)
       pgry(m,n)=pgry(m,n)-(slpr(m,n+1)-slpr(m,n))*hhv(m,n)*dxh(m,n)/RefDen
     endif
-  
+
    enddo
   enddo
 !$omp end parallel do
@@ -203,21 +206,21 @@ endif
                   sshp_i,  &
                  ubrtr_i,  &
                  vbrtr_i,  &
-                  wf_tot ) 
+                  wf_tot )
 
-! correcting barotropic component of 3d velocity  
+! correcting barotropic component of 3d velocity
 !$omp parallel do	private(m,n,k)
   do n=ny_start-1,ny_end+1
    do m=nx_start-1,nx_end+1
-    
+
     if(lcu(m,n)>0.5) then
       uu(m,n,1:nz)=uu(m,n,1:nz)+ uu2d(m,n)
     endif
-  
+
     if(lcv(m,n)>0.5) then
       vv(m,n,1:nz)=vv(m,n,1:nz)+ vv2d(m,n)
     endif
-  
+
    enddo
   enddo
 !$omp end parallel do
@@ -349,19 +352,19 @@ if(ksw_uv>0) then
                       surf_stress_x,      &
                       surf_stress_y,      &
                        bot_stress_x,      &
-                       bot_stress_y)      
+                       bot_stress_y)
 
 endif !end of velocity block
 
 
- !Updating depth functions  
+ !Updating depth functions
  if(full_free_surface>0) then
   call hh_shift(hhq, hhqp, hhqn,   &
                 hhu, hhup, hhun,   &
                 hhv, hhvp, hhvn,   &
                 hhh, hhhp, hhhn, 1 )
  endif
- 
+
 !!$omp parallel do private(m,n,k)
 !  do n=ny_start-1,ny_end+1
 !   do m=nx_start-1,nx_end+1
@@ -406,27 +409,27 @@ endif !end of velocity block
 !  enddo
 !!$omp end parallel do
 !endif
- 
+
   !compute depth mean and vertical velocity
 
   xxt=uu
   yyt=vv
 
-    call depth_ave(xxt,uu2d ,llu,1) 
+    call depth_ave(xxt,uu2d ,llu,1)
     call depth_ave(yyt,vv2d ,llv,1)
 
-    call depth_ave(uup,uup2d,llu,0) 
+    call depth_ave(uup,uup2d,llu,0)
     call depth_ave(vvp,vvp2d,llv,0)
 
 !-----------------density definition-----------------------------------
       if (ksw_dens>0) then
-!$omp parallel do private(m,n,k) 
+!$omp parallel do private(m,n,k)
        do n=ny_start-1,ny_end+1
 	  do m=nx_start-1,nx_end+1
-            if(lu(m,n)>0.5) then 
+            if(lu(m,n)>0.5) then
               do k=1,nz
                den(m,n,k)=density(tt(m,n,k),ss(m,n,k),FreeFallAcc*RefDen*hhq(m,n)*z(k))
-           den_pot(m,n,k)=density(tt(m,n,k),ss(m,n,k),0.0d0)              
+           den_pot(m,n,k)=density(tt(m,n,k),ss(m,n,k),0.0d0)
               enddo
             endif
           enddo
@@ -450,7 +453,7 @@ endif !end of velocity block
            endif
 
           do k=1,nz
-           
+
            if(tt(m,n,k)<100.0d0.and.tt(m,n,k)>-100.0d0) then
             continue
            else
@@ -464,34 +467,34 @@ endif !end of velocity block
             write(*,*) 'in the point m=',m,'n=',n,'k=',k,'ss=',ss(m,n,k)
 	      mark=1
            endif
-          
-          enddo         
+
+          enddo
          endif
 
 	   if(lcu(m,n)>0.5) then
           do k=1,nz
-          
+
            if(uu(m,n,k)<100.0d0.and.uu(m,n,k)>-100.0d0) then
             continue
            else
             write(*,*) 'in the point m=',m,'n=',n,'k=',k,'uu=',uu(m,n,k)
 	      mark=1
            endif
-          
-          enddo         
+
+          enddo
          endif
 
 	   if(lcv(m,n)>0.5) then
           do k=1,nz
-           
+
            if(vv(m,n,k)<100.0d0.and.vv(m,n,k)>-100.0d0) then
             continue
            else
             write(*,*) 'in the point m=',m,'n=',n,'k=',k,'vv=',vv(m,n,k)
 	      mark=1
            endif
-          
-          enddo         
+
+          enddo
          endif
 
         enddo

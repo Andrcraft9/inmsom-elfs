@@ -244,8 +244,8 @@ real(4) array4(bnd_x1:bnd_x2,bnd_y1:bnd_y2,nz)
        array4=0.0
        call prdstd(path2ocp,'cptt.dat', 1,array4,lu,nx,ny,nz, mmm,mm,nnn,nn,1,nz,ierr)
        tt=dble(array4)
-
        call syncborder_real8(tt, nz)
+
 !read salinity
        array4=0.0
        call prdstd(path2ocp,'cpss.dat', 1,array4,lu,nx,ny,nz, mmm,mm,nnn,nn,1,nz,ierr)
