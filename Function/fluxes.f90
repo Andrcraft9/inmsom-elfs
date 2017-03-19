@@ -8,10 +8,11 @@ use atm_forcing
 use ocean_bc
 implicit none
 
-integer m,n,k
+integer m,n,k,ierr
 
 real(8) evap_rate
 real(8) wf_ave, sf_ave, m_calc, wf, wnd
+real(8) tmp_real8
 
 if(ksw_ssbc==1) then
 
@@ -101,8 +102,6 @@ if(ksw_ssbc==3) then
  enddo
 !$omp end parallel do
 
-  call syncborder_real8(wf_tot, 1)
-
   call syncborder_real8(taux, 1)
   call syncborder_real8(tauy, 1)
 
@@ -119,7 +118,6 @@ if(ksw_ssbc==3) then
   m_calc=0.0d0
 
   if(ksw_wflux>0) then
-
   !$omp parallel do private(m,n) reduction(+:wf_ave, m_calc)
    do n=ny_start,ny_end
      do m=nx_start,nx_end
@@ -130,8 +128,22 @@ if(ksw_ssbc==3) then
      enddo
    enddo
   !$omp end parallel do
+   tmp_real8 = wf_ave
+   call mpi_allreduce(tmp_real8, wf_ave, 1, mpi_real8, mpi_sum, cart_comm, ierr)
+   tmp_real8 = m_calc
+   call mpi_allreduce(tmp_real8, m_calc, 1, mpi_real8, mpi_sum, cart_comm, ierr)
 
-   wf_tot=wf_tot-wf_ave/m_calc
+   wf_tot = wf_tot - wf_ave/m_calc
+  endif
+
+  call syncborder_real8(wf_tot, 1)
+
+  if(periodicity_x/=0) then
+    call cyclize8_x(wf_tot,nx,ny,1,mmm,mm)
+  endif
+
+  if(periodicity_y/=0) then
+    call cyclize8_y(wf_tot,nx,ny,1,nnn,nn)
   endif
 
   !$omp parallel do private(m, n, k) reduction(+:sf_ave)
@@ -147,6 +159,8 @@ if(ksw_ssbc==3) then
      enddo
    enddo
   !$omp end parallel do
+   tmp_real8 = sf_ave
+   call mpi_allreduce(tmp_real8, sf_ave, 1, mpi_real8, mpi_sum, cart_comm, ierr)
 
    if(ksw_wflux>1) then
     sflux_surf=sflux_surf-sf_ave/m_calc

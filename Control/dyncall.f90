@@ -8,6 +8,7 @@ use ocean_bc
 implicit none
 integer m, n, k, nstep, mark
 real(8) density, tau
+real(8) t_barotrop, t_baroclin, t_tracers
 
 ! vertical diffusion coefficients
       if(iabs(ksw_vert)==1) then
@@ -128,9 +129,10 @@ endif
 	end do
 !$omp end parallel do
 
-    call syncborder_real8(RHSx2d, 1)
-    call syncborder_real8(RHSy2d, 1)
+!    call syncborder_real8(RHSx2d, 1)
+!    call syncborder_real8(RHSy2d, 1)
 
+   call start_timer(t_barotrop)
    !computing 2d fast gravity waves in external mode and time-mean internal characteristics
    call barotropic_dynamics(tau,     &
                           nstep,     &
@@ -160,7 +162,8 @@ endif
                   RHSy2d_tran_disp,  &
                   RHSx2d_diff_disp,  &
                   RHSy2d_diff_disp  )
-
+  call end_timer(t_barotrop)
+  if (rank .eq. 0) print *, "Barotropic time: ", t_barotrop
 ! removing barotropic component from 3d velocity
 !$omp parallel do	private(m,n,k)
   do n=ny_start-1,ny_end+1
@@ -258,6 +261,7 @@ if(ksw_vert>1) then
 endif
 
 if(ksw_ts>0) then
+      call start_timer(t_tracers)
 !----------temperature computation------------------------------
       call tracer_tran_diff(tt,     &
                            ttp,     &
@@ -325,15 +329,17 @@ if(ksw_ts>0) then
                           slqbw,    &
                       divswrad,     &
                           0.0d0)
+      call end_timer(t_tracers)
+      if (rank .eq. 0) print *, "Tracers time: ", t_tracers
 endif
 
 if(ksw_uv>0) then
 !correcting advective terms for 3d-velocity
- call uv_trans( uu, vv,  r_vort, &
+   call uv_trans( uu, vv,  r_vort, &
              hhq, hhu, hhv, hhh,         &
-         RHSx3d_tran, RHSy3d_tran, nz )
+             RHSx3d_tran, RHSy3d_tran, nz )
 
-
+   call start_timer(t_baroclin)
   !solving full equations for 3d horizontal velocity
    call baroclinic_dynamics(tau,          &
                             uu,           &
@@ -353,7 +359,8 @@ if(ksw_uv>0) then
                       surf_stress_y,      &
                        bot_stress_x,      &
                        bot_stress_y)
-
+   call end_timer(t_baroclin)
+   if (rank .eq. 0) print *, "Baroclinic time: ", t_baroclin
 endif !end of velocity block
 
 

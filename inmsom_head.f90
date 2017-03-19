@@ -6,6 +6,7 @@ implicit none
 
 character(128) fname
 integer m,ierr
+real*8 t_global, t_local
 
 !call non_mpi_array_boundary_definition
 call mpi_array_boundary_definition
@@ -227,16 +228,24 @@ endif
 !             loc_data_tstep,  &
 !                    yr_type  )
 
+call start_timer(t_global)
 do while(num_step<num_step_max)
+
+  call start_timer(t_local)
 ! atmospheric data time interpolation on atmospheric grid
   call atm_data_time_interpol
 ! atmospheric data spatial interpolation from atm to ocean grid
   call atm_data_spatial_interpol
 ! oceanic data time interpolation
   call oc_data_time_interpol
+  call end_timer(t_local)
+  if (rank .eq. 0) print *, "Interpolation time: ", t_local
 
+  call start_timer(t_local)
 !computing one step of ocean dynamics
   call ocean_model_step(time_step,nstep_barotrop)
+  call end_timer(t_local)
+  if (rank .eq. 0) print *,"Step: ", num_step, " Ocean model step time: ", t_local
 
 !-----------------------------------------------------------
 !moving to the next time step
@@ -296,6 +305,8 @@ endif
 
 enddo
 !End of time cycle
+call end_timer(t_global)
+if (rank .eq. 0) print *, "Global time: ", t_global
 
 !deallocating the arrays
 call atm2oc_deallocate
@@ -304,5 +315,7 @@ call oceanbc_arrays_deallocate
 call pass_tracer_deallocate
 call ocean_variables_deallocate
 call model_grid_deallocate
+
+call mpi_finalize(ierr)
 
 endprogram INMSOM

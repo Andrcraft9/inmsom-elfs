@@ -196,6 +196,7 @@ integer m_hour_of_day,      &
 character  month_name(12)*3
 data month_name/'Jan','Feb','Mar','Apr','May','Jun','Jul','Aug',     &
                 'Sep','Oct','Nov','Dec'/
+
       if (rank .eq. 0) then
           write(*,'(a,i8,4(a,i2.2), a,i4.4, a,i3.3, a,i4.4,a,i5)')  &
              '   time step: ', num_step ,                      &

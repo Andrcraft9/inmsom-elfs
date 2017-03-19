@@ -108,8 +108,8 @@ integer m,n,k
   end do
 !$omp end parallel do
 
-  call syncborder_real8(RHSx, nlev)
-  call syncborder_real8(RHSy, nlev)
+!  call syncborder_real8(RHSx, nlev)
+!  call syncborder_real8(RHSy, nlev)
 
 endsubroutine uv_trans
 
@@ -178,8 +178,8 @@ integer m,n,k
   end do
 !$omp end parallel do
 
-  call syncborder_real8(RHSx, nlev)
-  call syncborder_real8(RHSy, nlev)
+!  call syncborder_real8(RHSx, nlev)
+!  call syncborder_real8(RHSy, nlev)
 
 endsubroutine uv_diff2
 
@@ -311,8 +311,8 @@ fy=0.0d0
   end do
 !$omp end parallel do
 
-  call syncborder_real8(RHSx, nlev)
-  call syncborder_real8(RHSy, nlev)
+!  call syncborder_real8(RHSx, nlev)
+!  call syncborder_real8(RHSy, nlev)
 
 endsubroutine uv_diff4
 
@@ -370,8 +370,8 @@ implicit none
  enddo
  !$omp end parallel do
 
- call syncborder_real8(RHSx, nz)
- call syncborder_real8(RHSy, nz)
+! call syncborder_real8(RHSx, nz)
+! call syncborder_real8(RHSy, nz)
 
 endsubroutine pressure_gradients
 !==========================================================================================================
@@ -652,8 +652,8 @@ enddo
  call syncborder_real8(ubrtr_i, 1)
  call syncborder_real8(vbrtr_i, 1)
 
- call syncborder_real8(ssh4gradx, 1)
- call syncborder_real8(ssh4grady, 1)
+! call syncborder_real8(ssh4gradx, 1)
+! call syncborder_real8(ssh4grady, 1)
 
  if(periodicity_x/=0) then
    call cyclize8_x(ubrtr_i,nx,ny,1,mmm,mm)
@@ -777,9 +777,9 @@ implicit none
 	end do
 !$omp end parallel do
 
-    call syncborder_real8(gradx, 1)
-    call syncborder_real8(grady, 1)
-
+!    call syncborder_real8(gradx, 1)
+!    call syncborder_real8(grady, 1)
+!
 !      if(periodicity_x/=0) then
 !          call cyclize8_x(gradx,nx,ny, 1,mmm,mm)
 !      end if
