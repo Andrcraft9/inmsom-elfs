@@ -23,8 +23,11 @@ subroutine mpi_array_boundary_definition
     use mpi_parallel_tools
     implicit none
 
+    include "omp_lib.h"
+
     integer :: ierr, procn, i
     integer :: locn
+    integer :: count_threads, num_thread
 
     call mpi_init(ierr)
 
@@ -66,8 +69,8 @@ subroutine mpi_array_boundary_definition
     bnd_y2 = ny_end + 2
 !    if (bnd_y2 > ny) bnd_y2 = ny
 
-    if (rank .eq. 0) print *, "Boundary arrays:"
     call mpi_comm_size(cart_comm, procn, ierr)
+    if (rank .eq. 0) print *, "MPI pocs: ", procn, " Domain decomposition:"
     do i = 0, procn-1
         if (rank .eq. i) then
             print *, "nx ", rank, p_coord, nx_start, nx_end, ny_start, ny_end
@@ -76,8 +79,11 @@ subroutine mpi_array_boundary_definition
         call mpi_barrier(cart_comm, ierr)
     enddo
 
-!    call MPI_FINALIZE(ierr)
-!    stop
+!$omp parallel
+    count_threads = omp_get_num_threads()
+    num_thread = omp_get_thread_num()
+    if (num_thread .eq. 0) print *, "OMP Threads: ", count_threads
+!$omp end parallel
 
 endsubroutine mpi_array_boundary_definition
 
