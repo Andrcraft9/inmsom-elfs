@@ -777,7 +777,7 @@ subroutine pwdstd(path,fname,nfild,fild,lu,nx,ny,nz,nxb,nxe,nyb,nye,nzb,nze,ierr
     do j = ny_start, ny_end
         do i = nx_start, nx_end
             if( abs(lu(i,j)) .lt. 0.5 ) then
-                print *, rank, "UNDEF", i, j
+!                print *, rank, "UNDEF", i, j
                 fild(i, j, nzb:nze) = undef
             end if
         end do

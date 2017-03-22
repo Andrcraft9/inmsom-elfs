@@ -8,7 +8,7 @@ use ocean_bc
 implicit none
 integer m, n, k, nstep, mark
 real(8) density, tau
-real(8) t_barotrop, t_baroclin, t_tracers
+real(8) time_count
 
 ! vertical diffusion coefficients
       if(iabs(ksw_vert)==1) then
@@ -132,7 +132,7 @@ endif
 !    call syncborder_real8(RHSx2d, 1)
 !    call syncborder_real8(RHSy2d, 1)
 
-   call start_timer(t_barotrop)
+   call start_timer(time_count)
    !computing 2d fast gravity waves in external mode and time-mean internal characteristics
    call barotropic_dynamics(tau,     &
                           nstep,     &
@@ -162,8 +162,9 @@ endif
                   RHSy2d_tran_disp,  &
                   RHSx2d_diff_disp,  &
                   RHSy2d_diff_disp  )
-  call end_timer(t_barotrop)
-  if (rank .eq. 0) print *, "Barotropic time: ", t_barotrop
+  call end_timer(time_count)
+  time_barotrop = time_barotrop + time_count
+
 ! removing barotropic component from 3d velocity
 !$omp parallel do	private(m,n,k)
   do n=ny_start-1,ny_end+1
@@ -261,7 +262,7 @@ if(ksw_vert>1) then
 endif
 
 if(ksw_ts>0) then
-      call start_timer(t_tracers)
+      call start_timer(time_count)
 !----------temperature computation------------------------------
       call tracer_tran_diff(tt,     &
                            ttp,     &
@@ -295,7 +296,10 @@ if(ksw_ts>0) then
                           tlqbw,    &
                       divswrad,     &
                1.0d0/(HeatCapWater*RefDen))
+      call end_timer(time_count)
+      time_tracer_tt = time_tracer_tt + time_count
 
+      call start_timer(time_count)
 !----------salinity computation------------------------------
       call tracer_tran_diff(ss,     &
                            ssp,     &
@@ -329,8 +333,8 @@ if(ksw_ts>0) then
                           slqbw,    &
                       divswrad,     &
                           0.0d0)
-      call end_timer(t_tracers)
-      if (rank .eq. 0) print *, "Tracers time: ", t_tracers
+      call end_timer(time_count)
+      time_tracer_ss = time_tracer_ss + time_count
 endif
 
 if(ksw_uv>0) then
@@ -339,7 +343,7 @@ if(ksw_uv>0) then
              hhq, hhu, hhv, hhh,         &
              RHSx3d_tran, RHSy3d_tran, nz )
 
-   call start_timer(t_baroclin)
+   call start_timer(time_count)
   !solving full equations for 3d horizontal velocity
    call baroclinic_dynamics(tau,          &
                             uu,           &
@@ -359,8 +363,8 @@ if(ksw_uv>0) then
                       surf_stress_y,      &
                        bot_stress_x,      &
                        bot_stress_y)
-   call end_timer(t_baroclin)
-   if (rank .eq. 0) print *, "Baroclinic time: ", t_baroclin
+   call end_timer(time_count)
+   time_baroclin = time_baroclin + time_count
 endif !end of velocity block
 
 
