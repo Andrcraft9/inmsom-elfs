@@ -5,7 +5,7 @@ use mpi_parallel_tools
 implicit none
 
 character(128) fname
-integer m,ierr
+integer m, ierr
 real*8 t_global, t_local
 
 !call non_mpi_array_boundary_definition
@@ -39,7 +39,11 @@ blank=' '
 filepar='ocean_run.par'
 
 !reading parameters from file
-call readpar(filepar,comments,nofcom)
+if (rank .eq. 0) then
+    call readpar(filepar,comments,nofcom)
+endif
+call mpi_bcast(comments, 256*256, mpi_character, 0, cart_comm, ierr)
+
 read(comments( 1),*) start_type          !Type of starting run (0 - from TS only, 1 - frim the full checkpoint)
 read(comments( 2),*) time_step           !Model time step (in seconds)
 read(comments( 3),*) run_duration        !Duration of the run in days
@@ -233,11 +237,14 @@ call start_timer(t_global)
 do while(num_step<num_step_max)
 
 ! atmospheric data time interpolation on atmospheric grid
+!  call start_timer(t_local)
   call atm_data_time_interpol
 ! atmospheric data spatial interpolation from atm to ocean grid
   call atm_data_spatial_interpol
 ! oceanic data time interpolation
   call oc_data_time_interpol
+!  call end_timer(t_local)
+!  if (rank .eq. 0) print *, "Interpolate time: ", t_local, "step: ", num_step
 
   call start_timer(t_local)
 !computing one step of ocean dynamics

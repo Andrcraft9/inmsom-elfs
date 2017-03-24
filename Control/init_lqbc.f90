@@ -13,7 +13,7 @@
 
 !------working variables--------------------------------------------------------
 	integer m,n,l,ierr, mark
-      integer numb_of_lqp_real
+    integer numb_of_lqp_real
 
 	character frmt*16,comment*1024
 
@@ -21,6 +21,14 @@
 	data alphabet/'N','S','W','E'/
 
 	character, allocatable:: lqbmask(:,:)
+
+!--------------------------------------------------------------------------------------!
+!--------------------------------------------------------------------------------------!
+    if (rank .eq. 0) print *, "Error! Lqpcoordinates is not done yet."
+    call mpi_finalize(ierr)
+    stop
+!--------------------------------------------------------------------------------------!
+!--------------------------------------------------------------------------------------!
 
 	allocate (lqbmask(nx,ny))
 

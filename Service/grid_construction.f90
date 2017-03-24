@@ -18,13 +18,16 @@ write(frmt,1000) nx
 1000  format('(',i9,'i1)')
 
 ! reading mask from:
-open (11,file=ftemask,status='old',recl=nx*lrecl)
- read (11,  '(a)') comment(1:min(80,nx))
- if (rank .eq. 0) write(*,'(1x,a)') comment
- do n=ny,1,-1
-  read(11,frmt,end=99) (lbasins(m,n),m=1,nx)
- enddo
-close(11)
+if (rank .eq. 0) then
+    open (11,file=ftemask,status='old',recl=nx*lrecl)
+     read (11,  '(a)') comment(1:min(80,nx))
+     if (rank .eq. 0) write(*,'(1x,a)') comment
+     do n=ny,1,-1
+      read(11,frmt,end=99) (lbasins(m,n),m=1,nx)
+     enddo
+    close(11)
+endif
+call mpi_bcast(lbasins, nx*ny, mpi_integer, 0, cart_comm, ierr)
 
 ! conversion integer diogin mask to real model mask
 do n=bnd_y1,bnd_y2
@@ -35,8 +38,7 @@ do n=bnd_y1,bnd_y2
    end do
 end do
 
-
-     lu1=1.0
+lu1=1.0
 
 if(periodicity_x/=0) then
   call cyclize_x(lu,nx,ny,1,mmm,mm)

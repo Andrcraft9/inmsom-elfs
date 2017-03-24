@@ -641,27 +641,31 @@ implicit none
 
     integer nx, ny, m1, m2, n1, n2, nrec      !its dimensions
     real(4) field(nx,ny) !data array
-    integer m,n
-
-    open (17,file=filename,status='old',access='direct', form='unformatted',     &
-                  recl=(m2-m1+1)*(n2-n1+1)*lrecl,err=117)
+    integer m, n, ierr
 
     if (rank .eq. 0) then
-       write(*,*) 'read boundary data: ', filename(1:len_trim (filename))
-       write(*,'(2(a,i4),a,i6)') 'dimension is ',m2-m1+1,' x',n2-n1+1, ', number of record is ',nrec
+        open (17,file=filename,status='old',access='direct', form='unformatted',     &
+                      recl=(m2-m1+1)*(n2-n1+1)*lrecl,err=117)
+
+        if (rank .eq. 0) then
+           write(*,*) 'read boundary data: ', filename(1:len_trim (filename))
+           write(*,'(2(a,i4),a,i6)') 'dimension is ',m2-m1+1,' x',n2-n1+1, ', number of record is ',nrec
+        endif
+
+        read(17,rec=nrec,err=119) ((field(m,n),m=m1,m2),n=n1,n2)
+
+        close(17)
     endif
 
-    read(17,rec=nrec,err=119) ((field(m,n),m=m1,m2),n=n1,n2)
+    call mpi_bcast(field, nx*ny, mpi_real4, 0, cart_comm, ierr)
 
-    close(17)
+    return
 
-	return
-    
 117    write(*,'(1x,a)')'   error in opening file:'
-      write(*,'(5x,a)') filename(1:len_trim(filename))
-      stop
+       write(*,'(5x,a)') filename(1:len_trim(filename))
+       stop
 119    write(*,'(1x,a)')'   error in reading file:'
-      write(*,'(5x,a)') filename(1:len_trim(filename))
-      stop
+       write(*,'(5x,a)') filename(1:len_trim(filename))
+       stop
 
 endsubroutine bc_data_read
