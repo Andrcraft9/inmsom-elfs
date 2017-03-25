@@ -1,3 +1,6 @@
-!integer, parameter:: lrecl=1         !long of unique recl for Compaq, Intel fortran
- integer, parameter:: lrecl=4         !long of unique recl for PGI, gfortran, efc
- real, parameter:: undef=-1.0e+32    !missing data value
+!integer, parameter :: lrecl=1         !long of unique recl for Compaq, Intel fortran
+ integer, parameter :: lrecl=4         !long of unique recl for PGI, gfortran, efc
+
+ integer, parameter :: lmpirecl=4      !for mpi read/write
+
+ real, parameter :: undef=-1.0e+32    !missing data value

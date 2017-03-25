@@ -566,7 +566,7 @@ subroutine prdstd(path,fname,nfild,fild,lu,nx,ny,nz,nxb,nxe,nyb,nye,nzb,nze,ierr
           ierr=3
           goto 103
       end if
-      disp = (nxe-nxb+1)*(nye-nyb+1)*lrecl*(nfild-1)*(nze-nzb+1)
+      disp = (nxe-nxb+1)*(nye-nyb+1)*lmpirecl*(nfild-1)*(nze-nzb+1)
       offset3 = (/nx_start - nxb, ny_start - nyb, 0/)
       offset2 = (/nx_start - nxb, ny_start - nyb/)
       locsizes3 = (/nx_end - nx_start + 1, ny_end - ny_start + 1, nze - nzb + 1/)
@@ -703,7 +703,7 @@ subroutine pwdstd(path,fname,nfild,fild,lu,nx,ny,nz,nxb,nxe,nyb,nye,nzb,nze,ierr
         goto 103
     end if
 
-    disp = (nxe-nxb+1)*(nye-nyb+1)*lrecl*(nfild-1)*(nze-nzb+1)
+    disp = (nxe-nxb+1)*(nye-nyb+1)*lmpirecl*(nfild-1)*(nze-nzb+1)
     offset3 = (/nx_start - nxb, ny_start - nyb, 0/)
     offset2 = (/nx_start - nxb, ny_start - nyb/)
     locsizes3 = (/nx_end - nx_start + 1, ny_end - ny_start + 1, nze - nzb + 1/)
@@ -742,18 +742,18 @@ subroutine pwdstd(path,fname,nfild,fild,lu,nx,ny,nz,nxb,nxe,nyb,nye,nzb,nze,ierr
     call mpi_info_set(fi,"collective_buffering","true",ierr)
     write(chunked,1000) ny,nx,nz
     call mpi_info_set(fi,"chunked",chunked,ierr)
-    write(chunked_item,1001) lrecl
+    write(chunked_item,1001) lmpirecl
     call mpi_info_set(fi,"chunked_item",chunked_item,ierr)
     write(chunked_size,1000) ny_end-ny_start+1, nx_end-nx_start+1,nze-nzb+1
     call mpi_info_set(fi,"chunked_size",chunked_size,ierr)
-    write(striping_unit,1002) (nx*ny*nz)*lrecl
+    write(striping_unit,1002) (nx*ny*nz)*lmpirecl
     call mpi_info_set(fi,"striping_unit",striping_unit,ierr)
 !      call mpi_info_set(fi,"striping_factor",
 !     &                    "16",ierr)
 !      call mpi_info_set(fi,"cb_nodes",
 !     &                     "4",ierr)
     call mpi_info_set(fi,"cb_buffer_size",striping_unit,ierr)
-    write(buffer_size,1002) (nx_end-nx_start+1)*(ny_end-ny_start+1)*(nzb-nze+1)*lrecl
+    write(buffer_size,1002) (nx_end-nx_start+1)*(ny_end-ny_start+1)*(nzb-nze+1)*lmpirecl
     call mpi_info_set(fi,"ind_wr_buffer_size",buffer_size,ierr)
     call mpi_info_set(fi,"cb_block_size",buffer_size,ierr)
     call mpi_file_open(cart_comm,namofile,ior(mpi_mode_wronly,mpi_mode_create),fi,hfile,ierr)
