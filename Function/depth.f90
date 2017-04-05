@@ -105,7 +105,7 @@ subroutine hh_init(hq, hqp, hqn,    &
 endsubroutine hh_init
 
 !============================================================
-subroutine hh_update(hqn, hun, hvn, hhn, sh,h_r)
+subroutine hh_update(hqn, hun, hvn, hhn, sh,h_r, sync_flag, bnd_step)
  use main_basin_pars
  use mpi_parallel_tools
  use basin_grid
@@ -117,12 +117,13 @@ subroutine hh_update(hqn, hun, hvn, hhn, sh,h_r)
 
  integer m,n
  real(8) slu
+ integer sync_flag, bnd_step
 
-      hqn =h_r + sh
+      hqn = h_r + sh
 
 !$omp parallel do private(m,n,slu)
-      do n=ny_start-1,ny_end
-       do m=nx_start-1,nx_end
+      do n = max(bnd_y1-1, ny_start-1 - bnd_step), min(bnd_y2, ny_end + bnd_step)
+       do m = max(bnd_x1-1, nx_start-1 - bnd_step), min(bnd_x2, nx_end + bnd_step)
 
         if(llu(m,n)>0.5) then
 ! interpolating hhq given on T-grid(lu) to hhu given on u-grid(lcu).
@@ -151,21 +152,21 @@ subroutine hh_update(hqn, hun, hvn, hhn, sh,h_r)
 	end do
 !$omp end parallel do
 
+    if (sync_flag .eq. 1) then
       call syncborder_real8(hun, 1)
       call syncborder_real8(hvn, 1)
       call syncborder_real8(hhn, 1)
-
       if(periodicity_x/=0) then
         call cyclize8_x(hun, nx,ny,1,mmm,mm)
         call cyclize8_x(hvn, nx,ny,1,mmm,mm)
         call cyclize8_x(hhn, nx,ny,1,mmm,mm)
       end if
-
       if(periodicity_y/=0) then
         call cyclize8_y(hun, nx,ny,1,nnn,nn)
         call cyclize8_y(hvn, nx,ny,1,nnn,nn)
         call cyclize8_y(hhn, nx,ny,1,nnn,nn)
       end if
+    endif
 
 endsubroutine hh_update
 
@@ -174,7 +175,8 @@ endsubroutine hh_update
 subroutine hh_shift(hq, hqp, hqn,   &
                     hu, hup, hun,   &
                     hv, hvp, hvn,   &
-                    hh, hhp, hhn, nstep  )
+                    hh, hhp, hhn, nstep, &
+                    bnd_step )
  use main_basin_pars
  use mpi_parallel_tools
  use basin_grid
@@ -186,11 +188,12 @@ subroutine hh_shift(hq, hqp, hqn,   &
          hh(bnd_x1:bnd_x2, bnd_y1:bnd_y2), hhp(bnd_x1:bnd_x2, bnd_y1:bnd_y2), hhn(bnd_x1:bnd_x2, bnd_y1:bnd_y2)
 
  integer m,n, nstep
+ integer bnd_step
 
 
 !$omp parallel do private(m,n)
-      do n=ny_start-1,ny_end+1
-       do m=nx_start-1,nx_end+1
+      do n = max(bnd_y1-1, ny_start-1 - bnd_step), min(bnd_y2+1, ny_end+1 + bnd_step)
+       do m = max(bnd_x1-1, nx_start-1 - bnd_step), min(bnd_x2+1, nx_end+1 + bnd_step)
 
         if(llu(m,n)>0.5) then
           hup(m,n)= hu(m,n) + time_smooth*(hun(m,n)-2.0d0*hu(m,n)+hup(m,n))/2.0d0/dfloat(nstep)
@@ -235,8 +238,8 @@ implicit none
  integer kbcl      ! key to remove barotropic component from the field: 0 - not, 1 - yes
 
 !$omp parallel do private(m,n,k,ff0)
-      do n=bnd_y1+1,bnd_y2-1
-       do m=bnd_x1+1,bnd_x2-1
+      do n=ny_start-1, ny_end+1     ! do n=bnd_y1+1,bnd_y2-1
+       do m=nx_start-1, nx_end+1  !  do m=bnd_x1+1,bnd_x2-1
         if (mask(m,n)>0.5) then
 
            ff0 = 0.0d0

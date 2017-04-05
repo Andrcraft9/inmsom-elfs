@@ -35,8 +35,8 @@ real(8) time_count
       endif
 
 ! Computing stress components
-      call stress_components(uup,vvp,stress_t,stress_s,nz)
-      call stress_components(uup2d,vvp2d,stress_t2d,stress_s2d,1)
+      call stress_components(uup,vvp,stress_t,stress_s,nz, 1, 0)
+      call stress_components(uup2d,vvp2d,stress_t2d,stress_s2d,1, 1, 0)
 
       if(ksw_lat>0) then
        call smagorinsky_coeff(lvisc_2, ldiff_ts, stress_t, stress_s, amts, amuv)
@@ -66,22 +66,26 @@ if(ksw_uv>0) then
 !computing advective terms for 3d-velocity
  call uv_trans( uu, vv, r_vort,   &
              hhq, hhu, hhv, hhh,          &
-         RHSx3d_tran, RHSy3d_tran, nz )
+         RHSx3d_tran, RHSy3d_tran, nz,    &
+         1, 0)
 
 !computing advective terms for 2d-velocity
  call uv_trans( uu2d, vv2d, r_vort2d,   &
                  hhq, hhu, hhv, hhh,            &
-    RHSx2d_tran_disp, RHSy2d_tran_disp, 1  )
+    RHSx2d_tran_disp, RHSy2d_tran_disp, 1,     &
+    1, 0)
 
 !computing viscous terms for 3d-velocity
  call uv_diff2( amuv, stress_t, stress_s,  &
                hhq, hhu, hhv, hhh,        &
-               RHSx3d, RHSy3d, nz     )
+               RHSx3d, RHSy3d, nz,    &
+               0)
 
 !computing viscous terms for 2d-velocity
  call uv_diff2( amuv2d, stress_t2d, stress_s2d,  &
                 hhq, hhu, hhv, hhh,        &
-                RHSx2d_diff_disp, RHSy2d_diff_disp, 1 )
+                RHSx2d_diff_disp, RHSy2d_diff_disp, 1, &
+                0)
 
 if(ksw_lat4>0) then
  call uv_diff4( amuv4, stress_t, stress_s,        &
@@ -341,7 +345,8 @@ if(ksw_uv>0) then
 !correcting advective terms for 3d-velocity
    call uv_trans( uu, vv,  r_vort, &
              hhq, hhu, hhv, hhh,         &
-             RHSx3d_tran, RHSy3d_tran, nz )
+             RHSx3d_tran, RHSy3d_tran, nz ,  &
+             1, 0 )
 
    call start_timer(time_count)
   !solving full equations for 3d horizontal velocity
@@ -373,7 +378,8 @@ endif !end of velocity block
   call hh_shift(hhq, hhqp, hhqn,   &
                 hhu, hhup, hhun,   &
                 hhv, hhvp, hhvn,   &
-                hhh, hhhp, hhhn, 1 )
+                hhh, hhhp, hhhn, 1, &
+                0 )
  endif
 
 !!$omp parallel do private(m,n,k)

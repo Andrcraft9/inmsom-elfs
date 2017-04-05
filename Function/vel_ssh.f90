@@ -1,60 +1,85 @@
 !===========================================================================================
 subroutine uv_trans( u, v, vort,    &
                    hq, hu, hv, hh,         &
-                   RHSx, RHSy, nlev    )
+                   RHSx, RHSy, nlev, &
+                   sync_flag, bnd_step    )
 use main_basin_pars
 use mpi_parallel_tools
 use basin_grid
 implicit none
 
- integer nlev
+integer nlev
 
- real(8) u(bnd_x1:bnd_x2,bnd_y1:bnd_y2,nlev),        & !Transporting zonal velocity
+real(8) u(bnd_x1:bnd_x2,bnd_y1:bnd_y2,nlev),        & !Transporting zonal velocity
          v(bnd_x1:bnd_x2,bnd_y1:bnd_y2,nlev)           !Transporting meridional velocity
 
- real(8) RHSx(bnd_x1:bnd_x2,bnd_y1:bnd_y2,nlev ),      & !Zonal source function
+real(8) RHSx(bnd_x1:bnd_x2,bnd_y1:bnd_y2,nlev ),      & !Zonal source function
          RHSy(bnd_x1:bnd_x2,bnd_y1:bnd_y2,nlev )         !meridional source function
 
 
- real(8) hq(bnd_x1:bnd_x2,bnd_y1:bnd_y2),      &
+real(8) hq(bnd_x1:bnd_x2,bnd_y1:bnd_y2),      &
          hu(bnd_x1:bnd_x2,bnd_y1:bnd_y2),      &
          hv(bnd_x1:bnd_x2,bnd_y1:bnd_y2),      &
          hh(bnd_x1:bnd_x2,bnd_y1:bnd_y2)
 
 real(8) vort(bnd_x1:bnd_x2,bnd_y1:bnd_y2,nlev)
 
+integer sync_flag, bnd_step
+
 real(8) fx_p,fx_m,fy_p,fy_m   !fluxes through cell edges
 
-integer m,n,k
+integer m,n,k, x1, x2, y1, y2
 
-!$omp parallel do private(m,n,k)
- do n=ny_start, ny_end
-   do m=nx_start, nx_end
-    if(luu(m,n)>0.5) then
-     do k=1,nlev
-      vort(m,n,k)= (v(m+1,n,k)*dyt(m+1,n)-v(m,n,k)*dyt(m,n))     &
-                  -(u(m,n+1,k)*dxt(m,n+1)-u(m,n,k)*dxt(m,n))     &
-                  -((v(m+1,n,k)-v(m,n,k))*dyb(m,n)-(u(m,n+1,k)-u(m,n,k))*dxb(m,n))
-     enddo
-    endif
-   enddo
- enddo
-!$omp end parallel do
 
-      call syncborder_real8(vort, nlev)
+if (sync_flag .eq. 1) then
+    !$omp parallel do private(m,n,k)
+    do n=ny_start,ny_end
+        do m=nx_start,nx_end
+            if(luu(m,n)>0.5) then
+                do k=1,nlev
+                    vort(m,n,k)= (v(m+1,n,k)*dyt(m+1,n)-v(m,n,k)*dyt(m,n))     &
+                    -(u(m,n+1,k)*dxt(m,n+1)-u(m,n,k)*dxt(m,n))     &
+                    -((v(m+1,n,k)-v(m,n,k))*dyb(m,n)-(u(m,n+1,k)-u(m,n,k))*dxb(m,n))
+                enddo
+            endif
+        enddo
+    enddo
+    !$omp end parallel do
 
-      if(periodicity_x/=0) then
-       call cyclize8_x(vort,nx,ny,nlev,mmm,mm)
-	  end if
-
-      if(periodicity_y/=0) then
+    call syncborder_real8(vort, nlev)
+    if(periodicity_x/=0) then
+      call cyclize8_x(vort,nx,ny,nlev,mmm,mm)
+    end if
+    if(periodicity_y/=0) then
        call cyclize8_y(vort,nx,ny,nlev,nnn,nn)
-	  end if
+    end if
+
+    x1 = nx_start
+    x2 = nx_end
+    y1 = ny_start
+    y2 = ny_end
+else
+    !$omp parallel do private(m,n,k)
+    do n = max(bnd_y1, ny_start - bnd_step), min(bnd_y2, ny_end + bnd_step)
+        do m = max(bnd_x1, nx_start - bnd_step), min(bnd_x2, nx_end + bnd_step)
+            if(luu(m,n)>0.5) then
+                do k=1,nlev
+                    vort(m,n,k)= (v(m+1,n,k)*dyt(m+1,n)-v(m,n,k)*dyt(m,n))     &
+                    -(u(m,n+1,k)*dxt(m,n+1)-u(m,n,k)*dxt(m,n))     &
+                    -((v(m+1,n,k)-v(m,n,k))*dyb(m,n)-(u(m,n+1,k)-u(m,n,k))*dxb(m,n))
+                enddo
+            endif
+        enddo
+    enddo
+    !$omp end parallel do
+
+    x1 = max(bnd_x1, nx_start - (bnd_step - 1))
+    x2 = min(bnd_x2, nx_end + (bnd_step - 1))
+endif
 
 !$omp parallel do private(m,n,k,fx_p,fx_m,fy_p,fy_m)
-  do n=ny_start,ny_end
-    do m=nx_start,nx_end
-
+  do n=y1,y2
+    do m=x1,x2
 !zonal velocity
       if(lcu(m,n)>0.5) then
 
@@ -116,32 +141,34 @@ endsubroutine uv_trans
 !===========================================================================================
 subroutine uv_diff2( mu, str_t, str_s,    &
                      hq, hu, hv, hh,      &
-                     RHSx, RHSy, nlev     )
+                     RHSx, RHSy, nlev,    &
+                     bnd_step     )
 use main_basin_pars
 use mpi_parallel_tools
 use basin_grid
 implicit none
 
- integer nlev
- real(8) muh_p, muh_m
+integer nlev
+real(8) muh_p, muh_m
 
- real(8) mu(bnd_x1:bnd_x2,bnd_y1:bnd_y2,nlev ),      & !lateral viscosity coefficient
+real(8) mu(bnd_x1:bnd_x2,bnd_y1:bnd_y2,nlev ),      & !lateral viscosity coefficient
        RHSx(bnd_x1:bnd_x2,bnd_y1:bnd_y2,nlev ),      & !Zonal source function
        RHSy(bnd_x1:bnd_x2,bnd_y1:bnd_y2,nlev ),      & !meridional source function
       str_t(bnd_x1:bnd_x2,bnd_y1:bnd_y2,nlev ),      & !Tension stress
       str_s(bnd_x1:bnd_x2,bnd_y1:bnd_y2,nlev )         !Shearing stress
 
- real(8) hq(bnd_x1:bnd_x2,bnd_y1:bnd_y2),      &
+real(8) hq(bnd_x1:bnd_x2,bnd_y1:bnd_y2),      &
          hu(bnd_x1:bnd_x2,bnd_y1:bnd_y2),      &
          hv(bnd_x1:bnd_x2,bnd_y1:bnd_y2),      &
          hh(bnd_x1:bnd_x2,bnd_y1:bnd_y2)
 
+integer bnd_step
+
 integer m,n,k
 
 !$omp parallel do private(muh_p, muh_m)
-  do n=ny_start,ny_end
-    do m=nx_start,nx_end
-
+  do n = max(bnd_y1, ny_start - bnd_step), min(bnd_y2, ny_end + bnd_step)
+    do m = max(bnd_x1, nx_start - bnd_step), min(bnd_x2, nx_end + bnd_step)
 !zonal velocity
       if(lcu(m,n)>0.5) then
 
@@ -177,9 +204,6 @@ integer m,n,k
     end do
   end do
 !$omp end parallel do
-
-!  call syncborder_real8(RHSx, nlev)
-!  call syncborder_real8(RHSy, nlev)
 
 endsubroutine uv_diff2
 
@@ -269,7 +293,7 @@ fy=0.0d0
        call cyclize8_y(fy,nx,ny,nlev,nnn,nn)
 	end if
 
-    call stress_components(fx,fy,str_t,str_s,nlev)
+    call stress_components(fx,fy,str_t,str_s,nlev,1,0)
 
 !$omp parallel do private(muh_p, muh_m)
   do n=ny_start,ny_end
@@ -409,8 +433,9 @@ use mpi_parallel_tools
 use basin_grid
 implicit none
 
-real(8) tau, tau_inner
-integer step, nstep, ksw4, m, n
+real(8) :: tau, tau_inner
+integer :: step, nstep, ksw4, m, n
+integer :: bnd_step
 
 real(8) ubrtr_e(bnd_x1:bnd_x2,bnd_y1:bnd_y2),     &
        ubrtrp_e(bnd_x1:bnd_x2,bnd_y1:bnd_y2),     &
@@ -483,10 +508,12 @@ allocate(  u(bnd_x1:bnd_x2,bnd_y1:bnd_y2),   &
 
 do step=1,2*nstep
 
+do bnd_step = bnd_length-2, 0, -2
+
 !computing ssh
 !$omp parallel do
- do n=ny_start,ny_end
-  do m=nx_start,nx_end
+ do n = max(bnd_y1, ny_start - bnd_step), min(bnd_y2, ny_end + bnd_step)
+  do m = max(bnd_x1, nx_start - bnd_step), min(bnd_x2, nx_end + bnd_step)
 
     if(lu(m,n)>0.5) then
      sshn(m,n)=sshp(m,n) + 2.0d0*tau_inner*( wflux(m,n)/RefDen*dfloat(full_free_surface)   &
@@ -498,40 +525,41 @@ do step=1,2*nstep
  enddo
 !$omp end parallel do
 
- call syncborder_real8(sshn, 1)
-
- if(periodicity_x/=0) then
-   call cyclize8_x(sshn,nx,ny,1,mmm,mm)
- endif
-
- if(periodicity_y/=0) then
-   call cyclize8_y(sshn,nx,ny,1,nnn,nn)
- endif
+! call syncborder_real8(sshn, 1)
+! if(periodicity_x/=0) then
+!   call cyclize8_x(sshn,nx,ny,1,mmm,mm)
+! endif
+! if(periodicity_y/=0) then
+!   call cyclize8_y(sshn,nx,ny,1,nnn,nn)
+! endif
 
    if(full_free_surface>0) then
-    call hh_update(hhqn_e, hhun_e, hhvn_e, hhhn_e, sshn, hhq_rest)
+    call hh_update(hhqn_e, hhun_e, hhvn_e, hhhn_e, sshn, hhq_rest, 0, bnd_step-1)
    endif
 
  !computing advective and lateral-viscous terms for 2d-velocity
- call stress_components(up,vp,str_t2d,str_s2d,1)
+ call stress_components(up,vp,str_t2d,str_s2d,1, 0, bnd_step)
  !computing advective and lateral-viscous terms for 2d-velocity
  call uv_trans( u, v, vort,            &
               hhq_e, hhu_e, hhv_e, hhh_e,     &
-              RHSx_adv, RHSy_adv, 1  )
+              RHSx_adv, RHSy_adv, 1,  &
+              0, bnd_step)
  call uv_diff2( mu, str_t2d, str_s2d,          &
                hhq_e, hhu_e, hhv_e, hhh_e,     &
-               RHSx_dif, RHSy_dif, 1  )
+               RHSx_dif, RHSy_dif, 1,          &
+               bnd_step-1 )
 
- if(ksw4>0) then
-   call uv_diff4( mu4, str_t2d, str_s2d,  &
-                  fx, fy, hhq_e, hhu_e, hhv_e, hhh_e,    &
-                  RHSx_dif, RHSy_dif, 1 )
- endif
+! Need rewrite uv_diff4
+!
+! if(ksw4>0) then
+!   call uv_diff4( mu4, str_t2d, str_s2d,  &
+!                  fx, fy, hhq_e, hhu_e, hhv_e, hhh_e,    &
+!                  RHSx_dif, RHSy_dif, 1 )
+! endif
 
 !$omp parallel do private(bp,bp0,grx,gry, slx, sly, slxn, slyn)
- do n=ny_start,ny_end
-  do m=nx_start,nx_end
-
+ do n = max(bnd_y1, ny_start - (bnd_step-1)), min(bnd_y2, ny_end + (bnd_step-1))
+  do m = max(bnd_x1, nx_start - (bnd_step-1)), min(bnd_x2, nx_end + (bnd_step-1))
 !zonal flux
     if(lcu(m,n)>0.5) then
 
@@ -546,8 +574,11 @@ do step=1,2*nstep
             + rlh_s(m,n-1)*hhh_e(m,n-1)*dxb(m,n-1)*dyb(m,n-1)*(v(m+1,n-1)+v(m,n-1))  )/4.0d0
 
      un(m,n)=(up(m,n)*bp0 + grx )/bp
-     ubrtr_i(m,n)  = ubrtr_i(m,n)+ (u(m,n)*hhu_e(m,n)+un(m,n)*hhun_e(m,n))/dfloat(4*nstep)
-     ssh4gradx(m,n)= ssh4gradx(m,n)+(slx+slxn)/dfloat(4*nstep)
+
+     if (n <= ny_end .and. n >= ny_start .and. m <= nx_end .and. m >= nx_start) then
+         ubrtr_i(m,n)  = ubrtr_i(m,n)+ (u(m,n)*hhu_e(m,n)+un(m,n)*hhun_e(m,n))/dfloat(4*nstep)
+         ssh4gradx(m,n)= ssh4gradx(m,n)+(slx+slxn)/dfloat(4*nstep)
+     endif
     endif
 
 !meridional flux
@@ -564,31 +595,32 @@ do step=1,2*nstep
             + rlh_s(m-1,n)*hhh_e(m-1,n)*dxb(m-1,n)*dyb(m-1,n)*(u(m-1,n+1)+u(m-1,n))  )/4.0d0
 
      vn(m,n)=(vp(m,n)*bp0 + gry )/bp
-     vbrtr_i(m,n)  = vbrtr_i(m,n)+(v(m,n)*hhv_e(m,n)+vn(m,n)*hhvn_e(m,n))/dfloat(4*nstep)
-     ssh4grady(m,n)= ssh4grady(m,n)+(sly+slyn)/dfloat(4*nstep)
+
+     if (n <= ny_end .and. n >= ny_start .and. m <= nx_end .and. m >= nx_start) then
+         vbrtr_i(m,n)  = vbrtr_i(m,n)+(v(m,n)*hhv_e(m,n)+vn(m,n)*hhvn_e(m,n))/dfloat(4*nstep)
+         ssh4grady(m,n)= ssh4grady(m,n)+(sly+slyn)/dfloat(4*nstep)
+     endif
     endif
 
   enddo
  enddo
 !$omp end parallel do
 
- call syncborder_real8(un ,1)
- call syncborder_real8(vn, 1)
-
- if(periodicity_x/=0) then
-   call cyclize8_x(  un,nx,ny,1,mmm,mm)
-   call cyclize8_x(  vn,nx,ny,1,mmm,mm)
- endif
-
- if(periodicity_y/=0) then
-   call cyclize8_y(  un,nx,ny,1,nnn,nn)
-   call cyclize8_y(  vn,nx,ny,1,nnn,nn)
- endif
+! call syncborder_real8(un ,1)
+! call syncborder_real8(vn, 1)
+! if(periodicity_x/=0) then
+!   call cyclize8_x(  un,nx,ny,1,mmm,mm)
+!   call cyclize8_x(  vn,nx,ny,1,mmm,mm)
+! endif
+! if(periodicity_y/=0) then
+!   call cyclize8_y(  un,nx,ny,1,nnn,nn)
+!   call cyclize8_y(  vn,nx,ny,1,nnn,nn)
+! endif
 
  !shifting time indices
   !$omp parallel do private(m,n)
-      do n=ny_start-1,ny_end+1
-       do m=nx_start-1,nx_end+1
+      do n = max(bnd_y1, ny_start - (bnd_step-1)), min(bnd_y2, ny_end + (bnd_step-1))
+       do m = max(bnd_x1, nx_start - (bnd_step-1)), min(bnd_x2, nx_end + (bnd_step-1))
 
         if(lu(m,n)>0.5) then
           sshp(m,n) =  ssh(m,n)+time_smooth*(sshn(m,n)-2.0d0*ssh(m,n)+sshp(m,n))/2.0d0/dfloat(nstep)
@@ -615,21 +647,19 @@ do step=1,2*nstep
     call hh_shift(hhq_e, hhqp_e, hhqn_e,   &
                   hhu_e, hhup_e, hhun_e,   &
                   hhv_e, hhvp_e, hhvn_e,   &
-                  hhh_e, hhhp_e, hhhn_e, nstep )
+                  hhh_e, hhhp_e, hhhn_e, nstep, &
+                  bnd_step )
   endif
 
- ! !$omp parallel do private(m,n)
+! !$omp parallel do private(m,n)
  !     do n=ny_start-1,ny_end+1
  !      do m=nx_start-1,nx_end+1
-
  !       if(lcu(m,n)>0.5) then
  !           up(m,n) = up(m,n)/hhup_e(m,n)
  !       endif
-
  !       if(lcv(m,n)>0.5) then
  !           vp(m,n) = vp(m,n)/hhvp_e(m,n)
  !       endif
-
  !      enddo
  !     enddo
 ! !$omp end parallel do
@@ -646,8 +676,12 @@ do step=1,2*nstep
      ssh_e=ssh
 
  endif
+enddo
+!--------------------------------- Sync area -----------------------------------!
+
 
 enddo
+
 
  call syncborder_real8(ubrtr_i, 1)
  call syncborder_real8(vbrtr_i, 1)
@@ -731,7 +765,7 @@ subroutine ssh_internal(tau,    &
 
   !computing new depths
   if(full_free_surface>0) then
-    call hh_update(hhqn, hhun, hhvn, hhhn, ssh_new, hhq_rest)
+    call hh_update(hhqn, hhun, hhvn, hhhn, ssh_new, hhq_rest, 1, 0)
   endif
 
    !Updating ssh function

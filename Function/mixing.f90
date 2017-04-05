@@ -112,23 +112,24 @@ real(8) anumaxu,anubgru,anumaxt,anubgrt
 endsubroutine ppmix
 
 !====================================================================================
-subroutine stress_components(u,v,str_t,str_s,nlev)
+subroutine stress_components(u,v,str_t,str_s,nlev, sync_flag, bnd_step)
  use main_basin_pars
  use mpi_parallel_tools
  use basin_grid
  implicit none
 
- integer nlev
- real(8) u(bnd_x1:bnd_x2,bnd_y1:bnd_y2,nlev),    &
+integer nlev
+real(8) u(bnd_x1:bnd_x2,bnd_y1:bnd_y2,nlev),    &
          v(bnd_x1:bnd_x2,bnd_y1:bnd_y2,nlev),    &
      str_t(bnd_x1:bnd_x2,bnd_y1:bnd_y2,nlev),    &
      str_s(bnd_x1:bnd_x2,bnd_y1:bnd_y2,nlev)
 
- integer m,n,k
+integer sync_flag, bnd_step
+integer m,n,k
 
  !$omp parallel do private(m,n,k)
- do n=ny_start, ny_end
-   do m=nx_start, nx_end
+ do n = max(bnd_y1, ny_start - bnd_step), min(bnd_y2, ny_end + bnd_step)
+   do m = max(bnd_x1, nx_start - bnd_step), min(bnd_x2, nx_end + bnd_step)
     if(lu(m,n)>0.5) then
      do k=1,nlev
       str_t(m,n,k)=dy(m,n)/dx(m,n)*(u(m,n,k)/dyh(m,n)-u(m-1,n,k)/dyh(m-1,n))     &
@@ -140,8 +141,8 @@ subroutine stress_components(u,v,str_t,str_s,nlev)
 !$omp end parallel do
 
 !$omp parallel do private(m,n,k)
- do n=ny_start, ny_end
-   do m=nx_start, nx_end
+ do n = max(bnd_y1, ny_start - bnd_step), min(bnd_y2, ny_end + bnd_step)
+   do m = max(bnd_x1, nx_start - bnd_step), min(bnd_x2, nx_end + bnd_step)
     if(luu(m,n)>0.5) then
      do k=1,nlev
       str_s(m,n,k)=dxb(m,n)/dyb(m,n)*(u(m,n+1,k)/dxt(m,n+1)-u(m,n,k)/dxt(m,n))     &
@@ -152,19 +153,19 @@ subroutine stress_components(u,v,str_t,str_s,nlev)
  enddo
 !$omp end parallel do
 
-      call syncborder_real8(str_t, nlev)
-      call syncborder_real8(str_s, nlev)
-
-      if(periodicity_x/=0) then
-       call cyclize8_x(str_t,nx,ny,nlev,mmm,mm)
-       call cyclize8_x(str_s,nx,ny,nlev,mmm,mm)
-	  end if
-
-      if(periodicity_y/=0) then
-       call cyclize8_y(str_t,nx,ny,nlev,nnn,nn)
-       call cyclize8_y(str_s,nx,ny,nlev,nnn,nn)
-	  end if
-
+ if (sync_flag .eq. 1) then
+    call syncborder_real8(str_t, nlev)
+    call syncborder_real8(str_s, nlev)
+    if(periodicity_x/=0) then
+        call cyclize8_x(str_t,nx,ny,nlev,mmm,mm)
+        call cyclize8_x(str_s,nx,ny,nlev,mmm,mm)
+    end if
+    if(periodicity_y/=0) then
+        call cyclize8_y(str_t,nx,ny,nlev,nnn,nn)
+        call cyclize8_y(str_s,nx,ny,nlev,nnn,nn)
+    end if
+ endif
+ 
 endsubroutine stress_components
 
 !======================================================================

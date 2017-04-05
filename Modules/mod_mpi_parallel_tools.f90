@@ -14,6 +14,8 @@ module mpi_parallel_tools
                bnd_y1,      &   !bottom array boundary in y-direction
                bnd_y2           !top    array boundary in y-direction
 
+    integer :: bnd_length
+
     integer :: rank, procs
     integer :: cart_comm
     integer, dimension(2) :: p_size, period, p_coord
@@ -162,28 +164,28 @@ module mpi_parallel_tools
         p_src(1) = p_coord(1)
         p_src(2) = p_coord(2) - 1
         call directsync_real8(field, p_dist, nx_start, nx_end, ny_end, ny_end,       &
-                                     p_src,  nx_start, nx_end, bnd_y1 + 1, bnd_y1 + 1, nz)
+                                     p_src,  nx_start, nx_end, ny_start - 1, ny_start - 1, nz)
 !------------------ send-recv in nx+ -------------------------------------------
         p_dist(1) = p_coord(1) + 1
         p_dist(2) = p_coord(2)
         p_src(1) = p_coord(1) - 1
         p_src(2) = p_coord(2)
         call directsync_real8(field, p_dist, nx_end, nx_end, ny_start, ny_end,       &
-                                     p_src,  bnd_x1 + 1, bnd_x1 + 1, ny_start, ny_end, nz)
+                                     p_src,  nx_start - 1, nx_start - 1, ny_start, ny_end, nz)
 !------------------ send-recv in ny- -------------------------------------------
         p_dist(1) = p_coord(1)
         p_dist(2) = p_coord(2) - 1
         p_src(1) = p_coord(1)
         p_src(2) = p_coord(2) + 1
         call directsync_real8(field, p_dist, nx_start, nx_end, ny_start, ny_start,   &
-                                     p_src,  nx_start, nx_end, bnd_y2 - 1, bnd_y2 - 1, nz)
+                                     p_src,  nx_start, nx_end, ny_end + 1, ny_end + 1, nz)
 !------------------ send-recv in nx- -------------------------------------------
         p_dist(1) = p_coord(1) - 1
         p_dist(2) = p_coord(2)
         p_src(1) = p_coord(1) + 1
         p_src(2) = p_coord(2)
         call directsync_real8(field, p_dist, nx_start, nx_start, ny_start, ny_end,   &
-                                     p_src,  bnd_x2 - 1, bnd_x2 - 1, ny_start, ny_end, nz)
+                                     p_src,  nx_end + 1, nx_end + 1, ny_start, ny_end, nz)
 
 
 !------------------ Sync edge points (EP) --------------------------------------
@@ -193,21 +195,21 @@ module mpi_parallel_tools
          p_src(1) = p_coord(1) - 1
          p_src(2) = p_coord(2) - 1
          call directsync_real8(field, p_dist, nx_end, nx_end, ny_end, ny_end,   &
-                                      p_src,  bnd_x1 + 1, bnd_x1 + 1, bnd_y1 + 1, bnd_y1 + 1, nz)
+                                      p_src,  nx_start - 1, nx_start - 1, ny_start - 1, ny_start - 1, nz)
 !------------------ send-recv EP in nx+,ny- ------------------------------------
          p_dist(1) = p_coord(1) + 1
          p_dist(2) = p_coord(2) - 1
          p_src(1) = p_coord(1) - 1
          p_src(2) = p_coord(2) + 1
          call directsync_real8(field, p_dist, nx_end, nx_end, ny_start, ny_start,   &
-                                      p_src,  bnd_x1 + 1, bnd_x1 + 1, bnd_y2 - 1 , bnd_y2 - 1, nz)
+                                      p_src,  nx_start - 1, nx_start - 1, ny_end + 1 , ny_end + 1, nz)
 !------------------ send-recv EP in nx-,ny- ------------------------------------
          p_dist(1) = p_coord(1) - 1
          p_dist(2) = p_coord(2) - 1
          p_src(1) = p_coord(1) + 1
          p_src(2) = p_coord(2) + 1
          call directsync_real8(field, p_dist, nx_start, nx_start, ny_start, ny_start,   &
-                                      p_src,  bnd_x2 - 1, bnd_x2 - 1, bnd_y2 - 1, bnd_y2 - 1, nz)
+                                      p_src,  nx_end + 1, nx_end + 1, ny_end + 1, ny_end + 1, nz)
 
 !------------------ send-recv EP in nx-,ny+ ------------------------------------
          p_dist(1) = p_coord(1) - 1
@@ -215,7 +217,7 @@ module mpi_parallel_tools
          p_src(1) = p_coord(1) + 1
          p_src(2) = p_coord(2) - 1
          call directsync_real8(field, p_dist, nx_start, nx_start, ny_end, ny_end,  &
-                                      p_src,  bnd_x2 - 1, bnd_x2 - 1, bnd_y1 + 1, bnd_y1 + 1, nz)
+                                      p_src,  nx_end + 1, nx_end + 1, ny_start - 1, ny_start - 1 , nz)
 
         return
     end subroutine syncborder_real8
@@ -296,28 +298,28 @@ module mpi_parallel_tools
         p_src(1) = p_coord(1)
         p_src(2) = p_coord(2) - 1
         call directsync_real(field, p_dist, nx_start, nx_end, ny_end, ny_end,       &
-                                     p_src,  nx_start, nx_end, bnd_y1 + 1, bnd_y1 + 1, nz)
+                                     p_src,  nx_start, nx_end, ny_start - 1, ny_start - 1, nz)
 !------------------ send-recv in nx+ -------------------------------------------
         p_dist(1) = p_coord(1) + 1
         p_dist(2) = p_coord(2)
         p_src(1) = p_coord(1) - 1
         p_src(2) = p_coord(2)
         call directsync_real(field, p_dist, nx_end, nx_end, ny_start, ny_end,       &
-                                     p_src,  bnd_x1 + 1, bnd_x1 + 1, ny_start, ny_end, nz)
+                                     p_src,  nx_start - 1, nx_start - 1, ny_start, ny_end, nz)
 !------------------ send-recv in ny- -------------------------------------------
         p_dist(1) = p_coord(1)
         p_dist(2) = p_coord(2) - 1
         p_src(1) = p_coord(1)
         p_src(2) = p_coord(2) + 1
         call directsync_real(field, p_dist, nx_start, nx_end, ny_start, ny_start,   &
-                                     p_src,  nx_start, nx_end, bnd_y2 - 1, bnd_y2 - 1, nz)
+                                     p_src,  nx_start, nx_end, ny_end + 1, ny_end + 1, nz)
 !------------------ send-recv in nx- -------------------------------------------
         p_dist(1) = p_coord(1) - 1
         p_dist(2) = p_coord(2)
         p_src(1) = p_coord(1) + 1
         p_src(2) = p_coord(2)
         call directsync_real(field, p_dist, nx_start, nx_start, ny_start, ny_end,   &
-                                     p_src,  bnd_x2 - 1, bnd_x2 - 1, ny_start, ny_end, nz)
+                                     p_src,  nx_end + 1, nx_end + 1, ny_start, ny_end, nz)
 
 
 !------------------ Sync edge points (EP) --------------------------------------
@@ -327,21 +329,21 @@ module mpi_parallel_tools
          p_src(1) = p_coord(1) - 1
          p_src(2) = p_coord(2) - 1
          call directsync_real(field, p_dist, nx_end, nx_end, ny_end, ny_end,   &
-                                      p_src,  bnd_x1 + 1, bnd_x1 + 1, bnd_y1 + 1, bnd_y1 + 1, nz)
+                                      p_src,  nx_start - 1, nx_start - 1, ny_start - 1, ny_start - 1, nz)
 !------------------ send-recv EP in nx+,ny- ------------------------------------
          p_dist(1) = p_coord(1) + 1
          p_dist(2) = p_coord(2) - 1
          p_src(1) = p_coord(1) - 1
          p_src(2) = p_coord(2) + 1
          call directsync_real(field, p_dist, nx_end, nx_end, ny_start, ny_start,   &
-                                      p_src,  bnd_x1 + 1, bnd_x1 + 1, bnd_y2 - 1 , bnd_y2 - 1, nz)
+                                      p_src,  nx_start - 1, nx_start - 1, ny_end + 1 , ny_end + 1, nz)
 !------------------ send-recv EP in nx-,ny- ------------------------------------
          p_dist(1) = p_coord(1) - 1
          p_dist(2) = p_coord(2) - 1
          p_src(1) = p_coord(1) + 1
          p_src(2) = p_coord(2) + 1
          call directsync_real(field, p_dist, nx_start, nx_start, ny_start, ny_start,   &
-                                      p_src,  bnd_x2 - 1, bnd_x2 - 1, bnd_y2 - 1, bnd_y2 - 1, nz)
+                                      p_src,  nx_end + 1, nx_end + 1, ny_end + 1, ny_end + 1, nz)
 
 !------------------ send-recv EP in nx-,ny+ ------------------------------------
          p_dist(1) = p_coord(1) - 1
@@ -349,7 +351,7 @@ module mpi_parallel_tools
          p_src(1) = p_coord(1) + 1
          p_src(2) = p_coord(2) - 1
          call directsync_real(field, p_dist, nx_start, nx_start, ny_end, ny_end,  &
-                                      p_src,  bnd_x2 - 1, bnd_x2 - 1, bnd_y1 + 1, bnd_y1 + 1, nz)
+                                      p_src,  nx_end + 1, nx_end + 1, ny_start - 1, ny_start - 1 , nz)
 
         return
     end subroutine syncborder_real

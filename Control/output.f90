@@ -45,6 +45,50 @@ subroutine print_basin_grid
 
 end subroutine print_basin_grid
 
+subroutine print_basin_grid_seq
+    use main_basin_pars
+    use mpi_parallel_tools
+    use basin_grid
+    use ocean_variables
+    use ocean_bc
+
+    implicit none
+
+    integer :: m, n
+
+    if (rank .eq. 0) then
+        ! LU mask
+        print *, "|------------------------- LU MASK: --------------------------|"
+    	do n=bnd_y1, bnd_y2
+    		write(*, "(200f5.1)") (lu(m, n), m=bnd_x1, bnd_x2)
+    	enddo
+
+        ! LCU mask
+        print *, "|------------------------- LCU MASK: --------------------------|"
+        do n=bnd_y1, bnd_y2
+    		write(*, "(50f5.1)") (lcu(m, n), m=bnd_x1, bnd_x2)
+    	enddo
+
+        ! LCV mask
+        print *, "|------------------------- LCV MASK: --------------------------|"
+        do n=bnd_y1, bnd_y2
+    		write(*, "(50f5.1)") (lcv(m, n), m=bnd_x1, bnd_x2)
+    	enddo
+
+    ! LCV mask
+        print *, "|------------------------- LLU MASK: --------------------------|"
+    	do n=bnd_y1, bnd_y2
+    		write(*, "(50f5.1)") (llu(m, n), m=bnd_x1, bnd_x2)
+    	enddo
+
+    ! LCV mask
+        print *, "|------------------------- LLV MASK: --------------------------|"
+    	do n=bnd_y1, bnd_y2
+    		write(*, "(50f5.1)") (llv(m, n), m=bnd_x1, bnd_x2)
+    	enddo
+    endif
+end subroutine print_basin_grid_seq
+
 subroutine parallel_local_output(path2data,  &
                                  nrec,       &
                                  year,       &
