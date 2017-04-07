@@ -151,6 +151,97 @@ module mpi_parallel_tools
 
 !-------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------
+    subroutine syncborder_extra_real8(field, nz, bnd_step)
+        implicit none
+        integer :: nz
+        integer :: bnd_step
+        real*8, intent(in out) :: field(bnd_x1:bnd_x2, bnd_y1:bnd_y2, nz)
+
+        integer, dimension(2) :: p_dist, p_src
+
+!------------------ send-recv in ny+ -------------------------------------------
+        p_dist(1) = p_coord(1)
+        p_dist(2) = p_coord(2) + 1
+        p_src(1) = p_coord(1)
+        p_src(2) = p_coord(2) - 1
+        call directsync_real8(field, p_dist, nx_start, nx_end,                      &
+                                             ny_end - bnd_step + 1, ny_end,         &
+                                     p_src,  nx_start, nx_end,                      &
+                                             ny_start - bnd_step, ny_start - 1, nz)
+!------------------ send-recv in nx+ -------------------------------------------
+        p_dist(1) = p_coord(1) + 1
+        p_dist(2) = p_coord(2)
+        p_src(1) = p_coord(1) - 1
+        p_src(2) = p_coord(2)
+        call directsync_real8(field, p_dist, nx_end - bnd_step + 1, nx_end,         &
+                                             ny_start, ny_end,                      &
+                                     p_src,  nx_start - bnd_step, nx_start - 1,     &
+                                             ny_start, ny_end, nz)
+!------------------ send-recv in ny- -------------------------------------------
+        p_dist(1) = p_coord(1)
+        p_dist(2) = p_coord(2) - 1
+        p_src(1) = p_coord(1)
+        p_src(2) = p_coord(2) + 1
+        call directsync_real8(field, p_dist, nx_start, nx_end,                      &
+                                             ny_start, ny_start + bnd_step - 1,     &
+                                     p_src,  nx_start, nx_end,                      &
+                                             ny_end + 1, ny_end + bnd_step, nz)
+!------------------ send-recv in nx- -------------------------------------------
+        p_dist(1) = p_coord(1) - 1
+        p_dist(2) = p_coord(2)
+        p_src(1) = p_coord(1) + 1
+        p_src(2) = p_coord(2)
+        call directsync_real8(field, p_dist, nx_start, nx_start + bnd_step - 1,     &
+                                             ny_start, ny_end,                      &
+                                     p_src,  nx_end + 1, nx_end + bnd_step,         &
+                                             ny_start, ny_end, nz)
+
+
+!------------------ Sync edge points (EP) --------------------------------------
+!------------------ send-recv EP in nx+,ny+ ------------------------------------
+         p_dist(1) = p_coord(1) + 1
+         p_dist(2) = p_coord(2) + 1
+         p_src(1) = p_coord(1) - 1
+         p_src(2) = p_coord(2) - 1
+         call directsync_real8(field, p_dist, nx_end - bnd_step + 1, nx_end,        &
+                                              ny_end - bnd_step + 1, ny_end,        &
+                                      p_src,  nx_start - bnd_step, nx_start - 1,    &
+                                              ny_start - bnd_step, ny_start - 1, nz)
+!------------------ send-recv EP in nx+,ny- ------------------------------------
+         p_dist(1) = p_coord(1) + 1
+         p_dist(2) = p_coord(2) - 1
+         p_src(1) = p_coord(1) - 1
+         p_src(2) = p_coord(2) + 1
+         call directsync_real8(field, p_dist, nx_end - bnd_step + 1, nx_end,        &
+                                              ny_start, ny_start + bnd_step - 1,    &
+                                      p_src,  nx_start - bnd_step, nx_start - 1,    &
+                                              ny_end + 1 , ny_end + bnd_step, nz)
+!------------------ send-recv EP in nx-,ny- ------------------------------------
+         p_dist(1) = p_coord(1) - 1
+         p_dist(2) = p_coord(2) - 1
+         p_src(1) = p_coord(1) + 1
+         p_src(2) = p_coord(2) + 1
+         call directsync_real8(field, p_dist, nx_start, nx_start + bnd_step - 1,   &
+                                              ny_start, ny_start + bnd_step - 1,   &
+                                      p_src,  nx_end + 1, nx_end + bnd_step,       &
+                                              ny_end + 1, ny_end + bnd_step, nz)
+
+!------------------ send-recv EP in nx-,ny+ ------------------------------------
+         p_dist(1) = p_coord(1) - 1
+         p_dist(2) = p_coord(2) + 1
+         p_src(1) = p_coord(1) + 1
+         p_src(2) = p_coord(2) - 1
+         call directsync_real8(field, p_dist, nx_start, nx_start + bnd_step - 1,    &
+                                              ny_end - bnd_step + 1, ny_end,        &
+                                      p_src,  nx_end + 1, nx_end + bnd_step,        &
+                                              ny_start - bnd_step, ny_start - 1 , nz)
+
+        return
+    end subroutine syncborder_extra_real8
+
+
+!-------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------
     subroutine syncborder_real8(field, nz)
         implicit none
         integer :: nz

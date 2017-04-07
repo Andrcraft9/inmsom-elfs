@@ -176,7 +176,7 @@ subroutine hh_shift(hq, hqp, hqn,   &
                     hu, hup, hun,   &
                     hv, hvp, hvn,   &
                     hh, hhp, hhn, nstep, &
-                    bnd_step )
+                    bnd_shift )
  use main_basin_pars
  use mpi_parallel_tools
  use basin_grid
@@ -188,12 +188,12 @@ subroutine hh_shift(hq, hqp, hqn,   &
          hh(bnd_x1:bnd_x2, bnd_y1:bnd_y2), hhp(bnd_x1:bnd_x2, bnd_y1:bnd_y2), hhn(bnd_x1:bnd_x2, bnd_y1:bnd_y2)
 
  integer m,n, nstep
- integer bnd_step
+ integer bnd_shift
 
 
 !$omp parallel do private(m,n)
-      do n = max(bnd_y1-1, ny_start-1 - bnd_step), min(bnd_y2+1, ny_end+1 + bnd_step)
-       do m = max(bnd_x1-1, nx_start-1 - bnd_step), min(bnd_x2+1, nx_end+1 + bnd_step)
+      do n = max(bnd_y1, ny_start - bnd_shift), min(bnd_y2, ny_end + bnd_shift)
+       do m = max(bnd_x1, nx_start - bnd_shift), min(bnd_x2, nx_end + bnd_shift)
 
         if(llu(m,n)>0.5) then
           hup(m,n)= hu(m,n) + time_smooth*(hun(m,n)-2.0d0*hu(m,n)+hup(m,n))/2.0d0/dfloat(nstep)

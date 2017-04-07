@@ -31,7 +31,7 @@ subroutine mpi_array_boundary_definition
 
     call mpi_init(ierr)
 
-    bnd_length = 2 ! Need more or equal than 1
+    bnd_length = 4 ! Need set bnd_length=2k, k >= 2
 
     period = (/1,1/)
     p_size = (/0,0/)
@@ -52,9 +52,9 @@ subroutine mpi_array_boundary_definition
     nx_end = nx_start + locn - 1
     nx_start = nx_start
 !   border area
-    bnd_x1 = nx_start - bnd_length
+    bnd_x1 = nx_start - bnd_length - 1
     if (bnd_x1 < 1) bnd_x1 = 1
-    bnd_x2 = nx_end + bnd_length
+    bnd_x2 = nx_end + bnd_length + 1
     if (bnd_x2 > nx) bnd_x2 = nx
 
 !-----------------------------------NY------------------------------------------!
@@ -66,9 +66,9 @@ subroutine mpi_array_boundary_definition
     ny_end = ny_start + locn - 1
     ny_start = ny_start
 !   border area
-    bnd_y1 = ny_start - bnd_length
+    bnd_y1 = ny_start - bnd_length - 1
     if (bnd_y1 < 1) bnd_y1 = 1
-    bnd_y2 = ny_end + bnd_length
+    bnd_y2 = ny_end + bnd_length + 1
     if (bnd_y2 > ny) bnd_y2 = ny
 
     call mpi_comm_size(cart_comm, procn, ierr)
