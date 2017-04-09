@@ -3,7 +3,7 @@
     0   :Passive tracer equation solving (0 - no, 1 - yes)
     1   :Momentum equation solving (0 - no, 1 - yes)
     1   :Lateral 2nd order mix parametrization (0 - constant coeff, 1 - Smagorinski)
-    1   :Lateral 4nd order momentum mix parametrization (0 - no, 1 - yes)
+    0   :Lateral 4nd order momentum mix parametrization (0 - no, 1 - yes)
     1   :vertical mix parametrization (0 - constant coeff, 1 - Pacanowski&Philander, 2 - Mellor-Yamada)
     1   :pressure gradient computation (0 - no (constant density), 1 - yes)
     0   :sea ice thermodynamics using (0 - no, 1 - yes)

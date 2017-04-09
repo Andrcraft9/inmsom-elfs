@@ -414,10 +414,10 @@ endif
                                     rlh_c,   &   !coriolis second term (cos)
                                         1,   &   !key to compute rotation coefficients (0/1)
                                         0,   &   !key to compute coriolis terms (0/1)
-                                 nx_start-1, &   !first significant point in x-direction (output)
-                                 nx_end+1,   &   ! last significant point in x-direction (output)
-                                 ny_start-1, &   !first significant point in y-direction (output)
-                                 ny_end+1    )   ! last significant point in y-direction (output)
+                                 bnd_x1+1,   &   !first significant point in x-direction (output)
+                                 bnd_x2-1,   &   ! last significant point in x-direction (output)
+                                 bnd_y1+1,   &   !first significant point in y-direction (output)
+                                 bnd_y2-1    )   ! last significant point in y-direction (output)
 
 !On U-grid
        call grid_parameters_spherical (xu,   &   !model x-coordinate in degrees
@@ -437,10 +437,10 @@ endif
                                     rlh_c,   &   !coriolis second term (cos)
                                         0,   &   !key to compute rotation coefficients (0/1)
                                         0,   &   !key to compute coriolis terms (0/1)
-                                 nx_start-1, &   !first significant point in x-direction (output)
-                                 nx_end+1,   &   ! last significant point in x-direction (output)
-                                 ny_start-1, &   !first significant point in y-direction (output)
-                                 ny_end+1    )   ! last significant point in y-direction (output)
+                                 bnd_x1+1,   &   !first significant point in x-direction (output)
+                                 bnd_x2-1,   &   ! last significant point in x-direction (output)
+                                 bnd_y1+1,   &   !first significant point in y-direction (output)
+                                 bnd_y2-1    )   ! last significant point in y-direction (output)
 
 !On V-grid
        call grid_parameters_spherical (xt,   &   !model x-coordinate in degrees
@@ -460,10 +460,10 @@ endif
                                     rlh_c,   &   !coriolis second term (cos)
                                         0,   &   !key to compute rotation coefficients (0/1)
                                         0,   &   !key to compute coriolis terms (0/1)
-                                 nx_start-1, &   !first significant point in x-direction (output)
-                                 nx_end+1,   &   ! last significant point in x-direction (output)
-                                 ny_start-1, &   !first significant point in y-direction (output)
-                                 ny_end+1    )   ! last significant point in y-direction (output)
+                                 bnd_x1+1,   &   !first significant point in x-direction (output)
+                                 bnd_x2-1,   &   ! last significant point in x-direction (output)
+                                 bnd_y1+1,   &   !first significant point in y-direction (output)
+                                 bnd_y2-1    )   ! last significant point in y-direction (output)
 
 !On H-grid
        call grid_parameters_spherical (xu,   &   !model x-coordinate in degrees
@@ -483,10 +483,10 @@ endif
                                     rlh_c,   &   !coriolis second term (cos)
                                         0,   &   !key to compute rotation coefficients (0/1)
                                         1,   &   !key to compute coriolis terms (0/1)
-                                 nx_start-1, &   !first significant point in x-direction (output)
-                                 nx_end+1,   &   ! last significant point in x-direction (output)
-                                 ny_start-1, &   !first significant point in y-direction (output)
-                                 ny_end+1    )   ! last significant point in y-direction (output)
+                                 bnd_x1+1,   &   !first significant point in x-direction (output)
+                                 bnd_x2-1,   &   ! last significant point in x-direction (output)
+                                 bnd_y1+1,   &   !first significant point in y-direction (output)
+                                 bnd_y2-1    )   ! last significant point in y-direction (output)
 
       elseif(curve_grid==2) then   !in case of curve grid
 

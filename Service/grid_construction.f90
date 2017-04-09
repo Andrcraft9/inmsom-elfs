@@ -72,8 +72,10 @@ do n=ny_start-1,ny_end
    enddo
 enddo
 
-call syncborder_real(luh, 1)
-call syncborder_real(luu, 1)
+!call syncborder_real(luh, 1)
+!call syncborder_real(luu, 1)
+call syncborder_extra_real(luh, 1, bnd_length)
+call syncborder_extra_real(luu, 1, bnd_length)
 
 if(periodicity_x/=0) then
   call cyclize_x(luh,nx,ny,1,mmm,mm)
@@ -111,10 +113,14 @@ do n=ny_start-1,ny_end
    enddo
 enddo
 
-call syncborder_real(llu, 1)
-call syncborder_real(llv, 1)
-call syncborder_real(lcu, 1)
-call syncborder_real(lcv, 1)
+!call syncborder_real(llu, 1)
+!call syncborder_real(llv, 1)
+!call syncborder_real(lcu, 1)
+!call syncborder_real(lcv, 1)
+call syncborder_extra_real(llu, 1, bnd_length)
+call syncborder_extra_real(llv, 1, bnd_length)
+call syncborder_extra_real(lcu, 1, bnd_length)
+call syncborder_extra_real(lcv, 1, bnd_length)
 
 if (periodicity_x/=0) then
  if (rank .eq. 0) write(*,*)'  set periodicity to u-grid mask(lcu,llu).'

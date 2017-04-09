@@ -515,12 +515,12 @@ RHSx_dif = 0.0d0
 RHSy_adv = 0.0d0
 RHSy_dif = 0.0d0
 
-
-! Extra Sync
+!------------------------------ Extra Sync -------------------------------------!
 call syncborder_extra_real8(wflux, 1, bnd_length)
 call syncborder_extra_real8(RHSx, 1, bnd_length)
 call syncborder_extra_real8(RHSy, 1, bnd_length)
 call syncborder_extra_real8(mu, 1, bnd_length)
+call syncborder_extra_real8(rdis, 1, bnd_length)
 
 call syncborder_extra_real8(up, 1, bnd_length)
 call syncborder_extra_real8(vp, 1, bnd_length)
@@ -528,8 +528,6 @@ call syncborder_extra_real8(sshp, 1, bnd_length)
 call syncborder_extra_real8(u, 1, bnd_length)
 call syncborder_extra_real8(v, 1, bnd_length)
 call syncborder_extra_real8(ssh, 1, bnd_length)
-
-call syncborder_extra_real8(hhq_rest, 1, bnd_length)
 
 call syncborder_extra_real8(hhq_e, 1, bnd_length)
 call syncborder_extra_real8(hhu_e, 1, bnd_length)
@@ -540,35 +538,9 @@ call syncborder_extra_real8(hhup_e, 1, bnd_length)
 call syncborder_extra_real8(hhvp_e, 1, bnd_length)
 call syncborder_extra_real8(hhhp_e, 1, bnd_length)
 
-! call syncborder_extra_real8(mu4, 1, bnd_length) ! for diff4
-! call syncborder_extra_real8(fx, 1, bnd_length) ! for diff4
-! call syncborder_extra_real8(fy, 1, bnd_length) ! for diff4
-
-!bnd_step = bnd_length
-!do n = max(bnd_y1, ny_start - bnd_step), min(bnd_y2, ny_end + bnd_step)
-! do m = max(bnd_x1, nx_start - bnd_step), min(bnd_x2, nx_end + bnd_step)
-!     if (n < ny_start .or. n > ny_end .or. m < nx_start .or. m > nx_end ) then
-!         if(lu(m,n)>0.5) then
-!             if (rank .eq. 0) print *, "wflux",   wflux(m, n)
-!             if (rank .eq. 0) print *, "mu",   mu(m, n)
-!             if (rank .eq. 0) print *, "rdis", rdis(m, n)
-!             if (rank .eq. 0) print *, "RHSx",   RHSx(m, n)
-!             if (rank .eq. 0) print *, "dxh",   dxh(m, n)
-!             if (rank .eq. 0) print *, "dxb",   dxb(m, n)
-!             if (rank .eq. 0) print *, "dxt",   dxt(m, n)
-!             if (rank .eq. 0) print *, "dx",    dx(m, n)
-!             if (rank .eq. 0) print *, "dyh",   dyh(m, n)
-!             if (rank .eq. 0) print *, "dyb",   dyb(m, n)
-!             if (rank .eq. 0) print *, "dyt",   dyt(m, n)
-!             if (rank .eq. 0) print *, "dy",    dy(m, n)
-!             if (rank .eq. 0) print *, "rlh_s", rlh_s(m, n)
-!         endif
-!     endif
-! enddo
-!enddo
-
-!call mpi_finalize(step)
-!stop
+!call syncborder_extra_real8(mu4, 1, bnd_length) ! for diff4
+!call syncborder_extra_real8(fx, 1, bnd_length) ! for diff4
+!call syncborder_extra_real8(fy, 1, bnd_length) ! for diff4
 
 nstep_ext = (2*nstep)/bnd_length
 nstep_in  = bnd_length / 2
@@ -593,9 +565,9 @@ do step = 1, 2*nstep_ext
             call hh_update(hhqn_e, hhun_e, hhvn_e, hhhn_e, sshn, hhq_rest, 0, bnd_step-1)
           endif
 
-         ! Computing advective and lateral-viscous terms for 2d-velocity
+!         ! Computing advective and lateral-viscous terms for 2d-velocity
          call stress_components(up,vp,str_t2d,str_s2d,1, 0, bnd_step)
-         ! Computing advective and lateral-viscous terms for 2d-velocity
+!         ! Computing advective and lateral-viscous terms for 2d-velocity
          call uv_trans( u, v, vort,                    &
                       hhq_e, hhu_e, hhv_e, hhh_e,      &
                       RHSx_adv, RHSy_adv, 1,           &
@@ -603,7 +575,7 @@ do step = 1, 2*nstep_ext
          call uv_diff2( mu, str_t2d, str_s2d,          &
                        hhq_e, hhu_e, hhv_e, hhh_e,     &
                        RHSx_dif, RHSy_dif, 1,          &
-                       bnd_step-1 )
+                       bnd_step - 1 )
 
          ! Need rewrite uv_diff4
          !
@@ -669,7 +641,7 @@ do step = 1, 2*nstep_ext
             call syncborder_extra_real8(un, 1, bnd_length)
             call syncborder_extra_real8(vn, 1, bnd_length)
 
-            call syncborder_extra_real8(hhq_e, 1, bnd_length)
+            call syncborder_extra_real8(hhqn_e, 1, bnd_length)
             call syncborder_extra_real8(hhun_e, 1, bnd_length)
             call syncborder_extra_real8(hhvn_e, 1, bnd_length)
             call syncborder_extra_real8(hhhn_e, 1, bnd_length)

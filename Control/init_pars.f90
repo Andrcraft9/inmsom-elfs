@@ -150,8 +150,9 @@ real(8) tau
    array4=0.0
    call prdstd(' ',bottom_topography_file,1,array4,lu,nx,ny,1, mmm,mm,nnn,nn,1,1,ierr)
    hhq_rest=dble(array4)
-   call syncborder_real8(hhq_rest, 1)
-
+   !call syncborder_real8(hhq_rest, 1)
+   call syncborder_extra_real8(hhq_rest, 1, bnd_length)
+   
    if(periodicity_x/=0) then
        call cyclize8_x(hhq_rest,nx,ny,1,mmm,mm)
    end if
