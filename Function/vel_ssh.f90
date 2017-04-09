@@ -479,6 +479,7 @@ real(8), allocatable::   u(:,:),   &
 real(8) bp, bp0, grx, gry, slx, sly, slxn, slyn
 
 integer nstep_ext, nstep_in, step_i, bnd_shift
+real*8 time_count, time_local
 
 allocate(  u(bnd_x1:bnd_x2,bnd_y1:bnd_y2),   &
            v(bnd_x1:bnd_x2,bnd_y1:bnd_y2),   &
@@ -516,6 +517,7 @@ RHSy_adv = 0.0d0
 RHSy_dif = 0.0d0
 
 !------------------------------ Extra Sync -------------------------------------!
+call start_timer(time_count)
 call syncborder_extra_real8(wflux, 1, bnd_length)
 call syncborder_extra_real8(RHSx, 1, bnd_length)
 call syncborder_extra_real8(RHSy, 1, bnd_length)
@@ -537,13 +539,16 @@ call syncborder_extra_real8(hhqp_e, 1, bnd_length)
 call syncborder_extra_real8(hhup_e, 1, bnd_length)
 call syncborder_extra_real8(hhvp_e, 1, bnd_length)
 call syncborder_extra_real8(hhhp_e, 1, bnd_length)
-
+call end_timer(time_count)
+if (rank .eq. 0) print *, "Extra sync: ", time_count
 !call syncborder_extra_real8(mu4, 1, bnd_length) ! for diff4
 !call syncborder_extra_real8(fx, 1, bnd_length) ! for diff4
 !call syncborder_extra_real8(fy, 1, bnd_length) ! for diff4
 
 nstep_ext = (2*nstep)/bnd_length
 nstep_in  = bnd_length / 2
+time_local = 0
+if (rank .eq. 0) print *, "Barotrop do-end begin, iters:", 2*nstep_ext*nstep_in
 
 do step = 1, 2*nstep_ext
     bnd_step = bnd_length - 1
@@ -637,6 +642,7 @@ do step = 1, 2*nstep_ext
           ! Shifting time indices
          if (bnd_step .eq. 1) then
             ! Sync area
+            call start_timer(time_count)
             call syncborder_extra_real8(sshn, 1, bnd_length)
             call syncborder_extra_real8(un, 1, bnd_length)
             call syncborder_extra_real8(vn, 1, bnd_length)
@@ -645,6 +651,9 @@ do step = 1, 2*nstep_ext
             call syncborder_extra_real8(hhun_e, 1, bnd_length)
             call syncborder_extra_real8(hhvn_e, 1, bnd_length)
             call syncborder_extra_real8(hhhn_e, 1, bnd_length)
+            call end_timer(time_count)
+            time_local = time_local + time_count
+
             ! Need cyclize
             !
             !
@@ -712,6 +721,7 @@ enddo
 
 !call mpi_finalize(step)
 !stop
+if (rank .eq. 0) print *, "Inner sync: ", time_local
 
 call syncborder_real8(ubrtr_i, 1)
 call syncborder_real8(vbrtr_i, 1)

@@ -241,14 +241,14 @@ call start_timer(t_global)
 do while(num_step<num_step_max)
 
 ! atmospheric data time interpolation on atmospheric grid
-  call start_timer(t_local)
+!  call start_timer(t_local)
   call atm_data_time_interpol
 ! atmospheric data spatial interpolation from atm to ocean grid
   call atm_data_spatial_interpol
 ! oceanic data time interpolation
   call oc_data_time_interpol
-  call end_timer(t_local)
-  if (rank .eq. 0) print *, "Interpolate time: ", t_local, "step: ", num_step
+!  call end_timer(t_local)
+!  if (rank .eq. 0) print *, "Interpolate time: ", t_local, "step: ", num_step
 
   call start_timer(t_local)
 !computing one step of ocean dynamics
