@@ -150,11 +150,6 @@ call atm2oc_allocate
 call ocean_model_parameters(time_step)
 if (rank .eq. 0) print *, "--------------------END OF OCEAN MODEL PARAMETERS----------------------"
 
-!Initializing open boundary parameters
-if (ksw_lbc_ts>0) then
- call lqpcoordinates(path2ocssdata)
-endif
-
 !------------------------------- Test init -------------------------------------!
 !call test_init
 !call  parallel_local_output(path2ocp,  &
@@ -170,20 +165,8 @@ endif
 !stop
 !-------------------------------------------------------------------------------!
 
-!Reading initial conditions
-call ocinicond(start_type,path2ocp)
-if (rank .eq. 0) print *, "--------------------END OF OCINICOND----------------------"
-
-call icinicond(start_type,path2ocp,nstep_icedyn)
-if (rank .eq. 0) print *, "--------------------END OF ICINICOND----------------------"
-
-if(ksw_pt>0) then
- call ptinicond(path2ocp)
-endif
-
-!constructing matrix for spatial interpolation
-call build_intrp_mtrx(path2atmssdata,atmask)
-if (rank .eq. 0) print *, "--------------------END OF BUILD INTPR MTRX----------------------"
+!Initializing SW init conditions
+call sw_only_inicond
 
 !-----------------------------------------------------------------------
 if (rank .eq. 0) then
@@ -222,33 +205,13 @@ if (rank .eq. 0) then
     write(*,*)'=================================================================='
 endif
 
-!call  parallel_local_output(path2ocp,  &
-!                          1,  &
-!                   year_loc,  &
-!                    mon_loc,  &
-!                    day_loc,  &
-!                   hour_loc,  &
-!                    min_loc,  &
-!             loc_data_tstep,  &
-!                    yr_type  )
-
 call init_times
 call start_timer(t_global)
 do while(num_step<num_step_max)
 
-! atmospheric data time interpolation on atmospheric grid
-!  call start_timer(t_local)
-  call atm_data_time_interpol
-! atmospheric data spatial interpolation from atm to ocean grid
-  call atm_data_spatial_interpol
-! oceanic data time interpolation
-  call oc_data_time_interpol
-!  call end_timer(t_local)
-!  if (rank .eq. 0) print *, "Interpolate time: ", t_local, "step: ", num_step
-
   call start_timer(t_local)
 !computing one step of ocean dynamics
-  call ocean_model_step(time_step,nstep_barotrop)
+  call shallow_water_model_step(time_step, nstep_barotrop)
   call end_timer(t_local)
   time_model_step = time_model_step + t_local
 

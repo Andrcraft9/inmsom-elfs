@@ -147,9 +147,10 @@ real(8) tau
    call basinpar
    if (rank .eq. 0) print *, "--------------------END OF BASINPAR----------------------"
 
-   array4=0.0
-   call prdstd(' ',bottom_topography_file,1,array4,lu,nx,ny,1, mmm,mm,nnn,nn,1,1,ierr)
-   hhq_rest=dble(array4)
+   !array4=0.0
+   !call prdstd(' ',bottom_topography_file,1,array4,lu,nx,ny,1, mmm,mm,nnn,nn,1,1,ierr)
+   !hhq_rest=dble(array4)
+   hhq_rest = 3000.0d0
    call syncborder_real8(hhq_rest, 1)
 
    if(periodicity_x/=0) then
@@ -626,3 +627,74 @@ subroutine test_init
 
 
 end subroutine
+
+subroutine sw_only_inicond
+    use main_basin_pars
+    use mpi_parallel_tools
+    use basin_grid
+    use ocean_variables
+    use ocean_bc
+
+    implicit none
+    integer :: ierr
+
+    ssh_i = 0.0d0
+    sshp_i = 0.0d0
+    ubrtr_i = 0.0d0
+    vbrtr_i = 0.0d0
+
+    ssh_e = 0.0d0
+    sshp_e = 0.0d0
+
+    ubrtr_e = 0.0d0
+    ubrtrp_e = 0.0d0
+    vbrtr_e = 0.d0
+    vbrtrp_e = 0.d0
+
+    call syncborder_real8(ubrtr_e, 1)
+    call syncborder_real8(vbrtr_e, 1)
+    call syncborder_real8(ssh_e, 1)
+
+    ubrtrp_e = ubrtr_e
+    vbrtrp_e = vbrtr_e
+    sshp_e = ssh_e
+!    ssh_err = ssh_e
+
+    if(periodicity_x/=0) then
+      call cyclize8_x(ssh_e ,  nx,ny,1,mmm,mm)
+      call cyclize8_x(sshp_e,  nx,ny,1,mmm,mm)
+      call cyclize8_x( ubrtr_e,nx,ny,1,mmm,mm)
+      call cyclize8_x(ubrtrp_e,nx,ny,1,mmm,mm)
+      call cyclize8_x( vbrtr_e,nx,ny,1,mmm,mm)
+      call cyclize8_x(vbrtrp_e,nx,ny,1,mmm,mm)
+    end if
+
+    if(periodicity_y/=0) then
+      call cyclize8_y(ssh_e ,  nx,ny,1,nnn,nn)
+      call cyclize8_y(sshp_e,  nx,ny,1,nnn,nn)
+      call cyclize8_y( ubrtr_e,nx,ny,1,nnn,nn)
+      call cyclize8_y(ubrtrp_e,nx,ny,1,nnn,nn)
+      call cyclize8_y( vbrtr_e,nx,ny,1,nnn,nn)
+      call cyclize8_y(vbrtrp_e,nx,ny,1,nnn,nn)
+    end if
+
+    ssh_i = ssh_e
+    sshp_i = sshp_e
+    ubrtr_i = ubrtrp_e
+    vbrtr_i = vbrtrp_e
+
+    !initialize depth for internal mode
+    call hh_init(hhq, hhqp, hhqn,    &
+               hhu, hhup, hhun,    &
+               hhv, hhvp, hhvn,    &
+               hhh, hhhp, hhhn,    &
+               ssh_i, sshp_i, hhq_rest)
+    !initialize depth for external mode
+    call hh_init(hhq_e, hhqp_e, hhqn_e,    &
+               hhu_e, hhup_e, hhun_e,    &
+               hhv_e, hhvp_e, hhvn_e,    &
+               hhh_e, hhhp_e, hhhn_e,    &
+               ssh_e, sshp_e, hhq_rest)
+
+
+endsubroutine sw_only_inicond

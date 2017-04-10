@@ -18,7 +18,7 @@ module mpi_parallel_tools
     integer :: cart_comm
     integer, dimension(2) :: p_size, period, p_coord
 
-    real*8 :: time_barotrop, time_baroclin, time_tracer_tt, time_tracer_ss
+    real*8 :: time_barotrop
     real*8 :: time_model_step, time_output
 
     contains
@@ -26,9 +26,7 @@ module mpi_parallel_tools
     subroutine init_times
         implicit none
         time_barotrop = 0.0d0
-        time_baroclin = 0.0d0
-        time_tracer_tt = 0.0d0
-        time_tracer_ss = 0.0d0
+
         time_model_step = 0.0d0
         time_output = 0.0d0
         return
@@ -38,9 +36,7 @@ module mpi_parallel_tools
         implicit none
         if (rank .eq. 0) then
             print *, "Time barotropic: ", time_barotrop
-            print *, "Time baroclinic: ", time_baroclin
-            print *, "Time tracer for T: ", time_tracer_tt
-            print *, "Time tracer for S: ", time_tracer_ss
+            
             print *, "Time model step: ", time_model_step
             print *, "Time output: ", time_output
         endif

@@ -618,23 +618,6 @@ do step=1,2*nstep
                   hhh_e, hhhp_e, hhhn_e, nstep )
   endif
 
- ! !$omp parallel do private(m,n)
- !     do n=ny_start-1,ny_end+1
- !      do m=nx_start-1,nx_end+1
-
- !       if(lcu(m,n)>0.5) then
- !           up(m,n) = up(m,n)/hhup_e(m,n)
- !       endif
-
- !       if(lcv(m,n)>0.5) then
- !           vp(m,n) = vp(m,n)/hhvp_e(m,n)
- !       endif
-
- !      enddo
- !     enddo
-! !$omp end parallel do
-
-
  if(step==nstep) then
 
    ubrtrp_e=up
