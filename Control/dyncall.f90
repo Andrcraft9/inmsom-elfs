@@ -31,8 +31,8 @@ subroutine shallow_water_model_step(tau,nstep)
         endif
     enddo
    enddo
-   call syncborder_real8(RHSx2d, 1)
-   call syncborder_real8(RHSy2d, 1)
+   call syncborder_extra_real8(RHSx2d, 1, bnd_length)
+   call syncborder_extra_real8(RHSy2d, 1, bnd_length)
 
 
 !------------------------ Init variables: --------------------------------------!

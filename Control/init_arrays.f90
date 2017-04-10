@@ -31,6 +31,8 @@ subroutine mpi_array_boundary_definition
 
     call mpi_init(ierr)
 
+    bnd_length = 4 ! Need set bnd_length=2k, k >= 2
+
     period = (/1,1/)
     p_size = (/0,0/)
     ierr = 0
@@ -50,10 +52,10 @@ subroutine mpi_array_boundary_definition
     nx_end = nx_start + locn - 1
     nx_start = nx_start
 !   border area
-    bnd_x1 = nx_start - 2
-!    if (bnd_x1 < 1) bnd_x1 = 1
-    bnd_x2 = nx_end + 2
-!    if (bnd_x2 > nx) bnd_x2 = nx
+    bnd_x1 = nx_start - bnd_length - 1
+    if (bnd_x1 < 1) bnd_x1 = 1
+    bnd_x2 = nx_end + bnd_length + 1
+    if (bnd_x2 > nx) bnd_x2 = nx
 
 !-----------------------------------NY------------------------------------------!
     locn = floor(real(ny - 4)/real(p_size(2)))
@@ -64,10 +66,10 @@ subroutine mpi_array_boundary_definition
     ny_end = ny_start + locn - 1
     ny_start = ny_start
 !   border area
-    bnd_y1 = ny_start - 2
-!    if (bnd_y1 < 1) bnd_y1 = 1
-    bnd_y2 = ny_end + 2
-!    if (bnd_y2 > ny) bnd_y2 = ny
+    bnd_y1 = ny_start - bnd_length - 1
+    if (bnd_y1 < 1) bnd_y1 = 1
+    bnd_y2 = ny_end + bnd_length + 1
+    if (bnd_y2 > ny) bnd_y2 = ny
 
     call mpi_comm_size(cart_comm, procn, ierr)
     if (rank .eq. 0) print *, "MPI pocs: ", procn, " Domain decomposition:"
