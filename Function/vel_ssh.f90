@@ -451,6 +451,16 @@ real(8), allocatable::   u(:,:),   &
 
 real(8) bp, bp0, grx, gry, slx, sly, slxn, slyn
 
+real*8 time_count
+integer ierr
+
+real*8 time_local_ssh
+real*8 time_local_hh
+real*8 time_local_stress
+real*8 time_local_trans
+real*8 time_local_diff
+real*8 time_local_uv
+
 allocate(  u(bnd_x1:bnd_x2,bnd_y1:bnd_y2),   &
            v(bnd_x1:bnd_x2,bnd_y1:bnd_y2),   &
          ssh(bnd_x1:bnd_x2,bnd_y1:bnd_y2),   &
@@ -481,9 +491,17 @@ allocate(  u(bnd_x1:bnd_x2,bnd_y1:bnd_y2),   &
  ssh4gradx =0.0d0
  ssh4grady =0.0d0
 
+ time_local_ssh  = 0
+ time_local_hh = 0
+ time_local_stress = 0
+ time_local_trans = 0
+ time_local_diff = 0
+ time_local_uv = 0
+
 do step=1,2*nstep
 
 !computing ssh
+ call start_timer(time_count)
 !$omp parallel do
  do n=ny_start,ny_end
   do m=nx_start,nx_end
@@ -497,6 +515,8 @@ do step=1,2*nstep
   enddo
  enddo
 !$omp end parallel do
+ call end_timer(time_count)
+ time_local_ssh = time_local_ssh + time_count
 
  call syncborder_real8(sshn, 1)
 
@@ -508,26 +528,41 @@ do step=1,2*nstep
    call cyclize8_y(sshn,nx,ny,1,nnn,nn)
  endif
 
+   call start_timer(time_count)
    if(full_free_surface>0) then
     call hh_update(hhqn_e, hhun_e, hhvn_e, hhhn_e, sshn, hhq_rest)
    endif
+   call end_timer(time_count)
+   time_local_hh = time_local_hh + time_count
 
  !computing advective and lateral-viscous terms for 2d-velocity
+ call start_timer(time_count)
  call stress_components(up,vp,str_t2d,str_s2d,1)
+ call end_timer(time_count)
+ time_local_stress = time_local_stress + time_count
+
  !computing advective and lateral-viscous terms for 2d-velocity
+ call start_timer(time_count)
  call uv_trans( u, v, vort,            &
               hhq_e, hhu_e, hhv_e, hhh_e,     &
               RHSx_adv, RHSy_adv, 1  )
+ call end_timer(time_count)
+ time_local_trans = time_local_trans + time_count
+
+ call start_timer(time_count)
  call uv_diff2( mu, str_t2d, str_s2d,          &
                hhq_e, hhu_e, hhv_e, hhh_e,     &
                RHSx_dif, RHSy_dif, 1  )
+ call end_timer(time_count)
+ time_local_diff = time_local_diff + time_count
 
- if(ksw4>0) then
-   call uv_diff4( mu4, str_t2d, str_s2d,  &
-                  fx, fy, hhq_e, hhu_e, hhv_e, hhh_e,    &
-                  RHSx_dif, RHSy_dif, 1 )
- endif
+! if(ksw4>0) then
+!   call uv_diff4( mu4, str_t2d, str_s2d,  &
+!                  fx, fy, hhq_e, hhu_e, hhv_e, hhh_e,    &
+!                  RHSx_dif, RHSy_dif, 1 )
+! endif
 
+ call start_timer(time_count)
 !$omp parallel do private(bp,bp0,grx,gry, slx, sly, slxn, slyn)
  do n=ny_start,ny_end
   do m=nx_start,nx_end
@@ -571,6 +606,8 @@ do step=1,2*nstep
   enddo
  enddo
 !$omp end parallel do
+ call end_timer(time_count)
+ time_local_uv = time_local_uv + time_count
 
  call syncborder_real8(un ,1)
  call syncborder_real8(vn, 1)
@@ -631,6 +668,13 @@ do step=1,2*nstep
  endif
 
 enddo
+
+ if (rank .eq. 0) print *, "ssh: ", time_local_ssh
+ if (rank .eq. 0) print *, "hh: ", time_local_hh
+ if (rank .eq. 0) print *, "stress: ", time_local_stress
+ if (rank .eq. 0) print *, "trans: ", time_local_trans
+ if (rank .eq. 0) print *, "diff: ", time_local_diff
+ if (rank .eq. 0) print *, "uv: ", time_local_uv
 
  call syncborder_real8(ubrtr_i, 1)
  call syncborder_real8(vbrtr_i, 1)

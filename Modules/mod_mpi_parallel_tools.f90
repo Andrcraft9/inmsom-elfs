@@ -20,14 +20,15 @@ module mpi_parallel_tools
 
     real*8 :: time_barotrop
     real*8 :: time_model_step, time_output
+    real*8 :: time_sync
 
     contains
 
     subroutine init_times
         implicit none
-        time_barotrop = 0.0d0
-
         time_model_step = 0.0d0
+        time_barotrop = 0.0d0
+        time_sync = 0.0d0
         time_output = 0.0d0
         return
     end subroutine
@@ -35,9 +36,9 @@ module mpi_parallel_tools
     subroutine print_times
         implicit none
         if (rank .eq. 0) then
-            print *, "Time barotropic: ", time_barotrop
-            
             print *, "Time model step: ", time_model_step
+            print *, "Time barotropic: ", time_barotrop
+            print *, "Time sync: ", time_sync
             print *, "Time output: ", time_output
         endif
         return
@@ -151,7 +152,9 @@ module mpi_parallel_tools
         real*8, intent(in out) :: field(bnd_x1:bnd_x2, bnd_y1:bnd_y2, nz)
 
         integer, dimension(2) :: p_dist, p_src
+        real*8 :: time_count
 
+        call start_timer(time_count)
 !------------------ send-recv in ny+ -------------------------------------------
         p_dist(1) = p_coord(1)
         p_dist(2) = p_coord(2) + 1
@@ -213,6 +216,8 @@ module mpi_parallel_tools
          call directsync_real8(field, p_dist, nx_start, nx_start, ny_end, ny_end,  &
                                       p_src,  bnd_x2 - 1, bnd_x2 - 1, bnd_y1 + 1, bnd_y1 + 1, nz)
 
+        call end_timer(time_count)
+        time_sync = time_sync + time_count
         return
     end subroutine syncborder_real8
 

@@ -28,5 +28,5 @@
 0.00d0       :weight coefficient for lateral Z-Diffusion
 1.00d0       :weight coefficient for lateral R-Diffusion
 1.00d0       :weight coefficient for Gent&McWilliams transport
-imask.txt        :file with temperature mask(0-ocean,1-land)(a32)
+mask1200x800.txt        :file with temperature mask(0-ocean,1-land)(a32)
 topo.dat        :file with bottom topography[m](a32)
