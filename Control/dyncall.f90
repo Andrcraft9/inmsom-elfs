@@ -164,6 +164,7 @@ endif
                   RHSy2d_diff_disp  )
   call end_timer(time_count)
   time_barotrop = time_barotrop + time_count
+  if (rank .eq. 0) print *, "Time barotropic: ", time_count
 
 ! removing barotropic component from 3d velocity
 !$omp parallel do	private(m,n,k)

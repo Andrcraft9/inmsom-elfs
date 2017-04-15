@@ -250,6 +250,7 @@ do while(num_step<num_step_max)
 !computing one step of ocean dynamics
   call ocean_model_step(time_step,nstep_barotrop)
   call end_timer(t_local)
+  if (rank .eq. 0) print *, "Model step time: ", t_local, "step: ", num_step
   time_model_step = time_model_step + t_local
 
 !-----------------------------------------------------------
