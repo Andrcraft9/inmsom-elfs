@@ -22,6 +22,7 @@ module mpi_parallel_tools
 
     real*8 :: time_barotrop, time_baroclin, time_tracer_tt, time_tracer_ss
     real*8 :: time_model_step, time_output
+    real*8 :: time_sync, time_extra_sync
 
     contains
 
@@ -32,6 +33,8 @@ module mpi_parallel_tools
         time_tracer_tt = 0.0d0
         time_tracer_ss = 0.0d0
         time_model_step = 0.0d0
+        time_sync = 0.0d0
+        time_extra_sync = 0.0d0
         time_output = 0.0d0
         return
     end subroutine
@@ -44,6 +47,9 @@ module mpi_parallel_tools
             print *, "Time tracer for T: ", time_tracer_tt
             print *, "Time tracer for S: ", time_tracer_ss
             print *, "Time model step: ", time_model_step
+            print *, "Time sync: ", time_sync
+            print *, "Time extra sync: ", time_extra_sync
+            print *, "Time all sync: ", time_sync + time_extra_sync
             print *, "Time output: ", time_output
         endif
         return
@@ -158,7 +164,9 @@ module mpi_parallel_tools
         real*8, intent(in out) :: field(bnd_x1:bnd_x2, bnd_y1:bnd_y2, nz)
 
         integer, dimension(2) :: p_dist, p_src
+        real*8 :: time_count
 
+        call start_timer(time_count)
 !------------------ send-recv in ny+ -------------------------------------------
         p_dist(1) = p_coord(1)
         p_dist(2) = p_coord(2) + 1
@@ -236,6 +244,8 @@ module mpi_parallel_tools
                                       p_src,  nx_end + 1, nx_end + bnd_step,        &
                                               ny_start - bnd_step, ny_start - 1 , nz)
 
+        call end_timer(time_count)
+        time_extra_sync = time_extra_sync + time_count
         return
     end subroutine syncborder_extra_real8
 
@@ -248,7 +258,9 @@ module mpi_parallel_tools
         real*8, intent(in out) :: field(bnd_x1:bnd_x2, bnd_y1:bnd_y2, nz)
 
         integer, dimension(2) :: p_dist, p_src
+        real*8 :: time_count
 
+        call start_timer(time_count)
 !------------------ send-recv in ny+ -------------------------------------------
         p_dist(1) = p_coord(1)
         p_dist(2) = p_coord(2) + 1
@@ -310,6 +322,8 @@ module mpi_parallel_tools
          call directsync_real8(field, p_dist, nx_start, nx_start, ny_end, ny_end,  &
                                       p_src,  nx_end + 1, nx_end + 1, ny_start - 1, ny_start - 1 , nz)
 
+        call end_timer(time_count)
+        time_sync = time_sync + time_count
         return
     end subroutine syncborder_real8
 
