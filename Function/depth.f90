@@ -8,24 +8,24 @@ subroutine hh_init(hq, hqp, hqn,    &
  use mpi_parallel_tools
  use basin_grid
  implicit none
-
+ 
  real(8) hq(bnd_x1:bnd_x2, bnd_y1:bnd_y2), hqp(bnd_x1:bnd_x2, bnd_y1:bnd_y2), hqn(bnd_x1:bnd_x2, bnd_y1:bnd_y2),    &
          hu(bnd_x1:bnd_x2, bnd_y1:bnd_y2), hup(bnd_x1:bnd_x2, bnd_y1:bnd_y2), hun(bnd_x1:bnd_x2, bnd_y1:bnd_y2),    &
          hv(bnd_x1:bnd_x2, bnd_y1:bnd_y2), hvp(bnd_x1:bnd_x2, bnd_y1:bnd_y2), hvn(bnd_x1:bnd_x2, bnd_y1:bnd_y2),    &
          hh(bnd_x1:bnd_x2, bnd_y1:bnd_y2), hhp(bnd_x1:bnd_x2, bnd_y1:bnd_y2), hhn(bnd_x1:bnd_x2, bnd_y1:bnd_y2),    &
          sh(bnd_x1:bnd_x2, bnd_y1:bnd_y2), shp(bnd_x1:bnd_x2, bnd_y1:bnd_y2), h_r(bnd_x1:bnd_x2, bnd_y1:bnd_y2)
-
+ 
  real(8) slu
  integer m,n
 
        hq =h_r + sh *dfloat(full_free_surface)
-       hqp=h_r + shp*dfloat(full_free_surface)
-       hqn=h_r
+       hqp=h_r + shp*dfloat(full_free_surface)  
+       hqn=h_r 
 
-!$omp parallel do private(m,n,slu)
+!$omp parallel do private(m,n,slu) 
       do n=ny_start-1,ny_end
        do m=nx_start-1,nx_end
-
+        
         if(llu(m,n)>0.5) then
 ! interpolating hhq given on T-grid(lu) to hhu given on u-grid(lcu).
           slu=dble(lu(m,n)+lu(m+1,n))
@@ -69,23 +69,13 @@ subroutine hh_init(hq, hqp, hqn,    &
 	end do
 !$omp end parallel do
 
-      call syncborder_real8(hu, 1)
-      call syncborder_real8(hup, 1)
-      call syncborder_real8(hun, 1)
-      call syncborder_real8(hv, 1)
-      call syncborder_real8(hvp, 1)
-      call syncborder_real8(hvn, 1)
-      call syncborder_real8(hh, 1)
-      call syncborder_real8(hhp, 1)
-      call syncborder_real8(hhn, 1)
-
       if(periodicity_x/=0) then
         call cyclize8_x(hu, nx,ny,1,mmm,mm)
         call cyclize8_x(hup,nx,ny,1,mmm,mm)
         call cyclize8_x(hun,nx,ny,1,mmm,mm)
         call cyclize8_x(hv, nx,ny,1,mmm,mm)
-        call cyclize8_x(hvp,nx,ny,1,mmm,mm)
-        call cyclize8_x(hvn,nx,ny,1,mmm,mm)
+        call cyclize8_x(hvp,nx,ny,1,mmm,mm)              
+        call cyclize8_x(hvn,nx,ny,1,mmm,mm)              
         call cyclize8_x(hh, nx,ny,1,mmm,mm)
         call cyclize8_x(hhp,nx,ny,1,mmm,mm)
         call cyclize8_x(hhn,nx,ny,1,mmm,mm)
@@ -96,8 +86,8 @@ subroutine hh_init(hq, hqp, hqn,    &
         call cyclize8_y(hup,nx,ny,1,nnn,nn)
         call cyclize8_y(hun,nx,ny,1,nnn,nn)
         call cyclize8_y(hv, nx,ny,1,nnn,nn)
-        call cyclize8_y(hvp,nx,ny,1,nnn,nn)
-        call cyclize8_y(hvn,nx,ny,1,nnn,nn)
+        call cyclize8_y(hvp,nx,ny,1,nnn,nn)              
+        call cyclize8_y(hvn,nx,ny,1,nnn,nn)              
         call cyclize8_y(hh, nx,ny,1,nnn,nn)
         call cyclize8_y(hhp,nx,ny,1,nnn,nn)
         call cyclize8_y(hhn,nx,ny,1,nnn,nn)
@@ -110,7 +100,7 @@ subroutine hh_update(hqn, hun, hvn, hhn, sh,h_r)
  use mpi_parallel_tools
  use basin_grid
  implicit none
-
+ 
  real(8) hqn(bnd_x1:bnd_x2, bnd_y1:bnd_y2), hun(bnd_x1:bnd_x2, bnd_y1:bnd_y2),    &
          hvn(bnd_x1:bnd_x2, bnd_y1:bnd_y2), hhn(bnd_x1:bnd_x2, bnd_y1:bnd_y2),    &
          sh(bnd_x1:bnd_x2, bnd_y1:bnd_y2),  h_r(bnd_x1:bnd_x2, bnd_y1:bnd_y2)
@@ -118,12 +108,12 @@ subroutine hh_update(hqn, hun, hvn, hhn, sh,h_r)
  integer m,n
  real(8) slu
 
-      hqn =h_r + sh
+      hqn =h_r + sh          
 
-!$omp parallel do private(m,n,slu)
+!$omp parallel do private(m,n,slu) 
       do n=ny_start-1,ny_end
        do m=nx_start-1,nx_end
-
+        
         if(llu(m,n)>0.5) then
 ! interpolating hhq given on T-grid(lu) to hhu given on u-grid(lcu).
           slu=dble(lu(m,n)+lu(m+1,n))
@@ -151,19 +141,15 @@ subroutine hh_update(hqn, hun, hvn, hhn, sh,h_r)
 	end do
 !$omp end parallel do
 
-      call syncborder_real8(hun, 1)
-      call syncborder_real8(hvn, 1)
-      call syncborder_real8(hhn, 1)
-
       if(periodicity_x/=0) then
         call cyclize8_x(hun, nx,ny,1,mmm,mm)
-        call cyclize8_x(hvn, nx,ny,1,mmm,mm)
+        call cyclize8_x(hvn, nx,ny,1,mmm,mm)     
         call cyclize8_x(hhn, nx,ny,1,mmm,mm)
       end if
 
       if(periodicity_y/=0) then
         call cyclize8_y(hun, nx,ny,1,nnn,nn)
-        call cyclize8_y(hvn, nx,ny,1,nnn,nn)
+        call cyclize8_y(hvn, nx,ny,1,nnn,nn)     
         call cyclize8_y(hhn, nx,ny,1,nnn,nn)
       end if
 
@@ -179,7 +165,7 @@ subroutine hh_shift(hq, hqp, hqn,   &
  use mpi_parallel_tools
  use basin_grid
  implicit none
-
+ 
  real(8) hq(bnd_x1:bnd_x2, bnd_y1:bnd_y2), hqp(bnd_x1:bnd_x2, bnd_y1:bnd_y2), hqn(bnd_x1:bnd_x2, bnd_y1:bnd_y2),    &
          hu(bnd_x1:bnd_x2, bnd_y1:bnd_y2), hup(bnd_x1:bnd_x2, bnd_y1:bnd_y2), hun(bnd_x1:bnd_x2, bnd_y1:bnd_y2),    &
          hv(bnd_x1:bnd_x2, bnd_y1:bnd_y2), hvp(bnd_x1:bnd_x2, bnd_y1:bnd_y2), hvn(bnd_x1:bnd_x2, bnd_y1:bnd_y2),    &
@@ -187,11 +173,11 @@ subroutine hh_shift(hq, hqp, hqn,   &
 
  integer m,n, nstep
 
-
-!$omp parallel do private(m,n)
+ 
+!$omp parallel do private(m,n) 
       do n=ny_start-1,ny_end+1
        do m=nx_start-1,nx_end+1
-
+        
         if(llu(m,n)>0.5) then
           hup(m,n)= hu(m,n) + time_smooth*(hun(m,n)-2.0d0*hu(m,n)+hup(m,n))/2.0d0/dfloat(nstep)
            hu(m,n)= hun(m,n)

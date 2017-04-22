@@ -1,6 +1,5 @@
 !======================================================================
 subroutine readpar(filename,comments,nofcom)
-use mpi_parallel_tools
 implicit none
 
 integer, parameter:: maxnumpar=256
@@ -20,16 +19,15 @@ open (90,file=filename,status='old',err=190)
 
  nofcom=n-1
 
- if (rank .eq. 0) then
-     write(*,'(a,a)')' Input ocean task parameters from ', filename(1:len_trim (filename))
-     do n=1,nofcom
-      write(*,'(1x,a)') comments(n)(1:len_trim (comments(n)))
-     end do
-     write(*,*)
- endif
+ write(*,'(a,a)')' Input ocean task parameters from ', filename(1:len_trim (filename))
+ do n=1,nofcom
+  write(*,'(1x,a)') comments(n)(1:len_trim (comments(n)))
+ end do
+ write(*,*)
+
  return
 
-190   write(*,*) ' error in open file: ',  &
+190   write(*,*) ' error in open file: ',  & 
                 filename(1:len_trim (filename))
       stop 1
 
@@ -75,10 +73,10 @@ return
 
 endsubroutine writepar
 !=============================================================================================
-!      This function finds the first lexeme in the string.
+!      This function finds the first lexeme in the string. 
 !      We call lexeme the character set separated by space or tab.
 !      Memory for OUT_STRING must be allocated by caller.
-!      Rusakov Noida.
+!      Rusakov Noida. 
 
 subroutine get_first_lexeme(in_string, out_string)
 implicit none
@@ -88,5 +86,5 @@ character(*) out_string
 !REMOVE LEADING AND TRIM BLANKS
  out_string = adjustl(in_string)
  out_string = trim   (out_string)
- out_string = out_string(1 : index(out_string, ' '))
+ out_string = out_string(1 : index(out_string, ' ')) 
 endsubroutine get_first_lexeme

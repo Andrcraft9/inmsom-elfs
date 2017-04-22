@@ -1,29 +1,26 @@
 program INMSOM
 use time_integration
 use key_switches
-use mpi_parallel_tools
 implicit none
 
 character(128) fname
-integer m, ierr
-real*8 t_global, t_local
+integer m,ierr
 
-!call non_mpi_array_boundary_definition
-call mpi_array_boundary_definition
+call non_mpi_array_boundary_definition
 
 m_sec_of_min   = 0     !second counter in minute
 m_min_of_hour  = 0     !minute counter in hour
-m_hour_of_day  = 0     !hour counter in day
+m_hour_of_day  = 0     !hour counter in day     
 m_day_of_month = 0     !day counter in month
 m_day_of_year  = 0     !day counter in year
-m_day_of_4yr   = 0     !day counter in 4-years
+m_day_of_4yr   = 0     !day counter in 4-years  
 m_month_of_year= 0     !mon counter in year
 m_month_of_4yr = 0     !mon counter in 4-years
 m_year_of_4yr  = 0     !year counter in 4yrs
 m_day          = 0     !model elapsed day counter starting from zero
 m_month        = 0     !model elapsed month counter starting from zero
 m_year         = 0     !year counter
-m_4yr          = 0     !counter of 4-yr groups
+m_4yr          = 0     !counter of 4-yr groups 
 m_time_changed = 0     !change indicator of time
 key_time_print = 0     !key of printing time:0-not,1-print
 
@@ -39,11 +36,7 @@ blank=' '
 filepar='ocean_run.par'
 
 !reading parameters from file
-if (rank .eq. 0) then
-    call readpar(filepar,comments,nofcom)
-endif
-call mpi_bcast(comments, 256*256, mpi_character, 0, cart_comm, ierr)
-
+call readpar(filepar,comments,nofcom)
 read(comments( 1),*) start_type          !Type of starting run (0 - from TS only, 1 - frim the full checkpoint)
 read(comments( 2),*) time_step           !Model time step (in seconds)
 read(comments( 3),*) run_duration        !Duration of the run in days
@@ -56,9 +49,9 @@ read(comments( 9),*) nstep_barotrop      !Number of internal time steps for baro
 call get_first_lexeme(comments(10), path2ocp    )  !path to checkpoints(results)
 ! Files with data on oceanic grid:
 call get_first_lexeme(comments(11), path2ocssdata)   !path to ocean SS data
-call get_first_lexeme(comments(12), ss_ocfiles(1)  )  !file with SST
-call get_first_lexeme(comments(13), ss_ocfiles(2)  )  !file with SSS
-call get_first_lexeme(comments(14), ss_ocfiles(3)  )  !file with river runoff
+call get_first_lexeme(comments(12), ss_ocfiles(1)  )  !file with SST 
+call get_first_lexeme(comments(13), ss_ocfiles(2)  )  !file with SSS 
+call get_first_lexeme(comments(14), ss_ocfiles(3)  )  !file with river runoff 
 call get_first_lexeme(comments(15), ss_ocfiles(4)  )  !file with TLBC
 call get_first_lexeme(comments(16), ss_ocfiles(5)  )  !file with SLBC
 call get_first_lexeme(comments(17), ss_ocfiles(6)  )  !file with ULBC
@@ -68,7 +61,7 @@ call get_first_lexeme(comments(19), ss_ocfiles(8)  )  !file with SSHLBC
 call get_first_lexeme(comments(20), path2atmssdata )  !path to atmospheric data
 call get_first_lexeme(comments(21), ss_atmfiles(1) )  !file with      zonal wind stress (1 and 2 condition)
 call get_first_lexeme(comments(22), ss_atmfiles(2) )  !file with meridional wind stress (1 and 2 condition)
-call get_first_lexeme(comments(23), ss_atmfiles(3) )  !file with          heat balance (2 condition)
+call get_first_lexeme(comments(23), ss_atmfiles(3) )  !file with          heat balance (2 condition) 
 call get_first_lexeme(comments(24), ss_atmfiles(4) )  !file with shortwave rad balance (2 condition)
 call get_first_lexeme(comments(25), ss_atmfiles(5) )  !file with    freshwater balance (2 condition)
 call get_first_lexeme(comments(26), ss_atmfiles(6) )  !file with       air temperature (3 condition)
@@ -80,7 +73,7 @@ call get_first_lexeme(comments(31), ss_atmfiles(11) )  !file with downwelling lo
 call get_first_lexeme(comments(32), ss_atmfiles(12) )  !file with downwelling shortwave radiation (3 condition)
 call get_first_lexeme(comments(33), ss_atmfiles(13) )  !file with wind liquid precipitation (rain)
 call get_first_lexeme(comments(34), ss_atmfiles(14) )  !file with wind solid precipitation (snow)
-call get_first_lexeme(comments(35), atmask)
+call get_first_lexeme(comments(35), atmask) 
 
 if(loc_data_wr_period>0.0001) then
  key_write_local=1
@@ -112,8 +105,8 @@ year_loc=init_year
  day_loc=int(loc_data_wr_period/1440.0)+1
  hour_loc=mod(int(loc_data_wr_period/60.0),24)
   min_loc=mod(int(loc_data_wr_period),60)
-
-!for global output
+ 
+!for global output  
 if(abs(glob_data_wr_period)>1440.5) then
  monthly_output=1
  glob_data_tstep = 86400.0*30.0
@@ -148,34 +141,17 @@ call atm2oc_allocate
 
 !Initializing ocean model parameters
 call ocean_model_parameters(time_step)
-if (rank .eq. 0) print *, "--------------------END OF OCEAN MODEL PARAMETERS----------------------"
 
 !Initializing open boundary parameters
 if (ksw_lbc_ts>0) then
  call lqpcoordinates(path2ocssdata)
 endif
 
-!------------------------------- Test init -------------------------------------!
-!call test_init
-!call  parallel_local_output(path2ocp,  &
-!                          1,  &
-!                   year_loc,  &
-!                    mon_loc,  &
-!                    day_loc,  &
-!                   hour_loc,  &
-!                    min_loc,  &
-!             loc_data_tstep,  &
-!                    yr_type  )
-!call mpi_finalize(ierr)
-!stop
-!-------------------------------------------------------------------------------!
 
 !Reading initial conditions
 call ocinicond(start_type,path2ocp)
-if (rank .eq. 0) print *, "--------------------END OF OCINICOND----------------------"
 
 call icinicond(start_type,path2ocp,nstep_icedyn)
-if (rank .eq. 0) print *, "--------------------END OF ICINICOND----------------------"
 
 if(ksw_pt>0) then
  call ptinicond(path2ocp)
@@ -183,14 +159,11 @@ endif
 
 !constructing matrix for spatial interpolation
 call build_intrp_mtrx(path2atmssdata,atmask)
-if (rank .eq. 0) print *, "--------------------END OF BUILD INTPR MTRX----------------------"
 
 !-----------------------------------------------------------------------
-if (rank .eq. 0) then
-    write(*,'(2x,5hstep:,f7.2,4hhrs;,f9.2,4hsec;,f9.5,4hday.)')     &
+write(*,'(2x,5hstep:,f7.2,4hhrs;,f9.2,4hsec;,f9.5,4hday.)')     &
              time_step_h,   time_step,    time_step_d
-    write(*,'(2x,15hduration of run:,f9.2,6h days.)') run_duration
-endif
+write(*,'(2x,15hduration of run:,f9.2,6h days.)') run_duration
 
 key_time_print=1
 call model_time_def(   num_step,            &     !step counter,            input
@@ -216,42 +189,19 @@ call model_time_def(   num_step,            &     !step counter,            inpu
 
 num_step_max=int8(run_duration*nstep_per_day)
 
-if (rank .eq. 0) then
-    write(*,*)'=================================================================='
-    write(*,*)'------------------Starting model time integration-----------------'
-    write(*,*)'=================================================================='
-endif
+write(*,*)'=================================================================='
+write(*,*)'------------------Starting model time integration-----------------'
+write(*,*)'=================================================================='
 
-!call  parallel_local_output(path2ocp,  &
-!                          1,  &
-!                   year_loc,  &
-!                    mon_loc,  &
-!                    day_loc,  &
-!                   hour_loc,  &
-!                    min_loc,  &
-!             loc_data_tstep,  &
-!                    yr_type  )
-
-call init_times
-call start_timer(t_global)
 do while(num_step<num_step_max)
-
 ! atmospheric data time interpolation on atmospheric grid
-!  call start_timer(t_local)
   call atm_data_time_interpol
 ! atmospheric data spatial interpolation from atm to ocean grid
   call atm_data_spatial_interpol
 ! oceanic data time interpolation
   call oc_data_time_interpol
-!  call end_timer(t_local)
-!  if (rank .eq. 0) print *, "Interpolate time: ", t_local, "step: ", num_step
-
-  call start_timer(t_local)
-!computing one step of ocean dynamics
+!computing one step of ocean dynamics 
   call ocean_model_step(time_step,nstep_barotrop)
-  call end_timer(t_local)
-  if (rank .eq. 0) print *, "Model step time: ", t_local, "step: ", num_step
-  time_model_step = time_model_step + t_local
 
 !-----------------------------------------------------------
 !moving to the next time step
@@ -281,24 +231,20 @@ do while(num_step<num_step_max)
 !Write local data
 
 if( key_write_local>0) then
-
+ 
  if(mod(num_step,loc_data_wr_period_step)==0) then
-
+ 
   nrec_loc=num_step/loc_data_wr_period_step
 
-  call start_timer(t_local)
-  call  parallel_local_output(path2ocp,  &
+  call  local_output(path2ocp,  &
                      nrec_loc,  &
                      year_loc,  &
-                      mon_loc,  &
+                      mon_loc,  & 
                       day_loc,  &
                      hour_loc,  &
                       min_loc,  &
                loc_data_tstep,  &
                       yr_type  )
-  call end_timer(t_local)
-  time_output = time_output + t_local
-
   call model_time_print(num_step,         &
                         m_sec_of_min,     &    !second counter in minute,output
                         m_min_of_hour,    &    !minute counter in hour  ,output
@@ -313,12 +259,153 @@ if( key_write_local>0) then
 
 endif
 
+
+if(key_write_global>0) then
+ !computing global data
+ call data_calc
+endif
+
+ if(monthly_output==0) then
+   !writing global daily (or shorter) mean data  
+   if(mod(num_step,glob_data_wr_period_step)==0) then
+    nrec_glob=num_step/glob_data_wr_period_step
+    time_write_global=1
+   else
+    time_write_global=0    
+   endif
+
+ else
+   !writing global monthly mean data
+   if(m_time_changed(5)>0) then
+    nrec_glob=m_month-1
+    time_write_global=1
+   else
+    time_write_global=0  
+   endif
+  endif
+
+
+ if(time_write_global>0) then
+  
+  if(key_write_global>0) then
+    call global_output(path2ocp,   &
+                       nrec_glob,  &
+                       year_glob,  &
+                        mon_glob,  & 
+                        day_glob,  &
+                       hour_glob,  &
+                        min_glob,  &
+                 glob_data_tstep,  &
+                          yr_type  )
+  endif
+
+  
+  !writing checkpoints
+       if(num_step<num_step_max) then
+  
+        call ocpwrite(path2ocp,   &
+                        m_year,   &
+               m_month_of_year,   & 
+                m_day_of_month,   &
+                 m_hour_of_day,   &
+                 m_min_of_hour,   &
+               sngl(time_step),   &
+                     yr_type,     &
+                nstep_barotrop   )
+     !  storing of parameters of task for next run
+                   
+        do m=2,31
+         if(comments(4)(m:m).eq.':') exit
+        end do
+       
+         comments(4)(m:m)=':'
+         m=m-1
+         comments(4)(1:2)=blank(1:2)
+         write(comments(4)(3:13),'(i11)') num_step   !initial step for next run
+         comments(4)(14:max(14,m))=blank(14:max(14,m))
+     
+        do m=2,31
+         if(comments(1)(m:m).eq.':') exit
+        end do
+       
+         comments(1)(m:m)=':'
+         m=m-1
+         comments(1)(1:2)=blank(1:2)
+         write(comments(1)(3:13),'(i11)') 1 ! key to read checkpoints
+         comments(1)(14:max(14,m))=blank(14:max(14,m))
+         
+        call fulfname(fname,path2ocp,'cpar.txt',ierr)
+        write(*,*) ' output changed task parameters to: ', fname(1:len_trim(fname))
+        call writepar(fname,comments,nofcom)
+       
+        write(*,*) ' output changed task parameters to: ', filepar(1:len_trim(filepar))
+        call writepar(filepar,comments,nofcom)
+        call model_time_print(num_step,         &
+                              m_sec_of_min,     &    !second counter in minute,output
+                              m_min_of_hour,    &    !minute counter in hour  ,output
+                              m_hour_of_day,    &    !hour counter in day     ,output
+                              m_day_of_month,   &    !day counter in month    ,output
+                              m_day_of_year,    &    !day counter in year     ,output
+                              m_day_of_4yr,     &    !day counter in 4-years  ,output
+                              m_month_of_year,  &    !mon counter in year     ,output
+                              m_month,          &    !model elapsed month counter starting from zero
+                              m_year )               !year counter            ,output  
+       endif   ! end of writing checkpoints
+ 
+ endif 
+
 enddo
 !End of time cycle
-call end_timer(t_global)
-if (rank .eq. 0) print *, "Global time: ", t_global
-if (rank .eq. 0) print *, "Steps: ", num_step
-call print_times
+
+!Writing 
+   call ocpwrite(path2ocp,   &
+                   m_year,   &
+          m_month_of_year,   & 
+           m_day_of_month,   &
+            m_hour_of_day,   &
+            m_min_of_hour,   &
+          sngl(time_step),   &
+                yr_type,     &
+           nstep_barotrop   )
+!  storing of parameters of task for next run
+              
+   do m=2,31
+    if(comments(4)(m:m).eq.':') exit
+   end do
+  
+    comments(4)(m:m)=':'
+    m=m-1
+    comments(4)(1:2)=blank(1:2)
+    write(comments(4)(3:13),'(i11)') num_step   !initial step for next run
+    comments(4)(14:max(14,m))=blank(14:max(14,m))
+
+   do m=2,31
+    if(comments(1)(m:m).eq.':') exit
+   end do
+  
+    comments(1)(m:m)=':'
+    m=m-1
+    comments(1)(1:2)=blank(1:2)
+    write(comments(1)(3:13),'(i11)') 1 ! key to read checkpoints
+    comments(1)(14:max(14,m))=blank(14:max(14,m))
+    
+   call fulfname(fname,path2ocp,'cpar.txt',ierr)
+   write(*,*) ' output changed task parameters to: ', fname(1:len_trim(fname))
+   call writepar(fname,comments,nofcom)
+  
+   write(*,*) ' output changed task parameters to: ', filepar(1:len_trim(filepar))
+   call writepar(filepar,comments,nofcom)
+   call model_time_print(num_step,         &
+                         m_sec_of_min,     &    !second counter in minute,output
+                         m_min_of_hour,    &    !minute counter in hour  ,output
+                         m_hour_of_day,    &    !hour counter in day     ,output
+                         m_day_of_month,   &    !day counter in month    ,output
+                         m_day_of_year,    &    !day counter in year     ,output
+                         m_day_of_4yr,     &    !day counter in 4-years  ,output
+                         m_month_of_year,  &    !mon counter in year     ,output
+                         m_month,          &    !model elapsed month counter starting from zero
+                         m_year )               !year counter            ,output  
+
 
 !deallocating the arrays
 call atm2oc_deallocate
@@ -327,7 +414,5 @@ call oceanbc_arrays_deallocate
 call pass_tracer_deallocate
 call ocean_variables_deallocate
 call model_grid_deallocate
-
-call mpi_finalize(ierr)
 
 endprogram INMSOM

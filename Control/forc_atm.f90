@@ -13,12 +13,12 @@ character comment*80
 character*(*) path2flux , atmask
 
  integer,allocatable:: atm_mask(:,:)  !sea-land mask for atm grid
-
+ 
  character frmt*16
  integer i,j,m,n,ierr
-
+ 
  allocate(atm_mask(nxa,nya))
-
+ 
  ! atmospheric grid initialize
  ! case of regular grid on longitude
  if(xagr_type==0) then
@@ -30,7 +30,7 @@ character*(*) path2flux , atmask
 	  xa(i)=xa_levels(i)
 	end do
  endif
-
+ 
  ! case of regular grid on latitude
  if(yagr_type==0) then
       do j=1,nya
@@ -41,33 +41,34 @@ character*(*) path2flux , atmask
 	  ya(j)=ya_levels(j)
 	end do
  endif
-
+  
  write(frmt,1000) nxa
 1000  format('(',i9,'i1)')
 
-!     initialization of atmospheric sea-land mask
+!     initialization of atmospheric sea-land mask      
       if(atmask.eq.'NONE'.or.atmask.eq.'none') then
             atm_mask=0
       else
 	      atm_mask=1
 ! full file name of atmospheric mask on atmospheric grid
         call fulfname(filename,path2flux,atmask,ierr)
-
+       
         open (11,file=filename,status='old',recl=nxa*lrecl)
-        if (rank .eq. 0) then
-           write(*,'(a,a)') ' read file with atmospheric mask: ', filename(1:len_trim(filename))
-        endif
-        do n=nya,1,-1
+       
+	   write(*,'(a,a)') ' read file with atmospheric mask: ', filename(1:len_trim(filename))
+       
+         do n=nya,1,-1
             read(11,frmt,end=99) (atm_mask(m,n),m=1,nxa)
-        enddo
+         enddo
+
         close(11)
 
       end if
+  
+	write(*,*) 'building matrix for interpolation from atm to ocean'
+!  calculating interpolation matrix elements   
 
-	   if (rank .eq. 0) write(*,*) 'building matrix for interpolation from atm to ocean'
-!  calculating interpolation matrix elements
-
- call weight_matrix_intrp_next(xa,       & !array(1-D) of input x-grid values (input)
+ call weight_matrix_intrp_next(xa,       & !array(1-D) of input x-grid values (input) 
                                ya,       & !array(1-D) of input y-grid values (input)
                               nxa,       & !number of input x-grid points(input)
                               nya,       & !number of input y-grid points(input)
@@ -97,7 +98,7 @@ character*(*) path2flux , atmask
 
 99    write(*,*)' error in reading file atmmask.arr ', filename(1:len_trim(filename))
       stop 1
-
+	
 endsubroutine build_intrp_mtrx
 
 !======================================================================
@@ -114,14 +115,12 @@ use atm2oc_interpol
 implicit none
 
  integer m, n
-!-------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------      
  if(iabs(ksw_ssbc)<=2) then
-
+   
    if(ind_change_stress>0) then
-        if (rank .eq. 0) then
-            write(*,'(4(a,i4))') 'Spatial interpolation of wind stress:     from ',nxa,' x',nya,' to ',mm-mmm+1,' x',nn-nnn+1
-        endif
-       !spatial interpolation of wind stress
+    write(*,'(4(a,i4))') 'Spatial interpolation of wind stress:     from ',nxa,' x',nya,' to ',mm-mmm+1,' x',nn-nnn+1
+       !spatial interpolation of wind stress       
         call interpolrot_vec(nxa,         &  !number of x-grid points(input)
                              nya,         &  !number of y-grid points(input)
                           bnd_x1,bnd_x2,  &  !number of x-grid points(output)
@@ -140,19 +139,17 @@ implicit none
                           nx_end+1,       &  ! last significant point in x-direction (output)
                           ny_start-1,     &  !first significant point in y-direction (output)
                           ny_end+1 )        ! last significant point in y-direction (output)
-
-   endif
-
+   
+   endif    
+ 
  endif
 !-------------------------------------------------------------------------------------------
  if(iabs(ksw_ssbc)==2) then
-
+   
    if(ind_change_heat>0) then
-       if (rank .eq. 0) then
-           write(*,'(4(a,i4))') 'Spatial interpolation of heat balance:    from ',nxa,' x',nya,' to ',mm-mmm+1,' x',nn-nnn+1
-       endif
+   write(*,'(4(a,i4))') 'Spatial interpolation of heat balance:    from ',nxa,' x',nya,' to ',mm-mmm+1,' x',nn-nnn+1
       !spatial interpolation of heat balance
-       call interpolrot_scal(nxa,         &  !number of x-grid points(input)
+      call interpolrot_scal(nxa,         &  !number of x-grid points(input)
                             nya,         &  !number of y-grid points(input)
                          bnd_x1,bnd_x2,  &  !number of x-grid points(output)
                          bnd_y1,bnd_y2,  &  !number of y-grid points(output)
@@ -167,12 +164,10 @@ implicit none
                               nx_end+1,  &  ! last significant point in x-direction (output)
                             ny_start-1,  &  !first significant point in y-direction (output)
                               ny_end+1 )    ! last significant point in y-direction (output)
-
-       if (rank .eq. 0) then
-           write(*,'(4(a,i4))') 'Spatial interpolation of SW-balance:      from ',nxa,' x',nya,' to ',mm-mmm+1,' x',nn-nnn+1
-       endif
+    
+    write(*,'(4(a,i4))') 'Spatial interpolation of SW-balance:      from ',nxa,' x',nya,' to ',mm-mmm+1,' x',nn-nnn+1
       !spatial interpolation of SW-rad balance
-       call interpolrot_scal(nxa,         &  !number of x-grid points(input)
+      call interpolrot_scal(nxa,         &  !number of x-grid points(input)
                             nya,         &  !number of y-grid points(input)
                          bnd_x1,bnd_x2,  &  !number of x-grid points(output)
                          bnd_y1,bnd_y2,  &  !number of y-grid points(output)
@@ -188,14 +183,12 @@ implicit none
                             ny_start-1,  &  !first significant point in y-direction (output)
                               ny_end+1 )    ! last significant point in y-direction (output)
    endif
-
-
+   
+   
    if(ind_change_water>0) then
-       if (rank .eq. 0) then
-           write(*,'(4(a,i4))') 'Spatial interpolation of freshwater balance: from ',nxa,' x',nya,' to ',mm-mmm+1,' x',nn-nnn+1
-       endif
+    write(*,'(4(a,i4))') 'Spatial interpolation of freshwater balance: from ',nxa,' x',nya,' to ',mm-mmm+1,' x',nn-nnn+1
       !spatial interpolation of fresh water balance
-       call interpolrot_scal(nxa,         &  !number of x-grid points(input)
+      call interpolrot_scal(nxa,         &  !number of x-grid points(input)
                             nya,         &  !number of y-grid points(input)
                          bnd_x1,bnd_x2,  &  !number of x-grid points(output)
                          bnd_y1,bnd_y2,  &  !number of y-grid points(output)
@@ -219,9 +212,7 @@ implicit none
 
   if(ind_change_slpr>0) then
      !spatial interpolation of SLP
-     if (rank .eq. 0) then
-         write(*,'(4(a,i4))') 'Spatial interpolation of slp:             from ',nxa,' x',nya,' to ',mm-mmm+1,' x',nn-nnn+1
-     endif
+    write(*,'(4(a,i4))') 'Spatial interpolation of slp:             from ',nxa,' x',nya,' to ',mm-mmm+1,' x',nn-nnn+1
      call interpolrot_scal(nxa,         &  !number of x-grid points(input)
                            nya,         &  !number of y-grid points(input)
                         bnd_x1,bnd_x2,  &  !number of x-grid points(output)
@@ -241,9 +232,7 @@ implicit none
 
 
   if(ind_change_rad>0) then
-       if (rank .eq. 0) then
-          write(*,'(4(a,i4))') 'Spatial interpolation of DW-LW-rad:       from ',nxa,' x',nya,' to ',mm-mmm+1,' x',nn-nnn+1
-       endif
+    write(*,'(4(a,i4))') 'Spatial interpolation of DW-LW-rad:       from ',nxa,' x',nya,' to ',mm-mmm+1,' x',nn-nnn+1
        !spatial interpolation of downwelling LW-radiation
        call interpolrot_scal(nxa,         &  !number of x-grid points(input)
                              nya,         &  !number of y-grid points(input)
@@ -261,9 +250,7 @@ implicit none
                              ny_start-1,  &  !first significant point in y-direction (output)
                                ny_end+1 )    ! last significant point in y-direction (output)
 
-       if (rank .eq. 0) then
-           write(*,'(4(a,i4))') 'Spatial interpolation of DW-SW-rad:       from ',nxa,' x',nya,' to ',mm-mmm+1,' x',nn-nnn+1
-       endif
+    write(*,'(4(a,i4))') 'Spatial interpolation of DW-SW-rad:       from ',nxa,' x',nya,' to ',mm-mmm+1,' x',nn-nnn+1  
        !spatial interpolation of downwelling SW-radiation
        call interpolrot_scal(nxa,         &  !number of x-grid points(input)
                              nya,         &  !number of y-grid points(input)
@@ -283,9 +270,7 @@ implicit none
   endif
 
   if(ind_change_prec>0) then
-        if (rank .eq. 0) then
-          write(*,'(4(a,i4))') 'Spatial interpolation of rain:            from ',nxa,' x',nya,' to ',mm-mmm+1,' x',nn-nnn+1
-        endif
+    write(*,'(4(a,i4))') 'Spatial interpolation of rain:            from ',nxa,' x',nya,' to ',mm-mmm+1,' x',nn-nnn+1
        !spatial interpolation of rain precipitation
         call interpolrot_scal(nxa,         &  !number of x-grid points(input)
                               nya,         &  !number of y-grid points(input)
@@ -302,11 +287,9 @@ implicit none
                                 nx_end+1,  &  ! last significant point in x-direction (output)
                               ny_start-1,  &  !first significant point in y-direction (output)
                                 ny_end+1 )    ! last significant point in y-direction (output)
-
-   if(prec_split>0) then
-       if (rank .eq. 0) then
-           write(*,'(4(a,i4))') 'Spatial interpolation of snow:            from ',nxa,' x',nya,' to ',mm-mmm+1,' x',nn-nnn+1
-       endif
+    
+   if(prec_split>0) then         
+    write(*,'(4(a,i4))') 'Spatial interpolation of snow:            from ',nxa,' x',nya,' to ',mm-mmm+1,' x',nn-nnn+1
        !spatial interpolation of snow precipitation
        call interpolrot_scal(nxa,         &  !number of x-grid points(input)
                              nya,         &  !number of y-grid points(input)
@@ -330,9 +313,7 @@ implicit none
   endif
 
   if(ind_change_tatm>0) then
-       if (rank .eq. 0) then
-           write(*,'(4(a,i4))') 'Spatial interpolation of air temperature: from ',nxa,' x',nya,' to ',mm-mmm+1,' x',nn-nnn+1
-       endif
+    write(*,'(4(a,i4))') 'Spatial interpolation of air temperature: from ',nxa,' x',nya,' to ',mm-mmm+1,' x',nn-nnn+1
        !spatial interpolation of air temperature
        call interpolrot_scal(nxa,         &  !number of x-grid points(input)
                              nya,         &  !number of y-grid points(input)
@@ -352,9 +333,7 @@ implicit none
   endif
 
   if(ind_change_qatm>0) then
-       if (rank .eq. 0) then
-          write(*,'(4(a,i4))') 'Spatial interpolation of air humidity:    from ',nxa,' x',nya,' to ',mm-mmm+1,' x',nn-nnn+1
-       endif
+    write(*,'(4(a,i4))') 'Spatial interpolation of air humidity:    from ',nxa,' x',nya,' to ',mm-mmm+1,' x',nn-nnn+1
        !spatial interpolation of air humidity
        call interpolrot_scal(nxa,         &  !number of x-grid points(input)
                              nya,         &  !number of y-grid points(input)
@@ -374,10 +353,8 @@ implicit none
   endif
 
   if(ind_change_wind>0) then
-    if (rank .eq. 0) then
-        write(*,'(4(a,i4))') 'Spatial interpolation of wind speed:      from ',nxa,' x',nya,' to ',mm-mmm+1,' x',nn-nnn+1
-    endif
-    !spatial interpolation of wind speed
+    write(*,'(4(a,i4))') 'Spatial interpolation of wind speed:      from ',nxa,' x',nya,' to ',mm-mmm+1,' x',nn-nnn+1
+    !spatial interpolation of wind speed       
     call interpolrot_vec(nxa,         &  !number of x-grid points(input)
                          nya,         &  !number of y-grid points(input)
                       bnd_x1,bnd_x2,  &  !number of x-grid points(output)
@@ -402,17 +379,17 @@ implicit none
     do m=nx_start-1, nx_end+1
      if(lu(m,n)>0.5) then
       wind(m,n)=dsqrt(uwnd(m,n)*uwnd(m,n)+vwnd(m,n)*vwnd(m,n))
-     endif
+     endif             
     enddo
   enddo
 !$omp end parallel do
 
-  endif
+  endif    
 
   if(prec_split==0.and.(ind_change_tatm>0.or.ind_change_prec>0)) then
-   if (rank .eq. 0) write(*,*) 'Getting snow data from total precipitation'
+   write(*,*) 'Getting snow data from total precipitation'
 !if rain and snow are mixed
-!$omp parallel do private(m,n)
+!$omp parallel do private(m,n)        
    do n=ny_start-1, ny_end+1
     do m=nx_start-1, nx_end+1
      if(lu(m,n)>0.5) then
@@ -427,7 +404,7 @@ implicit none
    enddo
 !$omp end parallel do
     endif
-
+   
  endif
-
+             
 endsubroutine atm_data_spatial_interpol

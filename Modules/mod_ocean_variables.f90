@@ -78,14 +78,6 @@ real(8),allocatable::  uu(:,:,:),   &  !     zonal velocity [m/s]
                       xxt(:,:,:),   &  !auxiliary array 1
                       yyt(:,:,:)       !auxiliary array 2
 
-real(8),allocatable::  q2(:,:,:),   &  !turbulent kinetic energy (m/s)^2
-                      q2p(:,:,:),   &  !turbulent kinetic energy at the previous time step (m/s)^2
-                      q2l(:,:,:),   &  !turbulent kinetic energy by turbulent length scale (m/s)^2*m
-                     q2lp(:,:,:)       !turbulent kinetic energy by turbulent length scale at the previous time step (m/s)^2*m
-
-real(8),allocatable:: RHS_q2 (:,:,:),   &  !turbulent kinetic energy (m/s)^2
-                      RHS_q2l(:,:,:)       !turbulent kinetic energy by turbulent length scale (m/s)^2*m
-
 real(8),allocatable:: uu2d(:,:),    &
                       vv2d(:,:),    &
                      uup2d(:,:),    &
@@ -147,11 +139,6 @@ real(8), allocatable:: tflux_surf(:,:),      &       !total surface heat flux [°
                           hf_tot(:,:),       &       !total heat flux
                           wf_tot(:,:)                !total water flux
 
-real(8), allocatable:: q2_surf(:,:),      &     !surface boundary condition for q2
-                        q2_bot(:,:),      &     !bottom  boundary condition for q2
-                      q2l_surf(:,:),      &     !surface boundary condition for q2l
-                       q2l_bot(:,:)             !bottom  boundary condition for q2l
-
 !Atmospheric arrays for bulk-formulae
 real(8),allocatable:: tatm(:,:),   &    !Air temperature, [°C]
                       qatm(:,:),   &    !Air humidity, [kg/kg]
@@ -185,10 +172,8 @@ real(8), allocatable:: hice(:,:,:),    &       !Ice mass, [m]
                          uice(:,:),    &       !Ice zonal velocity, [m/s]
                          vice(:,:)             !Ice meridional velocity, [m/s]
 
-real(8), allocatable:: Flux_tem_x(:,:,:), &       !Total temperature flux along x-direction
-                       Flux_tem_y(:,:,:), &       !Total temperature flux along y-direction
-                       Flux_sal_x(:,:,:), &       !Total   salinity  flux along x-direction
-                       Flux_sal_y(:,:,:)          !Total   salinity  flux along y-direction
+real(8), allocatable:: RHS_tem(:,:,:), &       !Right hand side of temperature transport-diffusion
+                       RHS_sal(:,:,:)          !Right hand side of salinity    transport-diffusion
 
 
 real(8), allocatable::   amuv2d(:,:),     &    !depth mean lateral viscosity
@@ -211,10 +196,8 @@ real(8),allocatable:: tt_calc(:,:,:),     &
                      tyo_calc(:,:),       &
                     uwnd_calc(:,:),       &
                     vwnd_calc(:,:),       &
-                  Fltx_calc(:,:,:),       &
-                  Flty_calc(:,:,:),       &
-                  Flsx_calc(:,:,:),       &
-                  Flsy_calc(:,:,:)
+                    RHSt_calc(:,:),       &
+                    RHSs_calc(:,:)
 
 integer meancalc             !calculator for time mean output
 
