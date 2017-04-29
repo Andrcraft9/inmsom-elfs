@@ -1,8 +1,8 @@
 !Parameters of the ocean model
 
 real(8), parameter:: time_smooth=0.05d0
-integer, parameter:: nx=1228,   &	 !number of total points in x-direction in base arrays !289
-                     ny=804,   &     !number of total points in y-direction in base arrays !163
+integer, parameter:: nx=600,   &	 !number of total points in x-direction in base arrays !289
+                     ny=350,   &     !number of total points in y-direction in base arrays !163
                      nz=20,    &     !number of s-levels in vertical direction for 3d arrays !20
                      mmm=3,    &     !begin of significant area in x-direction
                      nnn=3,    &     !begin of significant area in y-direction
