@@ -41,35 +41,35 @@ module mpi_parallel_tools
         real*8 :: outtime
         integer :: ierr
 
-        if (rank .eq. 0) then
-            call mpi_allreduce(time_barotrop, outtime, 1, mpi_real8,      &
-                               mpi_max, cart_comm, ierr)
-            print *, "Time barotropic: ", outtime
 
-            call mpi_allreduce(time_baroclin, outtime, 1, mpi_real8,      &
+        call mpi_allreduce(time_barotrop, outtime, 1, mpi_real8,      &
                                mpi_max, cart_comm, ierr)
-            print *, "Time baroclinic: ", outtime
+        if (rank .eq. 0) print *, "Time barotropic: ", outtime
 
-            call mpi_allreduce(time_tracer_tt, outtime, 1, mpi_real8,      &
+        call mpi_allreduce(time_baroclin, outtime, 1, mpi_real8,      &
                                mpi_max, cart_comm, ierr)
-            print *, "Time tracer for T: ", outtime
+        if (rank .eq. 0) print *, "Time baroclinic: ", outtime
 
-            call mpi_allreduce(time_tracer_ss, outtime, 1, mpi_real8,      &
+        call mpi_allreduce(time_tracer_tt, outtime, 1, mpi_real8,      &
                                mpi_max, cart_comm, ierr)
-            print *, "Time tracer for S: ", outtime
+        if (rank .eq. 0) print *, "Time tracer for T: ", outtime
 
-            call mpi_allreduce(time_model_step, outtime, 1, mpi_real8,      &
+        call mpi_allreduce(time_tracer_ss, outtime, 1, mpi_real8,      &
                                mpi_max, cart_comm, ierr)
-            print *, "Time model step: ", outtime
+        if (rank .eq. 0) print *, "Time tracer for S: ", outtime
 
-            call mpi_allreduce(time_sync, outtime, 1, mpi_real8,      &
+        call mpi_allreduce(time_model_step, outtime, 1, mpi_real8,      &
                                mpi_max, cart_comm, ierr)
-            print *, "Time sync: ", outtime
+        if (rank .eq. 0) print *, "Time model step: ", outtime
 
-            call mpi_allreduce(time_output, outtime, 1, mpi_real8,      &
+        call mpi_allreduce(time_sync, outtime, 1, mpi_real8,      &
                                mpi_max, cart_comm, ierr)
-            print *, "Time output: ", outtime
-        endif
+        if (rank .eq. 0) print *, "Time sync: ", outtime
+
+        call mpi_allreduce(time_output, outtime, 1, mpi_real8,      &
+                               mpi_max, cart_comm, ierr)
+        if (rank .eq. 0) print *, "Time output: ", outtime
+        
         return
     end subroutine
 
