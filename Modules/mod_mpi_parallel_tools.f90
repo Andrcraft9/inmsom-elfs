@@ -38,14 +38,36 @@ module mpi_parallel_tools
 
     subroutine print_times
         implicit none
+        real*8 :: outtime
+        
         if (rank .eq. 0) then
-            print *, "Time barotropic: ", time_barotrop
-            print *, "Time baroclinic: ", time_baroclin
-            print *, "Time tracer for T: ", time_tracer_tt
-            print *, "Time tracer for S: ", time_tracer_ss
-            print *, "Time model step: ", time_model_step
-            print *, "Time sync: ", time_sync
-            print *, "Time output: ", time_output
+            call mpi_allreduce(time_barotrop, outtime, 1, mpi_real8,      &
+                               mpi_max, cart_comm, ierr)
+            print *, "Time barotropic: ", outtime
+
+            call mpi_allreduce(time_baroclin, outtime, 1, mpi_real8,      &
+                               mpi_max, cart_comm, ierr)
+            print *, "Time baroclinic: ", outtime
+
+            call mpi_allreduce(time_tracer_tt, outtime, 1, mpi_real8,      &
+                               mpi_max, cart_comm, ierr)
+            print *, "Time tracer for T: ", outtime
+
+            call mpi_allreduce(time_tracer_ss, outtime, 1, mpi_real8,      &
+                               mpi_max, cart_comm, ierr)
+            print *, "Time tracer for S: ", outtime
+
+            call mpi_allreduce(time_model_step, outtime, 1, mpi_real8,      &
+                               mpi_max, cart_comm, ierr)
+            print *, "Time model step: ", outtime
+
+            call mpi_allreduce(time_sync, outtime, 1, mpi_real8,      &
+                               mpi_max, cart_comm, ierr)
+            print *, "Time sync: ", outtime
+
+            call mpi_allreduce(time_output, outtime, 1, mpi_real8,      &
+                               mpi_max, cart_comm, ierr)
+            print *, "Time output: ", outtime
         endif
         return
     end subroutine
@@ -64,13 +86,14 @@ module mpi_parallel_tools
         implicit none
 
         real*8, intent(inout) :: time
-        real*8 :: outtime
+!        real*8 :: outtime
         integer :: ierr
 
         time = mpi_wtime(ierr) - time
-        call mpi_allreduce(time, outtime, 1, mpi_real8,      &
-                           mpi_max, cart_comm, ierr)
-        time = outtime
+
+!        call mpi_allreduce(time, outtime, 1, mpi_real8,      &
+!                           mpi_max, cart_comm, ierr)
+!        time = outtime
         return
     end subroutine
 
