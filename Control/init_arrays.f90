@@ -31,7 +31,7 @@ subroutine mpi_array_boundary_definition
 
     call mpi_init(ierr)
 
-    bnd_length = 4 ! Need set bnd_length=2k, k >= 2
+    bnd_length = 10 ! Need set bnd_length=2k, k >= 2
 
     period = (/1,1/)
     p_size = (/0,0/)

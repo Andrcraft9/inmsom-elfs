@@ -41,17 +41,43 @@ module mpi_parallel_tools
 
     subroutine print_times
         implicit none
-        if (rank .eq. 0) then
-            print *, "Time barotropic: ", time_barotrop
-            print *, "Time baroclinic: ", time_baroclin
-            print *, "Time tracer for T: ", time_tracer_tt
-            print *, "Time tracer for S: ", time_tracer_ss
-            print *, "Time model step: ", time_model_step
-            print *, "Time sync: ", time_sync
-            print *, "Time extra sync: ", time_extra_sync
-            print *, "Time all sync: ", time_sync + time_extra_sync
-            print *, "Time output: ", time_output
-        endif
+        real*8 :: outtime, outtime2
+        integer :: ierr
+
+        call mpi_allreduce(time_barotrop, outtime, 1, mpi_real8,      &
+                               mpi_max, cart_comm, ierr)
+        if (rank .eq. 0) print *, "Time barotropic: ", outtime
+
+        call mpi_allreduce(time_baroclin, outtime, 1, mpi_real8,      &
+                               mpi_max, cart_comm, ierr)
+        if (rank .eq. 0) print *, "Time baroclinic: ", outtime
+
+        call mpi_allreduce(time_tracer_tt, outtime, 1, mpi_real8,      &
+                               mpi_max, cart_comm, ierr)
+        if (rank .eq. 0) print *, "Time tracer for T: ", outtime
+
+        call mpi_allreduce(time_tracer_ss, outtime, 1, mpi_real8,      &
+                               mpi_max, cart_comm, ierr)
+        if (rank .eq. 0) print *, "Time tracer for S: ", outtime
+
+        call mpi_allreduce(time_model_step, outtime, 1, mpi_real8,      &
+                               mpi_max, cart_comm, ierr)
+        if (rank .eq. 0) print *, "Time model step: ", outtime
+
+        call mpi_allreduce(time_sync, outtime, 1, mpi_real8,      &
+                               mpi_max, cart_comm, ierr)
+        if (rank .eq. 0) print *, "Time sync: ", outtime
+
+        call mpi_allreduce(time_extra_sync, outtime2, 1, mpi_real8,      &
+                               mpi_max, cart_comm, ierr)
+        if (rank .eq. 0) print *, "Time extra sync: ", outtime2
+
+        if (rank .eq. 0) print *, "Time all sync: ", outtime + outtime2
+
+        call mpi_allreduce(time_output, outtime, 1, mpi_real8,      &
+                               mpi_max, cart_comm, ierr)
+        if (rank .eq. 0) print *, "Time output: ", outtime
+
         return
     end subroutine
 
