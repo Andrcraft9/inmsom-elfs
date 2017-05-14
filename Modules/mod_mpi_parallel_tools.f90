@@ -39,7 +39,8 @@ module mpi_parallel_tools
     subroutine print_times
         implicit none
         real*8 :: outtime
-        
+        integer :: ierr
+
         if (rank .eq. 0) then
             call mpi_allreduce(time_barotrop, outtime, 1, mpi_real8,      &
                                mpi_max, cart_comm, ierr)
