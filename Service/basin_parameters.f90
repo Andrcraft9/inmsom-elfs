@@ -1,8 +1,8 @@
 !======================================================================
 subroutine vgrid
 use main_basin_pars
-use mpi_parallel_tools
 use basin_grid
+use mpi_parallel_tools
 implicit none
   ! for setting vertical t-,w- grid levels
   ! zw(1) is surface, zw(nz+1) is bottom w-levels.
@@ -31,8 +31,9 @@ real(8) bottom, devih, a, b, unidepth
             nrefl=k
        endif
     enddo
-    if (rank .eq. 0) write(*,'(a,i3,a,f8.2)')  ' number of levitus horizonts:',nrefl,' for h=',hh0
-
+    if (rank .eq. 0) then
+        write(*,'(a,i3,a,f8.2)')  ' number of levitus horizonts:',nrefl,' for h=',hh0
+    endif
     a=10.0d0*dfloat(nrefl-1)/dlev(nrefl)   ! gradient in upper ocean
     b=exp(1.0)
  ! may use b1 for more slightly levels in upper ocean
@@ -122,13 +123,13 @@ real(8) bottom, devih, a, b, unidepth
  !     bottom=hh0
        bottom=1000.0d0
 
-       if (wgr_in_tgr) then
-       if (rank .eq. 0) write(*,*)'  w-levels are arranged in the middles of t-layers.'
-       else
-       if (rank .eq. 0) write(*,*)'  t-levels are arranged in the middles of w-layers.'
-       end if
-
        if (rank .eq. 0) then
+           if (wgr_in_tgr) then
+               write(*,*)'  w-levels are arranged in the middles of t-layers.'
+           else
+               write(*,*)'  t-levels are arranged in the middles of w-layers.'
+           end if
+
            write(*,110) bottom
    110     format('  w-levels w-steps  t-levels t-steps *',f7.2)
            do k=1,nz
@@ -136,9 +137,9 @@ real(8) bottom, devih, a, b, unidepth
            enddo
    111     format(2(2x,2f8.2))
        endif
+
 endsubroutine vgrid
 !============================================================================================
-
       function unidepth(x,a,b)
         implicit none
       !  universal dimensionless function of non-uniform oceanographic horizons
@@ -147,7 +148,6 @@ endsubroutine vgrid
         real(8) unidepth, x, a, b
         unidepth=(2.0d0-a)**(x**b)+a*x-1.0d0
       endfunction unidepth
-
 !===========================================================================================
 !initializing basin grid parameters
  subroutine basinpar
@@ -188,49 +188,41 @@ endsubroutine vgrid
  endif
 
 ! parameters:
- if (rank .eq. 0) write(*,'(2x,a)')' Basin parameters from 1basinpar.inc:'
+ if (rank .eq. 0) then
+     write(*,'(2x,a)')' Basin parameters from 1basinpar.inc:'
 
- if(curve_grid==0) then        !Carthesian coordinates
-  if (rank .eq. 0) write(*,*) 'Coordinate system is carthesian'
- elseif(curve_grid==1) then
-  if (rank .eq. 0) write(*,*) 'Coordinate system is undistorted sphere'
-  if (rank .eq. 0) write(*,'(a,f10.3)') ' rotation angle on longitude is =',rotation_on_lon,    &
-                       ' rotation angle on  latitude is =',rotation_on_lat
- elseif(curve_grid==2) then
-  if (rank .eq. 0) write(*,*) 'Coordinate system is distorted sphere'
-  if (rank .eq. 0) write(*,'(a,f10.3)') ' geo longitude of new north pole is =',x_pole,    &
-                       ' geo  latitude of new north pole is =',y_pole,    &
-                       ' geo longitude of new south pole is =',p_pole,    &
-                       ' geo  latitude of new south pole is =',q_pole
- endif
+     if(curve_grid==0) then        !Carthesian coordinates
+         write(*,*) 'Coordinate system is carthesian'
+     elseif(curve_grid==1) then
+         write(*,*) 'Coordinate system is undistorted sphere'
+         write(*,'(a,f10.3)') ' rotation angle on longitude is =',rotation_on_lon,    &
+                           ' rotation angle on  latitude is =',rotation_on_lat
+     elseif(curve_grid==2) then
+         write(*,*) 'Coordinate system is distorted sphere'
+         write(*,'(a,f10.3)') ' geo longitude of new north pole is =',x_pole,    &
+                           ' geo  latitude of new north pole is =',y_pole,    &
+                           ' geo longitude of new south pole is =',p_pole,    &
+                           ' geo  latitude of new south pole is =',q_pole
+     endif
 
- if(xgr_type==0) then
- if (rank .eq. 0) then
-     write(*,*) 'X-grid is uniform'
-     write(*,'(2(a,f10.3),a)') ' initial x-coordinate (m=mmm) =',rlon,' step on x =',dxst,'[dgr] '
- endif
- else
- if (rank .eq. 0) then
-    write(*,*) 'X-grid is non-uniform'
-    write(*,'(a,f10.3)') ' minimal x-coordinate (m=mmm) =',xt(mmm),    &
-                           ' maximal x-coordinate (m=mm ) =',xt(mm)
- endif
- endif
+     if(xgr_type==0) then
+         write(*,*) 'X-grid is uniform'
+         write(*,'(2(a,f10.3),a)') ' initial x-coordinate (m=mmm) =',rlon,' step on x =',dxst,'[dgr] '
+     else
+         write(*,*) 'X-grid is non-uniform'
+         write(*,'(a,f10.3)') ' minimal x-coordinate (m=mmm) =',xt(mmm),    &
+                               ' maximal x-coordinate (m=mm ) =',xt(mm)
+     endif
 
- if(ygr_type==0) then
- if (rank .eq. 0) then
-     write(*,*) 'Y-grid is uniform'
-     write(*,'(2(a,f10.3),a)') ' initial y-coordinate (n=nnn) =',rlat,' step on y =',dyst,'[dgr] '
- endif
- else
- if (rank .eq. 0) then
-     write(*,*) 'Y-grid is non-uniform'
-     write(*,'(a,f10.3)') ' minimal y-coordinate (n=nnn) =',yt(nnn),    &
-                           ' maximal y-coordinate (n=nn ) =',yt(nn)
- endif
- endif
+     if(ygr_type==0) then
+         write(*,*) 'Y-grid is uniform'
+         write(*,'(2(a,f10.3),a)') ' initial y-coordinate (n=nnn) =',rlat,' step on y =',dyst,'[dgr] '
+     else
+         write(*,*) 'Y-grid is non-uniform'
+         write(*,'(a,f10.3)') ' minimal y-coordinate (n=nnn) =',yt(nnn),    &
+                               ' maximal y-coordinate (n=nn ) =',yt(nn)
+     endif
 
- if (rank .eq. 0) then
      write(*,'(2(a,i2))') 'Periodicity on X =', periodicity_x,', Periodicity on Y =', periodicity_y
      write(*,'(4(a,i4))') '  nx=',nx, ';  ny=',ny,';  nz=',nz
      write(*,'(4(a,i4))') ' mmm=',mmm,';  mm=',mm,'; nnn=',nnn,';  nn=',nn
@@ -307,7 +299,6 @@ endif
        rlh_s= 2.0d0*EarthAngVel
        rlh_c=-2.0d0*EarthAngVel
 
-      if (rank .eq. 0) print *, "BEFORE GRID INIT"
 !-----metric initialization--------------------------------------------------------------
       if(curve_grid==0) then   !in case of carthesian grid
 
@@ -649,7 +640,6 @@ endif
 !                    'Grid step in Y-direction at T-grid, m',    &     !title of dataset
 !                    'dy'   )     !variable name
 !
-
 !array4=sngl(geo_lon_t)
 !call wdstd(' ','geolonT.dat',1,array4,lu1,nx,ny,1,mmm,mm,nnn,nn,1,1,ierr)
 !call ctl_file_write('geolonT.dat',    &     !file name

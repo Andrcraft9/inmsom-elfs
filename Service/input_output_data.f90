@@ -415,7 +415,6 @@ subroutine rdstd8(path,fname,nfield,field,lu,nx,ny,nz,nxb,nxe,nyb,nye,nzb,nze,ie
       write(*,'(2x,a,i3,a)')'error in grid diapason of ',  ierr,' - coordinate'
       stop
 endsubroutine rdstd8
-
 !======================================================================
 subroutine wdstd8(path,fname,nfield,field,lu,nx,ny,nz, nxb,nxe,nyb,nye,nzb,nze,ierr)
 	use rec_length   !set length of unique recl
@@ -527,9 +526,135 @@ subroutine wdstd8(path,fname,nfield,field,lu,nx,ny,nz, nxb,nxe,nyb,nye,nzb,nze,i
       stop
 endsubroutine wdstd8
 
-subroutine pwdstd(path,fname,nfild,fild,lu,nx,offnxin,endnxin,ny,offnyin,endnyin,nz, &
-                  nxb,nxe,nyb,nye,nzb,nze,ierrr)
+!-------------------------------------------------------------------------------!
+!-------------------------------------------------------------------------------!
+!----------------------------- MPI subroutines ---------------------------------!
+!-------------------------------------------------------------------------------!
+!-------------------------------------------------------------------------------!
+!subroutine rdstd(path,fname,nfield,field,lu,nx,ny,nz,nxb,nxe,nyb,nye,nzb,nze,ierr)
+subroutine prdstd(path,fname,nfild,fild,lu,nx,ny,nz,nxb,nxe,nyb,nye,nzb,nze,ierr)
+      use mpi_parallel_tools
+      use rec_length
+      implicit none
 
+      character*(*) :: path, fname
+      integer :: nx, ny, nz
+      integer :: nfild,nrecf,i,j,k,ierr
+      real    :: fild(bnd_x1:bnd_x2, bnd_y1:bnd_y2, nz)
+      integer :: m,n
+      real :: lu(bnd_x1:bnd_x2, bnd_y1:bnd_y2)
+      character(4096) :: namofile
+      integer  :: nxe, nxb, nye, nyb, nzb, nze
+      integer :: hfile,fi
+      integer(kind=mpi_offset_kind) :: disp
+      integer :: tsubarr, sizes3(3),locsizes3(3),offset3(3),totsize
+      integer :: sizes2(2), locsizes2(2), offset2(2)
+
+!  definition full file name
+      call fulfname(namofile,path,fname,ierr)
+      if (ierr.ne.0) go to 100
+!  check of correctness of grid coordinates of treat array part
+      if(nxe.gt.nx.or.nxb.lt.1.or.nxb.gt.nxe) then
+          ierr=1
+          goto 103
+      end if
+      if(nye.gt.ny.or.nyb.lt.1.or.nyb.gt.nye) then
+          ierr=2
+          goto 103
+      end if
+      if(nze.gt.nz.or.nzb.lt.1.or.nzb.gt.nze) then
+          ierr=3
+          goto 103
+      end if
+      disp = (nxe-nxb+1)*(nye-nyb+1)*lmpirecl*(nfild-1)*(nze-nzb+1)
+      offset3 = (/nx_start - nxb, ny_start - nyb, 0/)
+      offset2 = (/nx_start - nxb, ny_start - nyb/)
+      locsizes3 = (/nx_end - nx_start + 1, ny_end - ny_start + 1, nze - nzb + 1/)
+      locsizes2 = (/nx_end - nx_start + 1, ny_end - ny_start + 1/)
+
+!      if( coord(1).eq.0 ) then
+!        locsizes3(1) = nx_end-nxb+1
+!        locsizes2(1) = nx_end-nxb+1
+!      else if( coord(1).eq.size(1)-1 ) then
+!        locsizes3(1) = nxe-nx_start+1
+!        locsizes2(1) = nxe-nx_start+1
+!      end if
+!      if( coord(2).eq.0 ) then
+!        locsizes3(2) = ny_end-nyb+1
+!        locsizes2(2) = ny_end-nyb+1
+!      else if( coord(2).eq.size(2)-1 ) then
+!        locsizes3(2) = nye-ny_start+1
+!        locsizes2(2) = nye-ny_start+1
+!      end if
+!      if( size(1).eq.1 ) then
+!        locsizes3(1) = nxe-nxb+1
+!        locsizes2(1) = nxe-nxb+1
+!      end if
+!      if( size(2).eq.1 ) then
+!        locsizes3(2) = nye-nyb+1
+!        locsizes2(2) = nye-nyb+1
+!      end if
+
+      sizes3 = (/nxe - nxb + 1, nye - nyb + 1, nze - nzb + 1/)
+      sizes2 = (/nxe - nxb + 1, nye - nyb + 1/)
+      totsize = locsizes3(1)*locsizes3(2)*locsizes3(3)
+      call mpi_info_create(fi,ierr)
+      call mpi_info_set(fi,"ibm_largeblock_io","true",ierr)
+      call mpi_file_open(cart_comm,namofile,mpi_mode_rdonly,fi,hfile,ierr)
+      if( ierr.ne.mpi_success ) goto 101
+
+      if(sizes3(3).eq.1 ) then
+!        print *, sizes2, locsizes2, offset2
+        call mpi_type_create_subarray(2,sizes2,locsizes2,offset2,        &
+                 mpi_order_fortran,mpi_real,tsubarr,ierr)
+      else
+!        print *, sizes3, locsizes3, offset3
+        call mpi_type_create_subarray(3,sizes3,locsizes3,offset3,        &
+                 mpi_order_fortran,mpi_real,tsubarr,ierr)
+      end if
+
+      call mpi_type_commit(tsubarr,ierr)
+      call mpi_file_set_view(hfile,disp,mpi_real,                        &
+                            tsubarr,"native",fi,ierr)
+!      print *,nxb,nxe,nyb,nye,nzb,nze,nx_start,nx_end,ny_start,ny_end
+      call mpi_file_read_all(hfile,                                      &
+        fild(nx_start:nx_end, ny_start:ny_end, nzb:nze),                 &
+        totsize,mpi_real,mpi_status_ignore,ierr)
+      if( ierr.ne.mpi_success ) goto 102
+
+      call mpi_type_free(tsubarr,ierr)
+      call mpi_info_free(fi,ierr)
+      call mpi_file_close(hfile,ierr)
+
+      return
+100   write(*,'(a,i5)') 'on rank ',rank
+      write(*,'(2x,a)')'error in full name of file for reading: '
+      write(*,'(2x,a)') namofile(1:len_trim(namofile))
+      call mpi_abort(cart_comm,5,ierr)
+      stop
+101   write(*,'(a,i5)') 'on rank ',rank
+      write(*,'(2x,a)')'error in open file for reading: '
+      write(*,'(2x,a)') namofile(1:len_trim(namofile))
+      call mpi_abort(cart_comm,5,ierr)
+      stop
+102   write(*,'(a,i5)') 'on rank ',rank
+      write(*,'(2x,a)')'error in reading from file: '
+      write(*,'(2x,a)') namofile(1:len_trim(namofile))
+      write(*,'(18h error in reading ,i3,6h level)') k
+      call mpi_abort(cart_comm,5,ierr)
+      stop
+103   write(*,'(a,i5)') 'on rank ',rank
+      write(*,'(2x,a)')'error in reading from file: '
+      write(*,'(2x,a)') namofile(1:len_trim(namofile))
+      write(*,'(2x,a,i3,a)')'error in grid diapason of ', ierr,' - coordinate'
+      call mpi_abort(cart_comm,5,ierr)
+      stop
+end subroutine prdstd
+
+
+
+!subroutine wdstd(path,fname,nfield,field,lu,nx,ny,nz,nxb,nxe,nyb,nye,nzb,nze,ierr)
+subroutine pwdstd(path,fname,nfild,fild,lu,nx,ny,nz,nxb,nxe,nyb,nye,nzb,nze,ierr)
     use rec_length   !set length of unique recl
     use mpi_parallel_tools
     implicit none
@@ -544,67 +669,59 @@ subroutine pwdstd(path,fname,nfild,fild,lu,nx,offnxin,endnxin,ny,offnyin,endnyin
 !     fild(nx,ny,nz) - field array
 !     lu(nx,ny)    - ocean mask
 !---------------------------------------------------------------------
-
-    character chunked*2048,chunked_size*2048,striping_unit*2048, &
+    character :: chunked*2048,chunked_size*2048,striping_unit*2048,    &
           buffer_size*2048,chunked_item*2048
-    character*(*) path, fname
-    integer hfile,fi
-    integer(kind=mpi_offset_kind) disp
-    integer       offnxin, endnxin, offnyin, endnyin
+    character*(*) :: path, fname
+    integer :: hfile,fi
+    integer(kind=mpi_offset_kind) :: disp
 
-    integer       nfild, nrecf, nx, ny, nz, i, j, k, ierr, ierrr
+    integer :: nfild, nrecf, nx, ny, nz, i, j, k, ierr
 
-    real          fild(bnd_x1:bnd_x2,bnd_y1:bnd_y2, nz)
-    real          lu(bnd_x1:bnd_x2,bnd_y1:bnd_y2)
+    real :: fild(bnd_x1:bnd_x2,bnd_y1:bnd_y2, nz)
+    real :: lu(bnd_x1:bnd_x2,bnd_y1:bnd_y2)
 
-    real,allocatable :: fildall(:,:), luall(:,:)
-    character*4096 namofile
-    integer      nxe, nxb, nye, nyb, nzb, nze, l, kr
-    integer tsubarr, sizes3(3),locsizes3(3),offset3(3),totsize
-    integer sizes2(2), locsizes2(2), offset2(2)
-
-!    offnxin = nx_start
-!    endnxin = nx_end
-!    offnyin = ny_start
-!    endnyin = ny_end
+    character*4096 :: namofile
+    integer  :: nxe, nxb, nye, nyb, nzb, nze
+    integer :: tsubarr, sizes3(3),locsizes3(3),offset3(3),totsize
+    integer :: sizes2(2), locsizes2(2), offset2(2)
 
 !  definition full file name
-    call fulfname(namofile,path,fname,ierrr)
+    call fulfname(namofile,path,fname,ierr)
 !      write(*,*) "writing to ", trim(namofile)
-    if (ierrr.ne.0) go to 100
+    if (ierr.ne.0) go to 100
 ! check of correctness of grid coordinates of treat array part
     if(nxe.gt.nx.or.nxb.lt.1.or.nxb.gt.nxe) then
-        ierrr=1
+        ierr=1
         goto 103
     end if
     if(nye.gt.ny.or.nyb.lt.1.or.nyb.gt.nye) then
-        ierrr=2
+        ierr=2
         goto 103
     end if
     if(nze.gt.nz.or.nzb.lt.1.or.nzb.gt.nze) then
-        ierrr=3
+        ierr=3
         goto 103
     end if
 
-    disp = (nxe-nxb+1)*(nye-nyb+1)*lrecl*(nfild-1)*(nze-nzb+1)
-    offset3 = (/offnxin - nxb, offnyin - nyb, 0/)
-    offset2 = (/offnxin - nxb, offnyin - nyb/)
-    locsizes3 = (/endnxin - offnxin + 1, endnyin - offnyin + 1, nze - nzb + 1/)
-    locsizes2 = (/endnxin - offnxin + 1, endnyin - offnyin + 1/)
+    disp = (nxe-nxb+1)*(nye-nyb+1)*lmpirecl*(nfild-1)*(nze-nzb+1)
+    offset3 = (/nx_start - nxb, ny_start - nyb, 0/)
+    offset2 = (/nx_start - nxb, ny_start - nyb/)
+    locsizes3 = (/nx_end - nx_start + 1, ny_end - ny_start + 1, nze - nzb + 1/)
+    locsizes2 = (/nx_end - nx_start + 1, ny_end - ny_start + 1/)
 
 !    if( p_coord(1).eq.0 ) then
-!        locsizes3(1) = endnxin - nxb + 1
-!        locsizes2(1) = endnxin - nxb + 1
+!        locsizes3(1) = nx_end - nxb + 1
+!        locsizes2(1) = nx_end - nxb + 1
 !    else if( p_coord(1).eq.p_size(1)-1 ) then
-!        locsizes3(1) = nxe - offnxin + 1
-!        locsizes2(1) = nxe - offnxin + 1
+!        locsizes3(1) = nxe - nx_start + 1
+!        locsizes2(1) = nxe - nx_start + 1
 !    endif
 !    if( p_coord(2).eq.0 ) then
-!        locsizes3(2) = endnyin - nyb + 1
-!        locsizes2(2) = endnyin - nyb + 1
+!        locsizes3(2) = ny_end - nyb + 1
+!        locsizes2(2) = ny_end - nyb + 1
 !    else if( p_coord(2).eq.p_size(2)-1 ) then
-!        locsizes3(2) = nye - offnyin + 1
-!        locsizes2(2) = nye - offnyin + 1
+!        locsizes3(2) = nye - ny_start + 1
+!        locsizes2(2) = nye - ny_start + 1
 !    endif
 !    if( p_size(1).eq.1 ) then
 !        locsizes3(1) = nxe - nxb + 1
@@ -625,18 +742,18 @@ subroutine pwdstd(path,fname,nfild,fild,lu,nx,offnxin,endnxin,ny,offnyin,endnyin
     call mpi_info_set(fi,"collective_buffering","true",ierr)
     write(chunked,1000) ny,nx,nz
     call mpi_info_set(fi,"chunked",chunked,ierr)
-    write(chunked_item,1001) lrecl
+    write(chunked_item,1001) lmpirecl
     call mpi_info_set(fi,"chunked_item",chunked_item,ierr)
-    write(chunked_size,1000) endnyin-offnyin+1, endnxin-offnxin+1,nze-nzb+1
+    write(chunked_size,1000) ny_end-ny_start+1, nx_end-nx_start+1,nze-nzb+1
     call mpi_info_set(fi,"chunked_size",chunked_size,ierr)
-    write(striping_unit,1002) (nx*ny*nz)*lrecl
+    write(striping_unit,1002) (nx*ny*nz)*lmpirecl
     call mpi_info_set(fi,"striping_unit",striping_unit,ierr)
 !      call mpi_info_set(fi,"striping_factor",
 !     &                    "16",ierr)
 !      call mpi_info_set(fi,"cb_nodes",
 !     &                     "4",ierr)
     call mpi_info_set(fi,"cb_buffer_size",striping_unit,ierr)
-    write(buffer_size,1002) (endnxin-offnxin+1)*(endnyin-offnyin+1)*(nzb-nze+1)*lrecl
+    write(buffer_size,1002) (nx_end-nx_start+1)*(ny_end-ny_start+1)*(nzb-nze+1)*lmpirecl
     call mpi_info_set(fi,"ind_wr_buffer_size",buffer_size,ierr)
     call mpi_info_set(fi,"cb_block_size",buffer_size,ierr)
     call mpi_file_open(cart_comm,namofile,ior(mpi_mode_wronly,mpi_mode_create),fi,hfile,ierr)
@@ -650,55 +767,32 @@ subroutine pwdstd(path,fname,nfild,fild,lu,nx,offnxin,endnxin,ny,offnyin,endnyin
         call mpi_type_create_subarray(3, sizes3, locsizes3, offset3,               &
             mpi_order_fortran, mpi_real, tsubarr, ierr)
     end if
-    print *, rank, locsizes2, offset2, sizes2
+
+!    print *, rank, locsizes2, offset2, sizes2
 
     call mpi_type_commit(tsubarr, ierr)
     call mpi_file_set_view(hfile, disp, mpi_real, tsubarr, "native", fi, ierr)
 
 !$omp parallel do private(i,j,k)
-!    do j = offnyin, endnyin
-!        do i = offnxin, endnxin
-!            if( abs(lu(i,j)).lt.0.5 ) then
+    do j = ny_start, ny_end
+        do i = nx_start, nx_end
+            if( abs(lu(i,j)) .lt. 0.5 ) then
 !                print *, rank, "UNDEF", i, j
-!                fild(i, j, nzb:nze) = undef
-!            end if
-!        end do
-!    end do
-!$omp end parallel do
-
-    call mpi_file_write_all(hfile, fild(offnxin:endnxin, offnyin:endnyin, nzb:nze),  &
-                            totsize, mpi_real, mpi_status_ignore, ierr)
-    if( ierr.ne.mpi_success ) goto 102
-
-    call mpi_type_free(tsubarr,ierr)
-    call mpi_info_free(fi,ierr)
-    call mpi_file_close(hfile,ierr)
-    l = 0
-    ierrr = 0
-    do i = offnxin, endnxin
-        do j = offnyin, endnyin
-            if ( abs(lu(i,j)).lt.0.5 ) then
-                l = l + nze-nzb+1
-                ierrr = ierrr + nze-nzb+1
-                fild(i,j,nzb:nze) = 0
+                fild(i, j, nzb:nze) = undef
             end if
         end do
     end do
-    l=(endnxin - offnxin + 1)*(endnyin - offnyin + 1)-l/(nze-nzb+1)
-    if(rank.eq.0) write(*,'(1x,a,a)') 'output data to ',namofile(1:len_trim (namofile))
-      write(*,'(8x,a,i7,a,i7,a,i8,a,i3)')
-!     &         'dimension of field =',nxe-nxb+1,' *',nye-nyb+1,
-!     &        ' (',l,'-ocean points) on rank ', rank
+!$omp end parallel do
+
+    call mpi_file_write_all(hfile, fild(nx_start:nx_end, ny_start:ny_end, nzb:nze),  &
+                            totsize, mpi_real, mpi_status_ignore, ierr)
+    if( ierr.ne.mpi_success ) goto 102
+    call mpi_type_free(tsubarr,ierr)
+    call mpi_info_free(fi,ierr)
+    call mpi_file_close(hfile,ierr)
+
     close(40)
-!      write(*,'(2x,a)')'close direct file:'
-!      write(*,'(2x,a)') namofile
-    ierrr=(endnxin - offnxin + 1)*(endnyin - offnyin + 1) - ierrr/(nze-nzb+1)-l
-    if (ierr.ne.0) then
-!            write(*,'(2x,a)')  namofile
-!            write(*,'(i7,a,a,i3)') ierrr,
-!     &      'errors in number of local ocean horizontal grid points.',
-!     &      ' on rank ', rank
-    end if
+
     return
 
 100   write(*,'(2x,a)')'error in full name of file for writing: '
@@ -716,7 +810,7 @@ subroutine pwdstd(path,fname,nfild,fild,lu,nx,offnxin,endnxin,ny,offnyin,endnyin
       stop
 103   write(*,'(2x,a)')'error in writing to file: '
       write(*,'(2x,a)') namofile(1:len_trim(namofile))
-      write(*,'(2x,a,i3,a)')'error in grid diapason of ', ierrr,' - coordinate'
+      write(*,'(2x,a,i3,a)')'error in grid diapason of ', ierr,' - coordinate'
       call mpi_abort(cart_comm,-1,ierr)
       stop
 1000  format(i6,',',i6,',',i6)

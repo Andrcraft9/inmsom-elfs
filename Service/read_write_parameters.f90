@@ -27,7 +27,6 @@ open (90,file=filename,status='old',err=190)
      end do
      write(*,*)
  endif
- 
  return
 
 190   write(*,*) ' error in open file: ',  &

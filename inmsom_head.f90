@@ -1,12 +1,12 @@
 program INMSOM
 use time_integration
 use key_switches
-
 use mpi_parallel_tools
 implicit none
 
 character(128) fname
-integer m,ierr
+integer m, ierr
+real*8 t_global, t_local
 
 !call non_mpi_array_boundary_definition
 call mpi_array_boundary_definition
@@ -39,7 +39,11 @@ blank=' '
 filepar='ocean_run.par'
 
 !reading parameters from file
-call readpar(filepar,comments,nofcom)
+if (rank .eq. 0) then
+    call readpar(filepar,comments,nofcom)
+endif
+call mpi_bcast(comments, 256*256, mpi_character, 0, cart_comm, ierr)
+
 read(comments( 1),*) start_type          !Type of starting run (0 - from TS only, 1 - frim the full checkpoint)
 read(comments( 2),*) time_step           !Model time step (in seconds)
 read(comments( 3),*) run_duration        !Duration of the run in days
@@ -135,51 +139,15 @@ endif
 !Allocating main arrays
 call model_grid_allocate
 call ocean_variables_allocate
-call pass_tracer_allocate
-call oceanbc_arrays_allocate
-
-!Allocating atmospheric arrays
-call atm_arrays_allocate
-call atm2oc_allocate
-
-if (rank .eq. 0) print *, "ALLOCATE OK"
-
-!--------------------- CREATE HH TOPO ------------------------------------------!
-!call create_hh(path2ocp,      &
-!                   year_loc,  &
-!                    mon_loc,  &
-!                    day_loc,  &
-!                   hour_loc,  &
-!                    min_loc,  &
-!             loc_data_tstep,  &
-!                    yr_type)
-!
-!call atm2oc_deallocate
-!call atm_arrays_deallocate
-!call oceanbc_arrays_deallocate
-!call pass_tracer_deallocate
-!call ocean_variables_deallocate
-!call model_grid_deallocate
-!
-!stop
-!-------------------------------------------------------------------------------!
-
 
 !Initializing ocean model parameters
 call ocean_model_parameters(time_step)
-if (rank .eq. 0) print *, "OCEAN INIT OK"
+if (rank .eq. 0) print *, "--------------------END OF OCEAN MODEL PARAMETERS----------------------"
 
-!--------------------- SW ONLY INIT --------------------------------------------!
+!Initializing SW init conditions
 
-call sw_only_inicond
-if (rank .eq. 0) print *, "SW INIT OK"
-
-!call print_basin_grid
-!call mpi_finalize(ierr)
-!stop
-
-!call test_init
-!if (rank .eq. 0) print *, "TEST INIT OK"
+!call sw_only_inicond(1, path2ocp)
+call sw_test2
 !call  parallel_local_output(path2ocp,  &
 !                          1,  &
 !                   year_loc,  &
@@ -189,33 +157,14 @@ if (rank .eq. 0) print *, "SW INIT OK"
 !                    min_loc,  &
 !             loc_data_tstep,  &
 !                    yr_type  )
-!
-!if (rank .eq. 0) print *, "OUTPUT OK"
 !call mpi_finalize(ierr)
 !stop
-!-------------------------------------------------------------------------------!
-
-!Initializing open boundary parameters
-!if (ksw_lbc_ts>0) then
-! call lqpcoordinates(path2ocssdata)
-!endif
-
-!Reading initial conditions
-!call ocinicond(start_type,path2ocp)
-!call icinicond(start_type,path2ocp,nstep_icedyn)
-
-!if(ksw_pt>0) then
-! call ptinicond(path2ocp)
-!endif
-
-!constructing matrix for spatial interpolation
-!call build_intrp_mtrx(path2atmssdata,atmask)
 
 !-----------------------------------------------------------------------
 if (rank .eq. 0) then
     write(*,'(2x,5hstep:,f7.2,4hhrs;,f9.2,4hsec;,f9.5,4hday.)')     &
              time_step_h,   time_step,    time_step_d
-     write(*,'(2x,15hduration of run:,f9.2,6h days.)') run_duration
+    write(*,'(2x,15hduration of run:,f9.2,6h days.)') run_duration
 endif
 
 key_time_print=1
@@ -248,17 +197,15 @@ if (rank .eq. 0) then
     write(*,*)'=================================================================='
 endif
 
+call init_times
+call start_timer(t_global)
 do while(num_step<num_step_max)
-! atmospheric data time interpolation on atmospheric grid
-!  call atm_data_time_interpol
-! atmospheric data spatial interpolation from atm to ocean grid
-!  call atm_data_spatial_interpol
-! oceanic data time interpolation
-!  call oc_data_time_interpol
 
+  call start_timer(t_local)
 !computing one step of ocean dynamics
-!  call ocean_model_step(time_step,nstep_barotrop)
   call shallow_water_model_step(time_step, nstep_barotrop)
+  call end_timer(t_local)
+  time_model_step = time_model_step + t_local
 
 !-----------------------------------------------------------
 !moving to the next time step
@@ -293,6 +240,7 @@ if( key_write_local>0) then
 
   nrec_loc=num_step/loc_data_wr_period_step
 
+  call start_timer(t_local)
   call  parallel_local_output(path2ocp,  &
                      nrec_loc,  &
                      year_loc,  &
@@ -302,6 +250,9 @@ if( key_write_local>0) then
                       min_loc,  &
                loc_data_tstep,  &
                       yr_type  )
+  call end_timer(t_local)
+  time_output = time_output + t_local
+
   call model_time_print(num_step,         &
                         m_sec_of_min,     &    !second counter in minute,output
                         m_min_of_hour,    &    !minute counter in hour  ,output
@@ -318,13 +269,15 @@ endif
 
 enddo
 !End of time cycle
+call end_timer(t_global)
+if (rank .eq. 0) print *, "Global time: ", t_global
+if (rank .eq. 0) print *, "Steps: ", num_step
+call print_times
 
 !deallocating the arrays
-call atm2oc_deallocate
-call atm_arrays_deallocate
-call oceanbc_arrays_deallocate
-call pass_tracer_deallocate
 call ocean_variables_deallocate
 call model_grid_deallocate
+
+call mpi_finalize(ierr)
 
 endprogram INMSOM

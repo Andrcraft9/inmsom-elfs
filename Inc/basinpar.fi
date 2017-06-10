@@ -1,9 +1,9 @@
 !Parameters of the ocean model
 
 real(8), parameter:: time_smooth=0.05d0
-integer, parameter:: nx=148,   &	 !number of total points in x-direction in base arrays
-                     ny=94,   &     !number of total points in y-direction in base arrays
-                     nz=1,    &     !number of s-levels in vertical direction for 3d arrays
+integer, parameter:: nx=148,   &	 !number of total points in x-direction in base arrays !289
+                     ny=94,   &     !number of total points in y-direction in base arrays !163
+                     nz=1,     &     !number of s-levels in vertical direction for 3d arrays !20
                      mmm=3,    &     !begin of significant area in x-direction
                      nnn=3,    &     !begin of significant area in y-direction
                    mm=nx-2,    &     !end of significant area in x-direction
@@ -11,10 +11,10 @@ integer, parameter:: nx=148,   &	 !number of total points in x-direction in base
           nx_glob=mm-mmm+1,    &     !Size of significant area in x-direction
           ny_glob=nn-nnn+1,    &     !Size of significant area in y-direction
            periodicity_x=1,    &     !Periodicity on x-direction (0 - non-periodic, 1 - periodic)
-           periodicity_y=0           !Periodicity on y-direction (0 - non-periodic, 1 - periodic)
+           periodicity_y=0           !Periodicity on y-direction (0 - non-periodic, 1 - periodic). (No parallel yet !!!)
 
- real(8), parameter:: rlon = -178.75d0,   &     !first calcutable t-point (m=mmm) on latitude  (in degrees) !-178.75d0
-                      rlat = -89.00d0,   &     !first calcutable t-point (n=nnn) on longitude (in degrees) !-89.00d0
+ real(8), parameter:: rlon = -178.75d0,   &     !first calcutable t-point (m=mmm) on latitude  (in degrees)
+                      rlat = -89.00d0,   &     !first calcutable t-point (n=nnn) on longitude (in degrees)
                       dxst = 2.5d0,     &     !longitude step (in degrees) in case of regular grid
                       dyst = 2.0d0            !latitude  step (in degrees) in case of regular grid
 
@@ -67,7 +67,7 @@ real(8), parameter::    Cb_l    = 5d-4,        &
 !                       Cb_nl   = 1.0d-3,      &   !FRAM
                         Ebottom = 25.0d-4
 
-real(8), parameter:: r_fric=0.0D-06     !Basic Rayleigh dissipation parameter (1/s) for bottom gradiend equal to 1
+real(8), parameter:: r_fric=1.0d-4     !Basic Rayleigh dissipation parameter (1/s) for bottom gradiend equal to 1
 
 real(8), parameter:: Pi = 3.141592653589793d0,   & !Pi-constant
                RadEarth = 6371000.0d0,           & !Earth radius[m]
@@ -84,4 +84,19 @@ real(8), parameter:: StephBoltz = 5.67036713d-8  ! stephan-boltzman (W/m**2/K^4)
 
 real(8), parameter:: EmissWater=1.0d0            !water emissitivity
 
-real(8), parameter :: lambda_f= 3.337d5    !J/kg   Heat of snow fusion
+real(8), parameter:: lambda_f= 3.337d5    !J/kg   Heat of snow fusion
+
+real(8), parameter:: vonkarman=0.4d0
+
+!turbulent model parameters
+
+real(8), parameter ::   A1_t=0.92d0,   &
+                        A2_t=0.74d0,   &
+                        B1_t=16.6d0,   &
+                        B2_t=10.1d0,   &
+                        C1_t=0.08d0,   &
+                        E1_t=1.80d0,   &
+                        E2_t=1.33d0
+
+real(8), parameter:: tur_factor_nu=0.41d0,      &
+                       tur_var_min=1.0d-8

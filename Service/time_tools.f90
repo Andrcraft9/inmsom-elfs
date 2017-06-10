@@ -19,7 +19,6 @@ subroutine model_time_def(   num_step,            &     !step counter,          
                              m_time_changed,      &    !change indicator of time,output
                              key_time_print,      &    !key of printing time:0-not,1-print
                              init_year)                !initial real-time year
-
 use mpi_parallel_tools
 implicit none
 !+++++++++++++++++time control parameters+++++++++++++++++++++++++++++++
@@ -155,17 +154,17 @@ integer(8) ihelp8, khelp8
       if(key_time_print.ne.0) then
           if (rank .eq. 0) then
               write(*,'(a,i8,4(a,i2.2), a,i4.4, a,i3.3, a,i4.4,a,i5)')  &
-              '   time step: ', num_step ,                      &
-              '   model time: ',                           &
-                            m_hour_of_day,':',            &
-                            m_min_of_hour,':',            &
-                            m_sec_of_min, '  ',           &
-                            m_day_of_month,               &
-                            month_name(m_month_of_year),m_year,        &
-             ';  day in year:',m_day_of_year,         &
-             ',  day in 4yrs:',m_day_of_4yr,          &
-             '   month of all:', m_month
-         endif
+                      '   time step: ', num_step ,                      &
+                           '   model time: ',                           &
+                                          m_hour_of_day,':',            &
+                                          m_min_of_hour,':',            &
+                                          m_sec_of_min, '  ',           &
+                                          m_day_of_month,               &
+                             month_name(m_month_of_year),m_year,        &
+                               ';  day in year:',m_day_of_year,         &
+                               ',  day in 4yrs:',m_day_of_4yr,          &
+                               '   month of all:', m_month
+           endif
       end if
 end subroutine model_time_def
 !======================================================================
@@ -198,18 +197,17 @@ character  month_name(12)*3
 data month_name/'Jan','Feb','Mar','Apr','May','Jun','Jul','Aug',     &
                 'Sep','Oct','Nov','Dec'/
 
-    if (rank .eq. 0) then
-      write(*,'(a,i8,4(a,i2.2), a,i4.4, a,i3.3, a,i4.4,a,i5)')  &
-         '   time step: ', num_step ,                      &
-         '   model time: ',                           &
-                        m_hour_of_day,':',            &
-                        m_min_of_hour,':',            &
-                        m_sec_of_min, '  ',           &
-                        m_day_of_month,               &
-             month_name(m_month_of_year),m_year,        &
-             ';  day in year:',m_day_of_year,         &
-             ',  day in 4yrs:',m_day_of_4yr,          &
-             '   month of all:', m_month
-    endif
-    
+      if (rank .eq. 0) then
+          write(*,'(a,i8,4(a,i2.2), a,i4.4, a,i3.3, a,i4.4,a,i5)')  &
+             '   time step: ', num_step ,                      &
+             '   model time: ',                           &
+                            m_hour_of_day,':',            &
+                            m_min_of_hour,':',            &
+                            m_sec_of_min, '  ',           &
+                            m_day_of_month,               &
+                 month_name(m_month_of_year),m_year,        &
+                 ';  day in year:',m_day_of_year,         &
+                 ',  day in 4yrs:',m_day_of_4yr,          &
+                 '   month of all:', m_month
+      endif
 endsubroutine model_time_print
