@@ -440,7 +440,7 @@ allocate(  u(bnd_x1:bnd_x2,bnd_y1:bnd_y2),   &
  time_local_diff = 0
  time_local_uv = 0
 
-do step=1,2*nstep
+do step=1, nstep
 
 !computing ssh
  call start_timer(time_count)
