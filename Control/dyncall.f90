@@ -74,6 +74,7 @@ subroutine shallow_water_model_step(tau,nstep)
                   write(*,*) rank, 'ERROR!!! In the point m=', m, 'n=', n, 'ssh_i=', ssh_i(m,n),   &
                     'step: ', num_step, 'lon: ', geo_lon_t(m, n), 'lat: ', geo_lat_t(m, n)
 
+                  if (rank .eq. 0) write(*,*) 'Print error: '
                   num_step=num_step+1
                   key_time_print=0
                   call model_time_def(   num_step,           &     !step counter,            input
@@ -112,5 +113,5 @@ subroutine shallow_water_model_step(tau,nstep)
           endif
       enddo
    enddo
-   
+
 endsubroutine shallow_water_model_step
