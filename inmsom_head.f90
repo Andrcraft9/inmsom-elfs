@@ -146,8 +146,9 @@ if (rank .eq. 0) print *, "--------------------END OF OCEAN MODEL PARAMETERS----
 
 !Initializing SW init conditions
 
-!call sw_only_inicond(1, path2ocp)
-call sw_test2
+call sw_only_inicond(1, path2ocp)
+!call sw_test2
+
 !call  parallel_local_output(path2ocp,  &
 !                          1,  &
 !                   year_loc,  &

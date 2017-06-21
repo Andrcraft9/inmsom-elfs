@@ -10,7 +10,8 @@ subroutine shallow_water_model_step(tau,nstep)
    use time_integration
 
    implicit none
-   integer m, n, k, nstep, mark, ierr
+   integer :: m, n, k, nstep, mark, ierr
+   integer*8 :: curstep
    real(8) density, tau
    real*8 :: time_count
 
@@ -111,8 +112,8 @@ subroutine shallow_water_model_step(tau,nstep)
               if(ssh_i(m,n)<10000.0d0.and.ssh_i(m,n)>-10000.0d0) then
                   continue
               else
-                  write(*,*) rank, 'in the point m=',m,'n=',n,'ssh_i=',ssh_i(m,n)
-                  write(*,*) rank, 'Time: ', time_step
+                  write(*,*) rank, 'in the point m=', m, 'n=', n, 'ssh_i=', ssh_i(m,n),   &
+                    'step: ', num_step, 'lon: ', geo_lon_t(m, n), 'lat: ' geo_lat_t(m, n)
                   stop
                   call mpi_finalize(ierr)
               endif

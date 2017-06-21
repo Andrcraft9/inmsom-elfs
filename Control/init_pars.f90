@@ -144,10 +144,10 @@ real(8) tau
    call basinpar
    if (rank .eq. 0) print *, "--------------------END OF BASINPAR----------------------"
 
-   !array4=0.0
-   !call prdstd(' ',bottom_topography_file,1,array4,lu,nx,ny,1, mmm,mm,nnn,nn,1,1,ierr)
-   !hhq_rest=dble(array4)
-   hhq_rest = 3000.0d0
+!   hhq_rest = 3000.0d0
+   array4=0.0
+   call prdstd(' ',bottom_topography_file,1,array4,lu,nx,ny,1, mmm,mm,nnn,nn,1,1,ierr)
+   hhq_rest=dble(array4)
    call syncborder_real8(hhq_rest, 1)
 
    if(periodicity_x/=0) then

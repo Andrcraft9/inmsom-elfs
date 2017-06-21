@@ -1,8 +1,8 @@
 !Parameters of the ocean model
 
 real(8), parameter:: time_smooth=0.05d0
-integer, parameter:: nx=148,   &	 !number of total points in x-direction in base arrays !289
-                     ny=94,   &     !number of total points in y-direction in base arrays !163
+integer, parameter:: nx=10804,   &	 !number of total points in x-direction in base arrays !289
+                     ny=5404,   &     !number of total points in y-direction in base arrays !163
                      nz=1,     &     !number of s-levels in vertical direction for 3d arrays !20
                      mmm=3,    &     !begin of significant area in x-direction
                      nnn=3,    &     !begin of significant area in y-direction
@@ -13,10 +13,10 @@ integer, parameter:: nx=148,   &	 !number of total points in x-direction in base
            periodicity_x=1,    &     !Periodicity on x-direction (0 - non-periodic, 1 - periodic)
            periodicity_y=0           !Periodicity on y-direction (0 - non-periodic, 1 - periodic). (No parallel yet !!!)
 
- real(8), parameter:: rlon = -178.75d0,   &     !first calcutable t-point (m=mmm) on latitude  (in degrees)
-                      rlat = -89.00d0,   &     !first calcutable t-point (n=nnn) on longitude (in degrees)
-                      dxst = 2.5d0,     &     !longitude step (in degrees) in case of regular grid
-                      dyst = 2.0d0            !latitude  step (in degrees) in case of regular grid
+ real(8), parameter:: rlon =   0.01666666d0,   &     !first calcutable t-point (m=mmm) on latitude  (in degrees)
+                      rlat = -89.98333333d0,   &     !first calcutable t-point (n=nnn) on longitude (in degrees)
+                      dxst =   0.03333333d0,     &     !longitude step (in degrees) in case of regular grid
+                      dyst =   0.03333333d0            !latitude  step (in degrees) in case of regular grid
 
  integer, parameter:: xgr_type=0,   &
                       ygr_type=0          !grid types: 0 - regular, 1 - levels
