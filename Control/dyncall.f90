@@ -15,52 +15,11 @@ subroutine shallow_water_model_step(tau,nstep)
    real(8) density, tau
    real*8 :: time_count
 
-!----------------------- Set constant RHS --------------------------------!
-!   do n=ny_start,ny_end
-!    do m=nx_start,nx_end
-!        if(lcu(m,n)>0.5) then
-!          RHSx2d(m, n) = -(10.0d0)*hhu(m,n)*dyh(m,n)/RefDen
-!        else
-!          RHSx2d(m, n) = 0.0d0
-!        endif
-!
-!        if(lcv(m,n)>0.5) then
-!          RHSy2d(m, n) = -(10.0d0)*hhv(m,n)*dxh(m,n)/RefDen
-!        else
-!          RHSy2d(m, n) = 0.0d0
-!        endif
-!    enddo
-!   enddo
-!   call syncborder_real8(RHSx2d, 1)
-!   call syncborder_real8(RHSy2d, 1)
-
 !------------------------ Init variables: --------------------------------------!
    wf_tot  = 0.0d0
-   r_diss  = 0.0d0
-!   amuv2d  = 0.0d0
-!   amuv42d = 0.0d0
    amuv2d  = lvisc_2
    amuv42d = lvisc_4
 
-   stress_t2d = 0.0d0
-   stress_s2d = 0.0d0
-   xxt = 0.0d0
-   yyt = 0.0d0
-   RHSy2d_diff_disp = 0.0d0
-   RHSx2d_diff_disp = 0.0d0
-
-   r_vort2d = 0.0d0
-   RHSx2d_tran_disp = 0.0d0
-   RHSy2d_tran_disp = 0.0d0
-
-!    do n=ny_start,ny_end
-!        do m=nx_start,nx_end
-!            print *, "m, n," , m, n, "rls", rlh_s(m,n)
-!        enddo
-!    enddo
-!    stop
-
-!    if (rank.eq.0) print *, "Begin swallow water"
 !---------------------- Shallow water equ solver -------------------------------!
    call start_timer(time_count)
    call barotropic_dynamics(tau,     &
@@ -153,6 +112,5 @@ subroutine shallow_water_model_step(tau,nstep)
           endif
       enddo
    enddo
-
-
+   
 endsubroutine shallow_water_model_step

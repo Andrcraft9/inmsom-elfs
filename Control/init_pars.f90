@@ -11,6 +11,7 @@ character(256)    t_mask_file,       &  !name of file with temperature point sea
 real(4) array4(bnd_x1:bnd_x2,bnd_y1:bnd_y2)
 integer  m, n, k, ierr
 real(8) tau
+real(8) :: hx2, hy2
 
 ! define parameters of task
 ! description of parameters see in file with mame filepar
@@ -156,6 +157,32 @@ real(8) tau
 
    if(periodicity_y/=0) then
        call cyclize8_y(hhq_rest,nx,ny,1,nnn,nn)
+   end if
+
+!--------------Rayleigh friction initialization
+!$omp parallel do private(m,n,k, hx2, hy2)
+   do n=ny_start,ny_end
+       do m=nx_start,nx_end
+           if(lu(m,n)>0.5) then
+               hx2= ( ((hhq_rest(m+1,n)-hhq_rest(m  ,n))/dxt(m  ,n))**2 * dble(lcu(m  ,n))    &
+                    +((hhq_rest(m  ,n)-hhq_rest(m-1,n))/dxt(m-1,n))**2 * dble(lcu(m-1,n)) )/dble(lcu(m,n)+lcu(m-1,n))
+               hy2= ( ((hhq_rest(m,n+1)-hhq_rest(m,n  ))/dyt(m,n  ))**2 * dble(lcv(m,n  ))    &
+                    +((hhq_rest(m,n  )-hhq_rest(m,n-1))/dyt(m,n-1))**2 * dble(lcv(m,n-1)) )/dble(lcv(m,n)+lcv(m,n-1))
+
+               r_diss(m,n)=r_fric*dsqrt(hx2+hy2)
+           endif
+       enddo
+   enddo
+!$omp end parallel do
+
+   call syncborder_real8(r_diss, 1)
+
+   if(periodicity_x/=0) then
+       call cyclize8_x( r_diss, nx,ny,1,mmm,mm)
+   end if
+
+   if(periodicity_y/=0) then
+       call cyclize8_y( r_diss, nx,ny,1,nnn,nn)
    end if
 
 endsubroutine ocean_model_parameters
