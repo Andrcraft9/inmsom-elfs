@@ -113,7 +113,7 @@ subroutine shallow_water_model_step(tau,nstep)
                   continue
               else
                   write(*,*) rank, 'in the point m=', m, 'n=', n, 'ssh_i=', ssh_i(m,n),   &
-                    'step: ', num_step, 'lon: ', geo_lon_t(m, n), 'lat: ' geo_lat_t(m, n)
+                    'step: ', num_step, 'lon: ', geo_lon_t(m, n), 'lat: ', geo_lat_t(m, n)
                   stop
                   call mpi_finalize(ierr)
               endif
