@@ -17,20 +17,30 @@ subroutine uv_bfc(u, v, hq, hu, hv, hh, RHSx, RHSy)
             hh(bnd_x1:bnd_x2,bnd_y1:bnd_y2)
 
     integer :: m, n
-    real*8 :: k_bfc
+    real*8 :: k_bfc, s
 
     !$omp parallel do private(m,n)
      do n=ny_start, ny_end
          do m=nx_start, nx_end
 
-             ! Simple dicretizaton
+             k_bfc = FreeFallAcc /( (hh(m, n)**(1.0/6.0) / 0.029)**2 )
+             s = 0.5d0 * sqrt( (u(m, n) + u(m, n+1))**2 + (v(m, n) + v(m+1, n))**2 )
+
              if (lcu(m,n)>0.5) then
-                 k_bfc = FreeFallAcc /( (hu(m, n)**(1.0/6.0) / 0.029)**2 )
-                 RHSx(m, n) = -dxt(m,n)*dyh(m,n) * (k_bfc*u(m, n)*dsqrt(u(m, n)**2 + v(m, n)**2) / hu(m, n))
+                 ! Simple dicretizaton
+                 !k_bfc = FreeFallAcc /( (hu(m, n)**(1.0/6.0) / 0.029)**2 )
+                 !RHSx(m, n) = -dxt(m,n)*dyh(m,n) * (k_bfc*u(m, n)*dsqrt(u(m, n)**2 + v(m, n)**2) / hu(m, n))
+
+                 ! Discretization in h-points
+                 RHSx(m, n) = -dxb(m, n) * dyb(m, n) * 0.5d0*(u(m, n) + u(m, n+1)) * k_bfc * s / hh(m, n)
              endif
              if (lcv(m,n)>0.5) then
-                 k_bfc = FreeFallAcc /( (hv(m, n)**(1.0/6.0) / 0.029)**2 )
-                 RHSy(m, n) = -dxt(m,n)*dyh(m,n) * (k_bfc*v(m, n)*dsqrt(u(m, n)**2 + v(m, n)**2) / hv(m, n))
+                 ! Simple dicretizaton
+                 !k_bfc = FreeFallAcc /( (hv(m, n)**(1.0/6.0) / 0.029)**2 )
+                 !RHSy(m, n) = -dxt(m,n)*dyh(m,n) * (k_bfc*v(m, n)*dsqrt(u(m, n)**2 + v(m, n)**2) / hv(m, n))
+
+                 ! Discretization in h-points
+                 RHSy(m, n) = -dxb(m, n) * dyb(m, n) * 0.5d0*(v(m, n) + v(m+1, n)) * k_bfc * s / hh(m, n)
              endif
 
          enddo
@@ -555,7 +565,7 @@ do step=1, nstep
  endif
 
 ! compute BottomFriction (bfc)
- call uv_bfc(u, v, hhq_e, hhu_e, hhv_e, hhh_e, RHSx_bfc, RHSy_bfc)
+ call uv_bfc(up, vp, hhq_e, hhu_e, hhv_e, hhh_e, RHSx_bfc, RHSy_bfc)
 
  call start_timer(time_count)
 !$omp parallel do private(bp,bp0,grx,gry, slx, sly, slxn, slyn)

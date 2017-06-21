@@ -112,8 +112,41 @@ subroutine shallow_water_model_step(tau,nstep)
               if(ssh_i(m,n)<10000.0d0.and.ssh_i(m,n)>-10000.0d0) then
                   continue
               else
-                  write(*,*) rank, 'in the point m=', m, 'n=', n, 'ssh_i=', ssh_i(m,n),   &
+                  write(*,*) rank, 'ERROR!!! In the point m=', m, 'n=', n, 'ssh_i=', ssh_i(m,n),   &
                     'step: ', num_step, 'lon: ', geo_lon_t(m, n), 'lat: ', geo_lat_t(m, n)
+
+                  num_step=num_step+1
+                  key_time_print=0
+                  call model_time_def(   num_step,           &     !step counter,            input
+                                          time_step,           &    !time step in seconds,    input
+                                          ndays_in_4yr,        &    !integer day distribution in 4-years (49 months)
+                                          seconds_of_day,      &    !current seconds in day  ,output
+                                          m_sec_of_min,        &    !second counter in minute,output
+                                          m_min_of_hour,       &    !minute counter in hour  ,output
+                                          m_hour_of_day,       &    !hour counter in day     ,output
+                                          m_day_of_month,      &    !day counter in month    ,output
+                                          m_day_of_year,       &    !day counter in year     ,output
+                                          m_day_of_4yr,        &    !day counter in 4-years  ,output
+                                          m_month_of_year,     &    !mon counter in year     ,output
+                                          m_month_of_4yr,      &    !mon counter in 4-years  ,output
+                                          m_year_of_4yr,       &    !year counter in 4yrs    ,output
+                                          m_day,               &    !model elapsed day counter starting from zero
+                                          m_month,             &    !model elapsed month counter starting from zero
+                                          m_year,              &    !year counter            ,output
+                                          m_4yr,               &    !counter of 4-yr groups  ,output
+                                          m_time_changed,      &    !change indicator of time,output
+                                          key_time_print,      &    !key of printing time:0-not,1-print
+                                          init_year)                !initial real-time year
+
+                  call  parallel_local_output(path2ocp,  &
+                                        nrec_loc+1,  &
+                                        year_loc,  &
+                                         mon_loc,  &
+                                         day_loc,  &
+                                        hour_loc,  &
+                                         min_loc,  &
+                                  loc_data_tstep,  &
+                                         yr_type  )
                   stop
                   call mpi_finalize(ierr)
               endif
