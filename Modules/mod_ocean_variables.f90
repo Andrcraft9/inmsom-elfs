@@ -75,7 +75,9 @@ real(8), allocatable:: amuv2d(:,:),     &    !depth mean lateral viscosity
              RHSx2d_tran_disp(:,:),     &    !dispersion x-component of external force(barotropic)
              RHSy2d_tran_disp(:,:),     &    !dispersion y-component of external force(barotropic)
              RHSx2d_diff_disp(:,:),     &    !dispersion x-component of external force(barotropic)
-             RHSy2d_diff_disp(:,:)           !dispersion y-component of external force(barotropic)
+             RHSy2d_diff_disp(:,:),     &    !dispersion y-component of external force(barotropic)
+             RHSx2d_bfc(:, :),          &
+             RHSy2d_bfc(:, :)
 
 endmodule ocean_variables
 !-------------end module for description common ogcm variables and task control parameters---------

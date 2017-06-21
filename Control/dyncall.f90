@@ -36,10 +36,10 @@ subroutine shallow_water_model_step(tau,nstep)
 !------------------------ Init variables: --------------------------------------!
    wf_tot  = 0.0d0
    r_diss  = 0.0d0
-   amuv2d  = 0.0d0
-   amuv42d = 0.0d0
-!   amuv2d  = lvisc_2
-!   amuv42d = lvisc_4
+!   amuv2d  = 0.0d0
+!   amuv42d = 0.0d0
+   amuv2d  = lvisc_2
+   amuv42d = lvisc_4
 
    stress_t2d = 0.0d0
    stress_s2d = 0.0d0
@@ -89,7 +89,9 @@ subroutine shallow_water_model_step(tau,nstep)
                   RHSx2d_tran_disp,  &
                   RHSy2d_tran_disp,  &
                   RHSx2d_diff_disp,  &
-                  RHSy2d_diff_disp  )
+                  RHSy2d_diff_disp,  &
+                  RHSx2d_bfc,        &
+                  RHSy2d_bfc)
    call end_timer(time_count)
 !   if (rank .eq. 0) print *, "SW step time: ", time_count
    time_barotrop = time_barotrop + time_count

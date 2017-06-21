@@ -1,4 +1,45 @@
 !===========================================================================================
+subroutine uv_bfc(u, v, hq, hu, hv, hh, RHSx, RHSy)
+    use main_basin_pars
+    use mpi_parallel_tools
+    use basin_grid
+    implicit none
+
+    real(8) u(bnd_x1:bnd_x2,bnd_y1:bnd_y2),        & !Transporting zonal velocity
+            v(bnd_x1:bnd_x2,bnd_y1:bnd_y2)           !Transporting meridional velocity
+
+    real(8) RHSx(bnd_x1:bnd_x2,bnd_y1:bnd_y2),    &
+            RHSy(bnd_x1:bnd_x2,bnd_y1:bnd_y2)
+
+    real(8) hq(bnd_x1:bnd_x2,bnd_y1:bnd_y2),      &
+            hu(bnd_x1:bnd_x2,bnd_y1:bnd_y2),      &
+            hv(bnd_x1:bnd_x2,bnd_y1:bnd_y2),      &
+            hh(bnd_x1:bnd_x2,bnd_y1:bnd_y2)
+
+    integer :: m, n
+    real*8 :: k_bfc
+
+    !$omp parallel do private(m,n)
+     do n=ny_start, ny_end
+         do m=nx_start, nx_end
+
+             ! Simple dicretizaton
+             if (lcu(m,n)>0.5) then
+                 k_bfc = FreeFallAcc /( (hu(m, n)**(1.0/6.0) / 0.029)**2 )
+                 RHSx(m, n) = -dxt(m,n)*dyh(m,n) * (k_bfc*u(m, n)*dsqrt(u(m, n)**2 + v(m, n)**2) / hu(m, n))
+             endif
+             if (lcv(m,n)>0.5) then
+                 k_bfc = FreeFallAcc /( (hv(m, n)**(1.0/6.0) / 0.029)**2 )
+                 RHSy(m, n) = -dxt(m,n)*dyh(m,n) * (k_bfc*v(m, n)*dsqrt(u(m, n)**2 + v(m, n)**2) / hv(m, n))
+             endif
+
+         enddo
+     enddo
+
+!     print *, minval(RHSx), minval(RHSy)
+end subroutine uv_bfc
+
+!===========================================================================================
 subroutine uv_trans( u, v, vort,    &
                    hq, hu, hv, hh,         &
                    RHSx, RHSy, nlev    )
@@ -345,7 +386,9 @@ subroutine barotropic_dynamics(tau,     &
                              RHSx_adv,  &
                              RHSy_adv,  &
                              RHSx_dif,  &
-                             RHSy_dif)
+                             RHSy_dif,  &
+                             RHSx_bfc,  &
+                             RHSy_bfc)
 use main_basin_pars
 use mpi_parallel_tools
 use basin_grid
@@ -378,7 +421,9 @@ real(8) ubrtr_e(bnd_x1:bnd_x2,bnd_y1:bnd_y2),     &
        RHSx_adv(bnd_x1:bnd_x2,bnd_y1:bnd_y2),     &
        RHSy_adv(bnd_x1:bnd_x2,bnd_y1:bnd_y2),     &
        RHSx_dif(bnd_x1:bnd_x2,bnd_y1:bnd_y2),     &
-       RHSy_dif(bnd_x1:bnd_x2,bnd_y1:bnd_y2)
+       RHSy_dif(bnd_x1:bnd_x2,bnd_y1:bnd_y2),     &
+       RHSx_bfc(bnd_x1:bnd_x2,bnd_y1:bnd_y2),     &
+       RHSy_bfc(bnd_x1:bnd_x2,bnd_y1:bnd_y2)
 
 real(8), allocatable::   u(:,:),   &
                          v(:,:),   &
@@ -389,7 +434,6 @@ real(8), allocatable::   u(:,:),   &
                         un(:,:),   &
                         vn(:,:),   &
                       sshn(:,:)
-
 
 real(8) bp, bp0, grx, gry, slx, sly, slxn, slyn
 
@@ -482,7 +526,7 @@ do step=1, nstep
 
  !computing advective and lateral-viscous terms for 2d-velocity
  call start_timer(time_count)
-! call stress_components(up,vp,str_t2d,str_s2d,1)
+ call stress_components(up,vp,str_t2d,str_s2d,1)
  call end_timer(time_count)
  time_local_stress = time_local_stress + time_count
 ! print *, "stress ok"
@@ -497,18 +541,21 @@ do step=1, nstep
 ! print *, "trans ok"
 
  call start_timer(time_count)
-! call uv_diff2( mu, str_t2d, str_s2d,          &
-!               hhq_e, hhu_e, hhv_e, hhh_e,     &
-!               RHSx_dif, RHSy_dif, 1  )
+ call uv_diff2( mu, str_t2d, str_s2d,          &
+               hhq_e, hhu_e, hhv_e, hhh_e,     &
+               RHSx_dif, RHSy_dif, 1  )
  call end_timer(time_count)
  time_local_diff = time_local_diff + time_count
 ! print *, "diff2 ok"
 
-! if(ksw4>0) then
-!   call uv_diff4( mu4, str_t2d, str_s2d,  &
-!                  fx, fy, hhq_e, hhu_e, hhv_e, hhh_e,    &
-!                  RHSx_dif, RHSy_dif, 1 )
-! endif
+ if(ksw4>0) then
+   call uv_diff4( mu4, str_t2d, str_s2d,  &
+                  fx, fy, hhq_e, hhu_e, hhv_e, hhh_e,    &
+                  RHSx_dif, RHSy_dif, 1 )
+ endif
+
+! compute BottomFriction (bfc)
+ call uv_bfc(u, v, hhq_e, hhu_e, hhv_e, hhh_e, RHSx_bfc, RHSy_bfc)
 
  call start_timer(time_count)
 !$omp parallel do private(bp,bp0,grx,gry, slx, sly, slxn, slyn)
@@ -523,7 +570,7 @@ do step=1, nstep
 
      slx = - FreeFallAcc * ( ssh(m+1,n) - ssh(m,n))*dyh(m,n)* hhu_e(m,n)
      slxn= - FreeFallAcc * (sshn(m+1,n) -sshn(m,n))*dyh(m,n)*hhun_e(m,n)
-     grx= RHSx(m,n) +slx  +RHSx_dif(m,n)+RHSx_adv(m,n)      &
+     grx= RHSx(m,n) + slx  + RHSx_dif(m,n) + RHSx_adv(m,n) + RHSx_bfc(m, n)      &
           - (rdis(m,n)+rdis(m+1,n))/2.0d0 *up(m,n)*dxt(m,n)*dyh(m,n)*hhu_e(m,n)        &
           + ( rlh_s(m,n  )*hhh_e(m,n  )*dxb(m,n  )*dyb(m,n  )*(v(m+1,n  )+v(m,n  ))             &
             + rlh_s(m,n-1)*hhh_e(m,n-1)*dxb(m,n-1)*dyb(m,n-1)*(v(m+1,n-1)+v(m,n-1))  )/4.0d0
@@ -541,7 +588,7 @@ do step=1, nstep
 
      sly = - FreeFallAcc * ( ssh(m,n+1)- ssh(m,n))*dxh(m,n)* hhv_e(m,n)
      slyn= - FreeFallAcc * (sshn(m,n+1)-sshn(m,n))*dxh(m,n)*hhvn_e(m,n)
-     gry= RHSy(m,n) +sly  +RHSy_dif(m,n)+RHSy_adv(m,n)      &
+     gry= RHSy(m,n) + sly  + RHSy_dif(m,n) + RHSy_adv(m,n) + RHSy_bfc(m, n)      &
           - (rdis(m,n)+rdis(m,n+1))/2.0d0 *vp(m,n)*dxh(m,n)*dyt(m,n)*hhv_e(m,n)        &
           - ( rlh_s(m  ,n)*hhh_e(m  ,n)*dxb(m  ,n)*dyb(m  ,n)*(u(m  ,n+1)+u(m  ,n))             &
             + rlh_s(m-1,n)*hhh_e(m-1,n)*dxb(m-1,n)*dyb(m-1,n)*(u(m-1,n+1)+u(m-1,n))  )/4.0d0

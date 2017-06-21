@@ -219,7 +219,7 @@ endsubroutine mpi_array_boundary_definition
       allocate(BottomFriction(bnd_x1:bnd_x2,bnd_y1:bnd_y2),        &
                        r_diss(bnd_x1:bnd_x2,bnd_y1:bnd_y2))
 
-      allocate(amuv2d(bnd_x1:bnd_x2,bnd_y1:bnd_y2),     &    !depth mean lateral viscosity
+      allocate(amuv2d(bnd_x1:bnd_x2,bnd_y1:bnd_y2),      &    !depth mean lateral viscosity
                amuv42d(bnd_x1:bnd_x2,bnd_y1:bnd_y2),     &    !depth mean lateral viscosity
               r_vort2d(bnd_x1:bnd_x2,bnd_y1:bnd_y2),     &    !relative vorticity of depth mean velocity
             stress_t2d(bnd_x1:bnd_x2,bnd_y1:bnd_y2),     &    !Horizontal tension tensor component (barotropic)
@@ -227,7 +227,9 @@ endsubroutine mpi_array_boundary_definition
       RHSx2d_tran_disp(bnd_x1:bnd_x2,bnd_y1:bnd_y2),     &    !dispersion x-component of external force(barotropic)
       RHSy2d_tran_disp(bnd_x1:bnd_x2,bnd_y1:bnd_y2),     &    !dispersion x-component of external force(barotropic)
       RHSx2d_diff_disp(bnd_x1:bnd_x2,bnd_y1:bnd_y2),     &    !dispersion x-component of external force(barotropic)
-      RHSy2d_diff_disp(bnd_x1:bnd_x2,bnd_y1:bnd_y2))          !dispersion x-component of external force(barotropic)
+      RHSy2d_diff_disp(bnd_x1:bnd_x2,bnd_y1:bnd_y2),     &    !dispersion x-component of external force(barotropic)
+      RHSx2d_bfc(bnd_x1:bnd_x2,bnd_y1:bnd_y2),           &
+      RHSy2d_bfc(bnd_x1:bnd_x2,bnd_y1:bnd_y2))
 
 
      ssh_i =0.0d0; sshp_i=0.0d0
@@ -250,6 +252,8 @@ endsubroutine mpi_array_boundary_definition
      RHSx2d_tran_disp=0.0d0; RHSy2d_tran_disp=0.0d0
      RHSx2d_diff_disp=0.0d0; RHSy2d_diff_disp=0.0d0
 
+     RHSx2d_bfc = 0.0d0; RHSy2d_bfc = 0.0d0
+
    endsubroutine ocean_variables_allocate
 
 !deallocation of arrays
@@ -257,6 +261,7 @@ endsubroutine mpi_array_boundary_definition
    use ocean_variables
    implicit none
 
+   deallocate(RHSx2d_bfc, RHSy2d_bfc)
    deallocate(RHSy2d_diff_disp,RHSx2d_diff_disp,RHSy2d_tran_disp,RHSx2d_tran_disp,     &
               stress_s2d,stress_t2d,r_vort2d,amuv42d,amuv2d)
    deallocate(r_diss, BottomFriction)
