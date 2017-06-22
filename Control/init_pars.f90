@@ -163,7 +163,7 @@ real(8) :: hx2, hy2
 !$omp parallel do private(m, n, hx2, hy2)
    do n=ny_start,ny_end
        do m=nx_start,nx_end
-           if (lu(m,n)*lu(m+1,n)>0.5 .or. lu(m,n)*lu(m,n+1)>0.5) then
+           if (lu(m,n)*lu(m+1,n)>0.5 .and. lu(m,n)*lu(m,n+1)>0.5) then
                hx2= ( ((hhq_rest(m+1,n)-hhq_rest(m  ,n))/dxt(m  ,n))**2 * dble(lcu(m  ,n))    &
                     +((hhq_rest(m  ,n)-hhq_rest(m-1,n))/dxt(m-1,n))**2 * dble(lcu(m-1,n)) )/dble(lcu(m,n)+lcu(m-1,n))
                hy2= ( ((hhq_rest(m,n+1)-hhq_rest(m,n  ))/dyt(m,n  ))**2 * dble(lcv(m,n  ))    &
