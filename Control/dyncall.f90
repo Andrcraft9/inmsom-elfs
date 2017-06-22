@@ -17,7 +17,7 @@ subroutine shallow_water_model_step(tau,nstep)
 
 !------------------------ Init variables: --------------------------------------!
    wf_tot  = 0.0d0
-   rd_diss = 0.0d0
+   r_diss = 0.0d0
    amuv2d  = lvisc_2
    amuv42d = lvisc_4
 
