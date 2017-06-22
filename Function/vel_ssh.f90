@@ -19,7 +19,7 @@ subroutine uv_bfc(u, v, hq, hu, hv, hh, RHSx, RHSy)
     integer :: m, n
     real*8 :: k_bfc, s
 
-    !$omp parallel do private(m,n)
+    !$omp parallel do private(m, n, k_bfc, s)
      do n=ny_start, ny_end
          do m=nx_start, nx_end
 
