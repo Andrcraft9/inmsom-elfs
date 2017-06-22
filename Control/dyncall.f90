@@ -108,6 +108,9 @@ subroutine shallow_water_model_step(tau,nstep)
                                          min_loc,  &
                                   loc_data_tstep,  &
                                          yr_type  )
+
+                  call mpi_barrier(ierr)
+                  
                   stop
                   call mpi_finalize(ierr)
               endif
