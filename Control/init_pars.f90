@@ -160,7 +160,7 @@ real(8) :: hx2, hy2
    end if
 
 !--------------Rayleigh friction initialization
-!$omp parallel do private(m,n,k, hx2, hy2)
+!$omp parallel do private(m, n, hx2, hy2)
    do n=ny_start,ny_end
        do m=nx_start,nx_end
            if(lu(m,n)>0.5) then
