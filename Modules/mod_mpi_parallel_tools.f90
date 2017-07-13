@@ -70,6 +70,29 @@ module mpi_parallel_tools
 
 !-------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------
+    integer function get_rank_by_point(m, n)
+        implicit none
+
+        integer :: m, n
+        integer :: flag_r, r, ierr
+
+        flag_r = -1
+        if (m >= nx_start .and. m <= nx_end) then
+            if (n >= ny_start .and. n <= ny_end) then
+                flag_r = rank
+            endif
+        endif
+
+        call mpi_allreduce(flag_r, r, 1, mpi_integer,      &
+                           mpi_max, cart_comm, ierr)
+
+        get_rank_by_point = r
+        return
+    end function
+
+
+!-------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------
     integer function check_p_coord(coord)
         implicit none
         integer, dimension(2), intent(in) :: coord

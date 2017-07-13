@@ -196,7 +196,7 @@ if (rank .eq. 0) then
     write(*,*)'=================================================================='
     write(*,*)'------------------Starting model time integration-----------------'
     write(*,*)'=================================================================='
-    write(*,*)'--------------------------! BFC !---------------------------------'
+    write(*,*)'--------------------------! DART Points !---------------------------------'
 endif
 
 call init_times
@@ -242,29 +242,35 @@ if( key_write_local>0) then
 
   nrec_loc=num_step/loc_data_wr_period_step
 
-  call start_timer(t_local)
-  call  parallel_local_output(path2ocp,  &
-                     nrec_loc,  &
-                     year_loc,  &
-                      mon_loc,  &
-                      day_loc,  &
-                     hour_loc,  &
-                      min_loc,  &
-               loc_data_tstep,  &
-                      yr_type  )
-  call end_timer(t_local)
-  time_output = time_output + t_local
+  call parallel_point_output(path2ocp, num_step, 180.0d0 + 148.694d0, 38.711d0, 'DART21418') ! DART 21418
+  call parallel_point_output(path2ocp, num_step, 180.0d0 + 152.117d0, 30.515d0, 'DART21413') ! DART 21413
+  call parallel_point_output(path2ocp, num_step, 180.0d0 + 152.583d0, 42.617d0, 'DART21401') ! DART 21401
+  call parallel_point_output(path2ocp, num_step, 180.0d0 + 155.736d0, 44.455d0, 'DART21419') ! DART 21419
+  call parallel_point_output(path2ocp, num_step, 180.0d0 + 171.847d0, 50.183d0, 'DART21415') ! DART 21415
 
-  call model_time_print(num_step,         &
-                        m_sec_of_min,     &    !second counter in minute,output
-                        m_min_of_hour,    &    !minute counter in hour  ,output
-                        m_hour_of_day,    &    !hour counter in day     ,output
-                        m_day_of_month,   &    !day counter in month    ,output
-                        m_day_of_year,    &    !day counter in year     ,output
-                        m_day_of_4yr,     &    !day counter in 4-years  ,output
-                        m_month_of_year,  &    !mon counter in year     ,output
-                        m_month,          &    !model elapsed month counter starting from zero
-                        m_year )               !year counter            ,output
+!  call start_timer(t_local)
+!  call  parallel_local_output(path2ocp,  &
+!                     nrec_loc,  &
+!                     year_loc,  &
+!                      mon_loc,  &
+!                      day_loc,  &
+!                     hour_loc,  &
+!                      min_loc,  &
+!               loc_data_tstep,  &
+!                      yr_type  )
+!  call end_timer(t_local)
+!  time_output = time_output + t_local
+!  call model_time_print(num_step,         &
+!                        m_sec_of_min,     &    !second counter in minute,output
+!                        m_min_of_hour,    &    !minute counter in hour  ,output
+!                        m_hour_of_day,    &    !hour counter in day     ,output
+!                        m_day_of_month,   &    !day counter in month    ,output
+!                        m_day_of_year,    &    !day counter in year     ,output
+!                        m_day_of_4yr,     &    !day counter in 4-years  ,output
+!                        m_month_of_year,  &    !mon counter in year     ,output
+!                        m_month,          &    !model elapsed month counter starting from zero
+!                        m_year )               !year counter            ,output
+
  endif
 
 endif

@@ -44,6 +44,37 @@ subroutine print_basin_grid
 
 end subroutine print_basin_grid
 
+subroutine parallel_point_output(path2data, nstep, lon, lat, name)
+    use main_basin_pars
+    use mpi_parallel_tools
+    use basin_grid
+    use ocean_variables
+
+    implicit none
+
+    character fname*256
+    character(20) name
+    character*(*) path2data
+    integer :: nstep, m, n, r, ierr
+    real*8 :: lon, lat
+
+!------------------------------- First point -----------------------------------!
+    m = floor((lon - rlon) / dxst) + mmm
+    n = floor((lat - rlat) / dyst) + nnn
+
+    r = get_rank_by_point(m, n)
+
+    if (rank .eq. r) then
+!        print *, rank, lon, lat, geo_lon_t(m, n), geo_lat_t(m, n)
+        call fulfname(fname, path2data, name, ierr)
+        open(40, file=fname, status='unknown', position='append')
+        write(40, *) nstep, ssh_i(m, n)
+        close(40)
+    endif
+
+    return
+end subroutine parallel_point_output
+
 subroutine parallel_local_output(path2data,  &
                                  nrec,       &
                                  year,       &
