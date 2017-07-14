@@ -61,7 +61,7 @@ subroutine parallel_check_point(lon, lat)
     r = get_rank_by_point(m, n)
 
     if (rank .eq. r) then
-        print *, 'rank', 'lon', 'lat', 'geo_lon_t',      'geo_lat_t'
+        print *, 'rank ', ' lon ', ' lat ', ' geo_lon_t ', ' geo_lat_t'
         print *,  rank,   lon,   lat,   geo_lon_t(m, n), geo_lat_t(m, n)
     endif
 
