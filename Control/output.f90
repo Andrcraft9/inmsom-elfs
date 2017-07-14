@@ -44,6 +44,27 @@ subroutine print_basin_grid
 
 end subroutine print_basin_grid
 
+subroutine paralle_check_point(lon, lat)
+    use main_basin_pars
+    use mpi_parallel_tools
+    use basin_grid
+    use ocean_variables
+
+    implicit none
+
+    m = floor((lon - rlon) / dxst) + mmm
+    n = floor((lat - rlat) / dyst) + nnn
+
+    r = get_rank_by_point(m, n)
+
+    if (rank .eq. r) then
+        print *, 'rank', 'lon', 'lat', 'geo_lon_t',      'geo_lat_t'
+        print *,  rank,   lon,   lat,   geo_lon_t(m, n), geo_lat_t(m, n)
+    endif
+
+end subroutine
+
+
 subroutine parallel_point_output(path2data, nstep, lon, lat, name)
     use main_basin_pars
     use mpi_parallel_tools
