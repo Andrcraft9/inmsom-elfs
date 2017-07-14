@@ -150,13 +150,13 @@ call sw_only_inicond(1, path2ocp)
 !call sw_test2
 
 !------------------------- Check points ----------------------------------------!
-call parallel_check_point(148.694d0, 38.711d0) ! DART 21418
-call parallel_check_point(152.117d0, 30.515d0) ! DART 21413
-call parallel_check_point(152.583d0, 42.617d0) ! DART 21401
-call parallel_check_point(155.736d0, 44.455d0) ! DART 21419
-call parallel_check_point(171.847d0, 50.183d0) ! DART 21415
-call mpi_finalize(ierr)
-stop
+!call parallel_check_point(148.694d0, 38.711d0) ! DART 21418
+!call parallel_check_point(152.117d0, 30.515d0) ! DART 21413
+!call parallel_check_point(152.583d0, 42.617d0) ! DART 21401
+!call parallel_check_point(155.736d0, 44.455d0) ! DART 21419
+!call parallel_check_point(171.847d0, 50.183d0) ! DART 21415
+!call mpi_finalize(ierr)
+!stop
 
 !call  parallel_local_output(path2ocp,  &
 !                          1,  &
@@ -205,7 +205,7 @@ if (rank .eq. 0) then
     write(*,*)'=================================================================='
     write(*,*)'------------------Starting model time integration-----------------'
     write(*,*)'=================================================================='
-    write(*,*)'--------------------------! DART Points !---------------------------------'
+    write(*,*)'-----------------------! DART Points !----------------------------'
 endif
 
 call init_times
@@ -251,11 +251,11 @@ if( key_write_local>0) then
 
   nrec_loc=num_step/loc_data_wr_period_step
 
-  call parallel_point_output(path2ocp, num_step, 180.0d0 + 148.694d0, 38.711d0, 'DART21418') ! DART 21418
-  call parallel_point_output(path2ocp, num_step, 180.0d0 + 152.117d0, 30.515d0, 'DART21413') ! DART 21413
-  call parallel_point_output(path2ocp, num_step, 180.0d0 + 152.583d0, 42.617d0, 'DART21401') ! DART 21401
-  call parallel_point_output(path2ocp, num_step, 180.0d0 + 155.736d0, 44.455d0, 'DART21419') ! DART 21419
-  call parallel_point_output(path2ocp, num_step, 180.0d0 + 171.847d0, 50.183d0, 'DART21415') ! DART 21415
+  call parallel_point_output(path2ocp, num_step, 148.694d0, 38.711d0, 'DART21418') ! DART 21418
+  call parallel_point_output(path2ocp, num_step, 152.117d0, 30.515d0, 'DART21413') ! DART 21413
+  call parallel_point_output(path2ocp, num_step, 152.583d0, 42.617d0, 'DART21401') ! DART 21401
+  call parallel_point_output(path2ocp, num_step, 155.736d0, 44.455d0, 'DART21419') ! DART 21419
+  call parallel_point_output(path2ocp, num_step, 171.847d0, 50.183d0, 'DART21415') ! DART 21415
 
 !  call start_timer(t_local)
 !  call  parallel_local_output(path2ocp,  &
