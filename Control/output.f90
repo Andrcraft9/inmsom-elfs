@@ -44,7 +44,7 @@ subroutine print_basin_grid
 
 end subroutine print_basin_grid
 
-subroutine paralle_check_point(lon, lat)
+subroutine parallel_check_point(lon, lat)
     use main_basin_pars
     use mpi_parallel_tools
     use basin_grid
