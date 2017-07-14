@@ -52,6 +52,9 @@ subroutine parallel_check_point(lon, lat)
 
     implicit none
 
+    integer :: m, n, r
+    real*8 :: lon, lat
+
     m = floor((lon - rlon) / dxst) + mmm
     n = floor((lat - rlat) / dyst) + nnn
 
