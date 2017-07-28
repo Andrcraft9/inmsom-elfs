@@ -257,6 +257,12 @@ if( key_write_local>0) then
   call parallel_point_output(path2ocp, num_step, 155.736d0, 44.455d0, 'DART21419') ! DART 21419
   call parallel_point_output(path2ocp, num_step, 171.847d0, 50.183d0, 'DART21415') ! DART 21415
 
+  call parallel_point_output(path2ocp, num_step, 142.0d0, 37.0d0, 'P1')
+  call parallel_point_output(path2ocp, num_step, 141.5d0, 38.0d0, 'P2')
+  call parallel_point_output(path2ocp, num_step, 142.5d0, 39.0d0, 'P3')
+  call parallel_point_output(path2ocp, num_step, 142.0d0, 39.0d0, 'P4')
+  call parallel_point_output(path2ocp, num_step, 145.0d0, 38.0d0, 'P5')
+
 !  call start_timer(t_local)
 !  call  parallel_local_output(path2ocp,  &
 !                     nrec_loc,  &
