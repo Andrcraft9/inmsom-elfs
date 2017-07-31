@@ -263,6 +263,11 @@ if( key_write_local>0) then
   call parallel_point_output(path2ocp, num_step, 142.0d0, 39.0d0, 'P4')
   call parallel_point_output(path2ocp, num_step, 145.0d0, 38.0d0, 'P5')
 
+  call parallel_point_output(path2ocp, num_step, 141.017d0, 38.0167d0, 'S1')
+  call parallel_point_output(path2ocp, num_step, 141.083d0, 37.4167d0, 'S2')
+  call parallel_point_output(path2ocp, num_step, 141.617d0, 38.5167d0, 'S3')
+
+
 !  call start_timer(t_local)
 !  call  parallel_local_output(path2ocp,  &
 !                     nrec_loc,  &

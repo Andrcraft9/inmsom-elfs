@@ -26,12 +26,12 @@ subroutine uv_bfc(u, v, hq, hu, hv, hh, RHSx, RHSy)
 
              if (lcu(m,n)>0.5) then
                  ! Discretization in h-points
-                 k_bfc = FreeFallAcc /( (hh(m, n)**(1.0/6.0) / 0.029)**2 )
+                 k_bfc = FreeFallAcc * (nbfc**2) / (hh(m, n)**(1.0/3.0))
                  s = 0.5d0 * sqrt( (u(m, n) + u(m, n+1))**2 + (v(m, n) + v(m+1, n))**2 )
                  k1 = -dxb(m, n) * dyb(m, n) * 0.5d0*(u(m, n) + u(m, n+1)) * k_bfc * s
 
                  ! Discretization in h-points
-                 k_bfc = FreeFallAcc /( (hh(m, n-1)**(1.0/6.0) / 0.029)**2 )
+                 k_bfc = FreeFallAcc * (nbfc**2) / (hh(m, n-1)**(1.0/3.0))
                  s = 0.5d0 * sqrt( (u(m, n) + u(m, n-1))**2 + (v(m, n-1) + v(m+1, n-1))**2 )
                  k1 = -dxb(m, n-1) * dyb(m, n-1) * 0.5d0*(u(m, n) + u(m, n-1)) * k_bfc * s
 
@@ -41,12 +41,12 @@ subroutine uv_bfc(u, v, hq, hu, hv, hh, RHSx, RHSy)
 
              if (lcv(m,n)>0.5) then
                  ! Discretization in h-points
-                 k_bfc = FreeFallAcc /( (hh(m, n)**(1.0/6.0) / 0.029)**2 )
+                 k_bfc = FreeFallAcc * (nbfc**2) / (hh(m, n)**(1.0/3.0))
                  s = 0.5d0 * sqrt( (u(m, n) + u(m, n+1))**2 + (v(m, n) + v(m+1, n))**2 )
                  k1 = -dxb(m, n) * dyb(m, n) * 0.5d0*(v(m, n) + v(m+1, n)) * k_bfc * s
 
                  ! Discretization in h-points
-                 k_bfc = FreeFallAcc /( (hh(m-1, n)**(1.0/6.0) / 0.029)**2 )
+                 k_bfc = FreeFallAcc * (nbfc**2) / (hh(m-1, n)**(1.0/3.0))
                  s = 0.5d0 * sqrt( (u(m-1, n) + u(m-1, n+1))**2 + (v(m, n) + v(m-1, n))**2 )
                  k1 = -dxb(m-1, n) * dyb(m-1, n) * 0.5d0*(v(m, n) + v(m-1, n)) * k_bfc * s
 
@@ -546,10 +546,10 @@ do step=1, nstep
    time_local_hh = time_local_hh + time_count
 
  !computing advective and lateral-viscous terms for 2d-velocity
- call start_timer(time_count)
- call stress_components(up,vp,str_t2d,str_s2d,1)
- call end_timer(time_count)
- time_local_stress = time_local_stress + time_count
+! call start_timer(time_count)
+! call stress_components(up,vp,str_t2d,str_s2d,1)
+! call end_timer(time_count)
+! time_local_stress = time_local_stress + time_count
 ! print *, "stress ok"
 
  !computing advective and lateral-viscous terms for 2d-velocity
@@ -561,19 +561,19 @@ do step=1, nstep
  time_local_trans = time_local_trans + time_count
 ! print *, "trans ok"
 
- call start_timer(time_count)
- call uv_diff2( mu, str_t2d, str_s2d,          &
-               hhq_e, hhu_e, hhv_e, hhh_e,     &
-               RHSx_dif, RHSy_dif, 1  )
- call end_timer(time_count)
- time_local_diff = time_local_diff + time_count
+! call start_timer(time_count)
+! call uv_diff2( mu, str_t2d, str_s2d,          &
+!               hhq_e, hhu_e, hhv_e, hhh_e,     &
+!               RHSx_dif, RHSy_dif, 1  )
+! call end_timer(time_count)
+! time_local_diff = time_local_diff + time_count
 ! print *, "diff2 ok"
 
- if(ksw4>0) then
-   call uv_diff4( mu4, str_t2d, str_s2d,  &
-                  fx, fy, hhq_e, hhu_e, hhv_e, hhh_e,    &
-                  RHSx_dif, RHSy_dif, 1 )
- endif
+! if(ksw4>0) then
+!   call uv_diff4( mu4, str_t2d, str_s2d,  &
+!                  fx, fy, hhq_e, hhu_e, hhv_e, hhh_e,    &
+!                  RHSx_dif, RHSy_dif, 1 )
+! endif
 
 ! compute BottomFriction (bfc)
  call uv_bfc(up, vp, hhq_e, hhu_e, hhv_e, hhh_e, RHSx_bfc, RHSy_bfc)

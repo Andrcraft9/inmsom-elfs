@@ -69,6 +69,8 @@ real(8), parameter::    Cb_l    = 5d-4,        &
 
 real(8), parameter:: r_fric=1.0d-4     !Basic Rayleigh dissipation parameter (1/s) for bottom gradiend equal to 1
 
+real(8), parameter:: nbfc = 0.025
+
 real(8), parameter:: Pi = 3.141592653589793d0,   & !Pi-constant
                RadEarth = 6371000.0d0,           & !Earth radius[m]
             EarthAngVel = 7.292115974546454d-5,  & !earth angular velocity[rad/sec]
