@@ -28,12 +28,14 @@ subroutine uv_bfc(u, v, hq, hu, hv, hh, RHSx, RHSy)
                  ! Discretization in h-points
                  k_bfc = FreeFallAcc * (nbfc**2) / (hh(m, n)**(1.0/3.0))
                  s = 0.5d0 * sqrt( (u(m, n) + u(m, n+1))**2 + (v(m, n) + v(m+1, n))**2 )
-                 k1 = -dxb(m, n) * dyb(m, n) * 0.5d0*(u(m, n) + u(m, n+1)) * k_bfc * s
+                 k1 = -dxb(m, n) * dyb(m, n) * k_bfc * s
+                 k1 = k1 * 0.5d0*(u(m, n) + u(m, n+1))
 
                  ! Discretization in h-points
                  k_bfc = FreeFallAcc * (nbfc**2) / (hh(m, n-1)**(1.0/3.0))
                  s = 0.5d0 * sqrt( (u(m, n) + u(m, n-1))**2 + (v(m, n-1) + v(m+1, n-1))**2 )
-                 k1 = -dxb(m, n-1) * dyb(m, n-1) * 0.5d0*(u(m, n) + u(m, n-1)) * k_bfc * s
+                 k2 = -dxb(m, n-1) * dyb(m, n-1) * k_bfc * s
+                 k2 = k2 * 0.5d0*(u(m, n) + u(m, n-1))
 
                  ! Discretization in u-points
                  RHSx(m, n) = 0.5d0 * (k1 + k2)
@@ -43,12 +45,14 @@ subroutine uv_bfc(u, v, hq, hu, hv, hh, RHSx, RHSy)
                  ! Discretization in h-points
                  k_bfc = FreeFallAcc * (nbfc**2) / (hh(m, n)**(1.0/3.0))
                  s = 0.5d0 * sqrt( (u(m, n) + u(m, n+1))**2 + (v(m, n) + v(m+1, n))**2 )
-                 k1 = -dxb(m, n) * dyb(m, n) * 0.5d0*(v(m, n) + v(m+1, n)) * k_bfc * s
+                 k1 = -dxb(m, n) * dyb(m, n) * k_bfc * s
+                 k1 = k1 * 0.5d0*(v(m, n) + v(m+1, n))
 
                  ! Discretization in h-points
                  k_bfc = FreeFallAcc * (nbfc**2) / (hh(m-1, n)**(1.0/3.0))
                  s = 0.5d0 * sqrt( (u(m-1, n) + u(m-1, n+1))**2 + (v(m, n) + v(m-1, n))**2 )
-                 k1 = -dxb(m-1, n) * dyb(m-1, n) * 0.5d0*(v(m, n) + v(m-1, n)) * k_bfc * s
+                 k2 = -dxb(m-1, n) * dyb(m-1, n) * k_bfc * s
+                 k2 = k2 * 0.5d0*(v(m, n) + v(m-1, n))
 
                  ! Discretization in v-points
                  RHSy(m, n) = 0.5d0 * (k1 + k2)
@@ -590,7 +594,7 @@ do step=1, nstep
       bp0=hhup_e(m,n)*dxt(m,n)*dyh(m,n)/2.0d0/tau_inner
 
      slx = - FreeFallAcc * ( ssh(m+1,n) - ssh(m,n))*dyh(m,n)* hhu_e(m,n)
-     slxn= - FreeFallAcc * (sshn(m+1,n) -sshn(m,n))*dyh(m,n)*hhun_e(m,n)
+!     slxn= - FreeFallAcc * (sshn(m+1,n) -sshn(m,n))*dyh(m,n)*hhun_e(m,n)
      grx= RHSx(m,n) + slx  + RHSx_dif(m,n) + RHSx_adv(m,n) + RHSx_bfc(m, n)      &
           - (rdis(m,n)+rdis(m+1,n))/2.0d0 *up(m,n)*dxt(m,n)*dyh(m,n)*hhu_e(m,n)        &
           + ( rlh_s(m,n  )*hhh_e(m,n  )*dxb(m,n  )*dyb(m,n  )*(v(m+1,n  )+v(m,n  ))             &
@@ -608,7 +612,7 @@ do step=1, nstep
       bp0=hhvp_e(m,n)*dyt(m,n)*dxh(m,n)/2.0d0/tau_inner
 
      sly = - FreeFallAcc * ( ssh(m,n+1)- ssh(m,n))*dxh(m,n)* hhv_e(m,n)
-     slyn= - FreeFallAcc * (sshn(m,n+1)-sshn(m,n))*dxh(m,n)*hhvn_e(m,n)
+!     slyn= - FreeFallAcc * (sshn(m,n+1)-sshn(m,n))*dxh(m,n)*hhvn_e(m,n)
      gry= RHSy(m,n) + sly  + RHSy_dif(m,n) + RHSy_adv(m,n) + RHSy_bfc(m, n)      &
           - (rdis(m,n)+rdis(m,n+1))/2.0d0 *vp(m,n)*dxh(m,n)*dyt(m,n)*hhv_e(m,n)        &
           - ( rlh_s(m  ,n)*hhh_e(m  ,n)*dxb(m  ,n)*dyb(m  ,n)*(u(m  ,n+1)+u(m  ,n))             &
