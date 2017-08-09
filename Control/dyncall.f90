@@ -54,17 +54,9 @@ subroutine shallow_water_model_step(tau,nstep)
                   RHSx2d_bfc,        &
                   RHSy2d_bfc)
    call end_timer(time_count)
-!   if (rank .eq. 0) print *, "SW step time: ", time_count
    time_barotrop = time_barotrop + time_count
 
-   ssh_i = pgrx
-!   Computing internal SSH from continuity equation using internal 2d velocity
-!    call ssh_internal(tau,  &
-!                    ssh_i,  &
-!                   sshp_i,  &
-!                  ubrtr_i,  &
-!                  vbrtr_i,  &
-!                   wf_tot )
+   ssh_i = pgrx ! not good :(
 
    do n=ny_start,ny_end
       do m=nx_start,nx_end

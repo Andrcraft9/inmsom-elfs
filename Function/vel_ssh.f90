@@ -1,4 +1,5 @@
 !===========================================================================================
+! RHS for implicit bfc scheme
 subroutine uv_bfc(u, v, hq, hu, hv, hh, RHSx, RHSy)
     use main_basin_pars
     use mpi_parallel_tools
@@ -29,13 +30,13 @@ subroutine uv_bfc(u, v, hq, hu, hv, hh, RHSx, RHSy)
                  k_bfc = FreeFallAcc * (nbfc**2) / (hh(m, n)**(1.0/3.0))
                  s = 0.5d0 * sqrt( (u(m, n) + u(m, n+1))**2 + (v(m, n) + v(m+1, n))**2 )
                  k1 = -dxb(m, n) * dyb(m, n) * k_bfc * s
-                 k1 = k1 * 0.5d0*(u(m, n) + u(m, n+1))
+!                 k1 = k1 * 0.5d0*(u(m, n) + u(m, n+1))
 
                  ! Discretization in h-points
                  k_bfc = FreeFallAcc * (nbfc**2) / (hh(m, n-1)**(1.0/3.0))
                  s = 0.5d0 * sqrt( (u(m, n) + u(m, n-1))**2 + (v(m, n-1) + v(m+1, n-1))**2 )
                  k2 = -dxb(m, n-1) * dyb(m, n-1) * k_bfc * s
-                 k2 = k2 * 0.5d0*(u(m, n) + u(m, n-1))
+!                 k2 = k2 * 0.5d0*(u(m, n) + u(m, n-1))
 
                  ! Discretization in u-points
                  RHSx(m, n) = 0.5d0 * (k1 + k2)
@@ -46,13 +47,13 @@ subroutine uv_bfc(u, v, hq, hu, hv, hh, RHSx, RHSy)
                  k_bfc = FreeFallAcc * (nbfc**2) / (hh(m, n)**(1.0/3.0))
                  s = 0.5d0 * sqrt( (u(m, n) + u(m, n+1))**2 + (v(m, n) + v(m+1, n))**2 )
                  k1 = -dxb(m, n) * dyb(m, n) * k_bfc * s
-                 k1 = k1 * 0.5d0*(v(m, n) + v(m+1, n))
+!                 k1 = k1 * 0.5d0*(v(m, n) + v(m+1, n))
 
                  ! Discretization in h-points
                  k_bfc = FreeFallAcc * (nbfc**2) / (hh(m-1, n)**(1.0/3.0))
                  s = 0.5d0 * sqrt( (u(m-1, n) + u(m-1, n+1))**2 + (v(m, n) + v(m-1, n))**2 )
                  k2 = -dxb(m-1, n) * dyb(m-1, n) * k_bfc * s
-                 k2 = k2 * 0.5d0*(v(m, n) + v(m-1, n))
+!                 k2 = k2 * 0.5d0*(v(m, n) + v(m-1, n))
 
                  ! Discretization in v-points
                  RHSy(m, n) = 0.5d0 * (k1 + k2)
@@ -60,8 +61,8 @@ subroutine uv_bfc(u, v, hq, hu, hv, hh, RHSx, RHSy)
 
          enddo
      enddo
+     !$omp end parallel do
 
-!     print *, minval(RHSx), minval(RHSy)
 end subroutine uv_bfc
 
 !===========================================================================================
@@ -512,7 +513,7 @@ allocate(  u(bnd_x1:bnd_x2,bnd_y1:bnd_y2),   &
 do step=1, nstep
 
 !computing ssh
- call start_timer(time_count)
+! call start_timer(time_count)
 !$omp parallel do
  do n=ny_start,ny_end
   do m=nx_start,nx_end
@@ -526,44 +527,37 @@ do step=1, nstep
   enddo
  enddo
 !$omp end parallel do
-
-! print *, "ssh ok"
-
- call end_timer(time_count)
- time_local_ssh = time_local_ssh + time_count
+! call end_timer(time_count)
+! time_local_ssh = time_local_ssh + time_count
 
  call syncborder_real8(sshn, 1)
-
  if(periodicity_x/=0) then
    call cyclize8_x(sshn,nx,ny,1,mmm,mm)
  endif
-
  if(periodicity_y/=0) then
    call cyclize8_y(sshn,nx,ny,1,nnn,nn)
  endif
 
-   call start_timer(time_count)
+ !  call start_timer(time_count)
    if(full_free_surface>0) then
     call hh_update(hhqn_e, hhun_e, hhvn_e, hhhn_e, sshn, hhq_rest)
    endif
-   call end_timer(time_count)
-   time_local_hh = time_local_hh + time_count
+!   call end_timer(time_count)
+!   time_local_hh = time_local_hh + time_count
 
  !computing advective and lateral-viscous terms for 2d-velocity
 ! call start_timer(time_count)
 ! call stress_components(up,vp,str_t2d,str_s2d,1)
 ! call end_timer(time_count)
 ! time_local_stress = time_local_stress + time_count
-! print *, "stress ok"
 
  !computing advective and lateral-viscous terms for 2d-velocity
- call start_timer(time_count)
+! call start_timer(time_count)
  call uv_trans( u, v, vort,            &
               hhq_e, hhu_e, hhv_e, hhh_e,     &
               RHSx_adv, RHSy_adv, 1  )
- call end_timer(time_count)
- time_local_trans = time_local_trans + time_count
-! print *, "trans ok"
+! call end_timer(time_count)
+! time_local_trans = time_local_trans + time_count
 
 ! call start_timer(time_count)
 ! call uv_diff2( mu, str_t2d, str_s2d,          &
@@ -571,7 +565,6 @@ do step=1, nstep
 !               RHSx_dif, RHSy_dif, 1  )
 ! call end_timer(time_count)
 ! time_local_diff = time_local_diff + time_count
-! print *, "diff2 ok"
 
 ! if(ksw4>0) then
 !   call uv_diff4( mu4, str_t2d, str_s2d,  &
@@ -582,11 +575,10 @@ do step=1, nstep
 ! compute BottomFriction (bfc)
  call uv_bfc(up, vp, hhq_e, hhu_e, hhv_e, hhh_e, RHSx_bfc, RHSy_bfc)
 
- call start_timer(time_count)
+! call start_timer(time_count)
 !$omp parallel do private(bp,bp0,grx,gry, slx, sly, slxn, slyn)
  do n=ny_start,ny_end
   do m=nx_start,nx_end
-
 !zonal flux
     if(lcu(m,n)>0.5) then
 
@@ -595,16 +587,15 @@ do step=1, nstep
 
      slx = - FreeFallAcc * ( ssh(m+1,n) - ssh(m,n))*dyh(m,n)* hhu_e(m,n)
 !     slxn= - FreeFallAcc * (sshn(m+1,n) -sshn(m,n))*dyh(m,n)*hhun_e(m,n)
-     grx= RHSx(m,n) + slx  + RHSx_dif(m,n) + RHSx_adv(m,n) + RHSx_bfc(m, n)      &
+     grx= RHSx(m,n) + slx  + RHSx_dif(m,n) + RHSx_adv(m,n)      &
           - (rdis(m,n)+rdis(m+1,n))/2.0d0 *up(m,n)*dxt(m,n)*dyh(m,n)*hhu_e(m,n)        &
           + ( rlh_s(m,n  )*hhh_e(m,n  )*dxb(m,n  )*dyb(m,n  )*(v(m+1,n  )+v(m,n  ))             &
             + rlh_s(m,n-1)*hhh_e(m,n-1)*dxb(m,n-1)*dyb(m,n-1)*(v(m+1,n-1)+v(m,n-1))  )/4.0d0
 
-     un(m,n)=(up(m,n)*bp0 + grx )/bp
+     un(m,n)=(up(m,n)*bp0 + grx )/(bp - RHSx_bfc(m, n))
 !     ubrtr_i(m,n)  = ubrtr_i(m,n)+ (u(m,n)*hhu_e(m,n)+un(m,n)*hhun_e(m,n))/dfloat(4*nstep)
 !     ssh4gradx(m,n)= ssh4gradx(m,n)+(slx+slxn)/dfloat(4*nstep)
     endif
-
 !meridional flux
     if(lcv(m,n)>0.5) then
 
@@ -613,31 +604,27 @@ do step=1, nstep
 
      sly = - FreeFallAcc * ( ssh(m,n+1)- ssh(m,n))*dxh(m,n)* hhv_e(m,n)
 !     slyn= - FreeFallAcc * (sshn(m,n+1)-sshn(m,n))*dxh(m,n)*hhvn_e(m,n)
-     gry= RHSy(m,n) + sly  + RHSy_dif(m,n) + RHSy_adv(m,n) + RHSy_bfc(m, n)      &
+     gry= RHSy(m,n) + sly  + RHSy_dif(m,n) + RHSy_adv(m,n)      &
           - (rdis(m,n)+rdis(m,n+1))/2.0d0 *vp(m,n)*dxh(m,n)*dyt(m,n)*hhv_e(m,n)        &
           - ( rlh_s(m  ,n)*hhh_e(m  ,n)*dxb(m  ,n)*dyb(m  ,n)*(u(m  ,n+1)+u(m  ,n))             &
             + rlh_s(m-1,n)*hhh_e(m-1,n)*dxb(m-1,n)*dyb(m-1,n)*(u(m-1,n+1)+u(m-1,n))  )/4.0d0
 
-     vn(m,n)=(vp(m,n)*bp0 + gry )/bp
+     vn(m,n)=(vp(m,n)*bp0 + gry )/(bp - RHSy_bfc(m, n))
 !     vbrtr_i(m,n)  = vbrtr_i(m,n)+(v(m,n)*hhv_e(m,n)+vn(m,n)*hhvn_e(m,n))/dfloat(4*nstep)
 !     ssh4grady(m,n)= ssh4grady(m,n)+(sly+slyn)/dfloat(4*nstep)
     endif
-
   enddo
  enddo
 !$omp end parallel do
- call end_timer(time_count)
- time_local_uv = time_local_uv + time_count
-! print *, "uv ok"
+! call end_timer(time_count)
+! time_local_uv = time_local_uv + time_count
 
  call syncborder_real8(un ,1)
  call syncborder_real8(vn, 1)
-
  if(periodicity_x/=0) then
    call cyclize8_x(  un,nx,ny,1,mmm,mm)
    call cyclize8_x(  vn,nx,ny,1,mmm,mm)
  endif
-
  if(periodicity_y/=0) then
    call cyclize8_y(  un,nx,ny,1,nnn,nn)
    call cyclize8_y(  vn,nx,ny,1,nnn,nn)
@@ -652,13 +639,11 @@ do step=1, nstep
           sshp(m,n) =  ssh(m,n)+time_smooth*(sshn(m,n)-2.0d0*ssh(m,n)+sshp(m,n))/2.0d0/dfloat(nstep)
            ssh(m,n) =sshn(m,n)
         endif
-
         if(lcu(m,n)>0.5) then
 !            up(m,n) =  hhu_e(m,n)*u(m,n)+time_smooth*(hhun_e(m,n)*un(m,n)-2.0d0*hhu_e(m,n)*u(m,n)+hhup_e(m,n)*up(m,n))/2.0d0/dfloat(nstep)
             up(m,n) =  u(m,n)+time_smooth*(un(m,n)-2.0d0*u(m,n)+up(m,n))/2.0d0/dfloat(nstep)
              u(m,n) = un(m,n)
         endif
-
         if(lcv(m,n)>0.5) then
 !            vp(m,n) =  hhv_e(m,n)*v(m,n)+time_smooth*(hhvn_e(m,n)*vn(m,n)-2.0d0*hhv_e(m,n)*v(m,n)+hhvp_e(m,n)*vp(m,n))/2.0d0/dfloat(nstep)
             vp(m,n) =  v(m,n)+time_smooth*(vn(m,n)-2.0d0*v(m,n)+vp(m,n))/2.0d0/dfloat(nstep)
@@ -704,15 +689,12 @@ enddo
 
  call syncborder_real8(ubrtr_i, 1)
  call syncborder_real8(vbrtr_i, 1)
-
 ! call syncborder_real8(ssh4gradx, 1)
 ! call syncborder_real8(ssh4grady, 1)
-
  if(periodicity_x/=0) then
    call cyclize8_x(ubrtr_i,nx,ny,1,mmm,mm)
    call cyclize8_x(vbrtr_i,nx,ny,1,mmm,mm)
  endif
-
  if(periodicity_y/=0) then
    call cyclize8_y(ubrtr_i,nx,ny,1,nnn,nn)
    call cyclize8_y(vbrtr_i,nx,ny,1,nnn,nn)
@@ -730,75 +712,3 @@ enddo
 deallocate(sshn,vn,un,sshp,vp,up,ssh,v,u)
 
 endsubroutine barotropic_dynamics
-
-!======================================================================
-subroutine ssh_internal(tau,    &
-                      ssh_i,    &
-                     sshp_i,    &
-                          u,    &
-                          v,    &
-                      wflux   )
- use main_basin_pars
- use mpi_parallel_tools
- use basin_grid
- implicit none
-
- real(8) tau
- real(8)  ssh_i(bnd_x1:bnd_x2,bnd_y1:bnd_y2),     &
-         sshp_i(bnd_x1:bnd_x2,bnd_y1:bnd_y2),     &
-              u(bnd_x1:bnd_x2,bnd_y1:bnd_y2),     &
-              v(bnd_x1:bnd_x2,bnd_y1:bnd_y2),     &
-          wflux(bnd_x1:bnd_x2,bnd_y1:bnd_y2)
-
- real(8), allocatable:: ssh_new(:,:)
-
- integer m,n
-
- allocate( ssh_new(bnd_x1:bnd_x2,bnd_y1:bnd_y2)   )
- ssh_new=0.0d0
-
- !$omp parallel do
-  do n=ny_start, ny_end
-    do m=nx_start, nx_end
-     if(lu(m,n)>0.5) then
-
-      ssh_new(m,n)=sshp_i(m,n)      &
-           + 2.0d0*tau*( wflux(m,n)/RefDen*dfloat(full_free_surface)    &
-                       - (u(m,n)*dyh(m,n)-u(m-1,n)*dyh(m-1,n)           &
-                        + v(m,n)*dxh(m,n)-v(m,n-1)*dxh(m,n-1))/(dx(m,n)*dy(m,n))  )
-     endif
-    enddo
-  enddo
- !$omp end parallel do
-
-  call syncborder_real8(ssh_new, 1)
-
-  if(periodicity_x/=0) then
-    call cyclize8_x(ssh_new,nx,ny,1,mmm,mm)
-  endif
-
-  if(periodicity_y/=0) then
-    call cyclize8_y(ssh_new,nx,ny,1,nnn,nn)
-  endif
-
-
-  !computing new depths
-  if(full_free_surface>0) then
-    call hh_update(hhqn, hhun, hhvn, hhhn, ssh_new, hhq_rest)
-  endif
-
-   !Updating ssh function
-  !$omp parallel do private(m,n)
-       do n=ny_start-1,ny_end+1
-        do m=nx_start-1,nx_end+1
-
-         if(lu(m,n)>0.5) then
-           sshp_i(m,n)= ssh_i(m,n) + time_smooth*(ssh_new(m,n)-2.0d0*ssh_i(m,n)+sshp_i(m,n))/2.0d0
-            ssh_i(m,n)= ssh_new(m,n)
-         endif
-
-        end do
- 	end do
-!$omp end parallel do
- deallocate(ssh_new)
-endsubroutine ssh_internal
