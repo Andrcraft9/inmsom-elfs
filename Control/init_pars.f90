@@ -340,21 +340,21 @@ subroutine sw_only_inicond(flag_init, path2ocp)
 !    ssh_err = ssh_e
 
     if(periodicity_x/=0) then
-      call cyclize8_x(ssh_e ,  nx,ny,1,mmm,mm)
-      call cyclize8_x(sshp_e,  nx,ny,1,mmm,mm)
-      call cyclize8_x( ubrtr_e,nx,ny,1,mmm,mm)
-      call cyclize8_x(ubrtrp_e,nx,ny,1,mmm,mm)
-      call cyclize8_x( vbrtr_e,nx,ny,1,mmm,mm)
-      call cyclize8_x(vbrtrp_e,nx,ny,1,mmm,mm)
+        call cyclize8_x(ssh_e ,  nx,ny,1,mmm,mm)
+        call cyclize8_x(sshp_e,  nx,ny,1,mmm,mm)
+        call cyclize8_x( ubrtr_e,nx,ny,1,mmm,mm)
+        call cyclize8_x(ubrtrp_e,nx,ny,1,mmm,mm)
+        call cyclize8_x( vbrtr_e,nx,ny,1,mmm,mm)
+        call cyclize8_x(vbrtrp_e,nx,ny,1,mmm,mm)
     end if
 
     if(periodicity_y/=0) then
-      call cyclize8_y(ssh_e ,  nx,ny,1,nnn,nn)
-      call cyclize8_y(sshp_e,  nx,ny,1,nnn,nn)
-      call cyclize8_y( ubrtr_e,nx,ny,1,nnn,nn)
-      call cyclize8_y(ubrtrp_e,nx,ny,1,nnn,nn)
-      call cyclize8_y( vbrtr_e,nx,ny,1,nnn,nn)
-      call cyclize8_y(vbrtrp_e,nx,ny,1,nnn,nn)
+        call cyclize8_y(ssh_e ,  nx,ny,1,nnn,nn)
+        call cyclize8_y(sshp_e,  nx,ny,1,nnn,nn)
+        call cyclize8_y( ubrtr_e,nx,ny,1,nnn,nn)
+        call cyclize8_y(ubrtrp_e,nx,ny,1,nnn,nn)
+        call cyclize8_y( vbrtr_e,nx,ny,1,nnn,nn)
+        call cyclize8_y(vbrtrp_e,nx,ny,1,nnn,nn)
     end if
 
     ssh_i = ssh_e

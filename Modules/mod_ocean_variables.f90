@@ -64,6 +64,20 @@ real(8),allocatable:: xxt(:,:,:),   &  !auxiliary array 1
 ! sea surface boundary condition
 real(8), allocatable:: wf_tot(:,:)                !total water flux
 
+!Atmospheric arrays for bulk-formulae
+real(8),allocatable:: tatm(:,:),   &    !Air temperature, [�C]
+                      qatm(:,:),   &    !Air humidity, [kg/kg]
+                      rain(:,:),   &    !rain, [kg/m^2/s]
+                      snow(:,:),   &    !snow, [kg/m^2/s]
+                      wind(:,:),   &    !Wind speed module, [m/s]
+                       lwr(:,:),   &    !Downward  longwave radiation, [W/m^2]
+                       swr(:,:),   &    !Downward shortwave radiation, [W/m^2]
+                      slpr(:,:),   &    !Sea level pressure, [Pa]
+                      uwnd(:,:),   &    !Zonal      wind speed, [m/s]
+                      vwnd(:,:),   &    !Meridional wind speed, [m/s]
+                      taux(:,:),   &    !Zonal      wind stress, [Pa]
+                      tauy(:,:)         !Meridional wind stress, [Pa]
+
 real(8), allocatable:: BottomFriction(:,:),    &    !Bottom friction rate (m/s)
                                r_diss(:,:)          !Rayleigh friction scale (1/s)
 

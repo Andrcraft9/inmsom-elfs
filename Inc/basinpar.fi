@@ -69,6 +69,9 @@ real(8), parameter::    Cb_l    = 5d-4,        &
 
 real(8), parameter:: r_fric=1.0d-4     !Basic Rayleigh dissipation parameter (1/s) for bottom gradiend equal to 1
 
+integer, parameter :: atm_forcing_on = 1 ! 0 - turn off forcing
+                                         ! 1 - turn on forcing
+                                         
 real(8), parameter:: nbfc = 0.025
 
 real(8), parameter:: Pi = 3.141592653589793d0,   & !Pi-constant
