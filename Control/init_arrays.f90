@@ -80,11 +80,11 @@ subroutine mpi_array_boundary_definition
         call mpi_barrier(cart_comm, ierr)
     enddo
 
-!$omp parallel
+    !$omp parallel
     count_threads = omp_get_num_threads()
     num_thread = omp_get_thread_num()
     if (num_thread .eq. 0) print *, "OMP Threads: ", count_threads
-!$omp end parallel
+    !$omp end parallel
 
 endsubroutine mpi_array_boundary_definition
 !-------------------------------------------------------------------------------
@@ -216,7 +216,36 @@ subroutine ocean_variables_allocate
     allocate (xxt(bnd_x1:bnd_x2,bnd_y1:bnd_y2,nz),    &  !auxiliary array 1
               yyt(bnd_x1:bnd_x2,bnd_y1:bnd_y2,nz))       !auxiliary array 2
 
-    allocate (wf_tot(bnd_x1:bnd_x2,bnd_y1:bnd_y2))       !total water flux
+    allocate (tflux_surf(bnd_x1:bnd_x2,bnd_y1:bnd_y2),      &       !total surface heat flux [�C*m/s]
+              tflux_bot(bnd_x1:bnd_x2,bnd_y1:bnd_y2),       &       !total bottom heat flux [�C*m/s]
+              sflux_surf(bnd_x1:bnd_x2,bnd_y1:bnd_y2),      &       !total surface salt flux [   m/s]
+              sflux_bot(bnd_x1:bnd_x2,bnd_y1:bnd_y2),       &       !total bottom salt flux [   m/s]
+          surf_stress_x(bnd_x1:bnd_x2,bnd_y1:bnd_y2),       &       !wind      zonal stress per water density [m^2/s^2]
+          surf_stress_y(bnd_x1:bnd_x2,bnd_y1:bnd_y2),       &       !wind meridional stress per water density [m^2/s^2]
+           bot_stress_x(bnd_x1:bnd_x2,bnd_y1:bnd_y2),       &       !bottom      zonal stress per water density [m^2/s^2]
+           bot_stress_y(bnd_x1:bnd_x2,bnd_y1:bnd_y2),       &       !bottom meridional stress per water density [m^2/s^2]
+               divswrad(bnd_x1:bnd_x2,bnd_y1:bnd_y2,nz),    &       !shortwave radiation divergence coefficients
+                   dkft(bnd_x1:bnd_x2,bnd_y1:bnd_y2),       &       !relaxation coefficient for SST, [m/s]
+                   dkfs(bnd_x1:bnd_x2,bnd_y1:bnd_y2),       &       !relaxation coefficient for SSS, [m/s]
+               sensheat(bnd_x1:bnd_x2,bnd_y1:bnd_y2),       &       !sensible heat flux
+                latheat(bnd_x1:bnd_x2,bnd_y1:bnd_y2),       &       !latent heat flux
+                 lw_bal(bnd_x1:bnd_x2,bnd_y1:bnd_y2),       &       !longwave radiation balance
+                 sw_bal(bnd_x1:bnd_x2,bnd_y1:bnd_y2),       &       !shortwave radiation balance
+                 hf_tot(bnd_x1:bnd_x2,bnd_y1:bnd_y2),       &       !total heat flux
+                 wf_tot(bnd_x1:bnd_x2,bnd_y1:bnd_y2) )              !total water flux
+
+    allocate (tatm(bnd_x1:bnd_x2,bnd_y1:bnd_y2),   &    !Air temperature, [�C]
+              qatm(bnd_x1:bnd_x2,bnd_y1:bnd_y2),   &    !Air humidity, [kg/kg]
+              rain(bnd_x1:bnd_x2,bnd_y1:bnd_y2),   &    !rain, [m/s]
+              snow(bnd_x1:bnd_x2,bnd_y1:bnd_y2),   &    !snow, [m/s]
+              wind(bnd_x1:bnd_x2,bnd_y1:bnd_y2),   &    !Wind speed module, [m/s]
+               lwr(bnd_x1:bnd_x2,bnd_y1:bnd_y2),   &    !Downward  longwave radiation, [W/m^2]
+               swr(bnd_x1:bnd_x2,bnd_y1:bnd_y2),   &    !Downward shortwave radiation, [W/m^2]
+              slpr(bnd_x1:bnd_x2,bnd_y1:bnd_y2),   &    !Sea level pressure, [Pa]
+              uwnd(bnd_x1:bnd_x2,bnd_y1:bnd_y2),   &    !Zonal      wind speed, [m/s]
+              vwnd(bnd_x1:bnd_x2,bnd_y1:bnd_y2),   &    !Meridional wind speed, [m/s]
+              taux(bnd_x1:bnd_x2,bnd_y1:bnd_y2),   &    !Zonal      wind speed, [m/s]
+              tauy(bnd_x1:bnd_x2,bnd_y1:bnd_y2) )       !Meridional wind speed, [m/s]
 
     allocate(BottomFriction(bnd_x1:bnd_x2,bnd_y1:bnd_y2),        &
                    r_diss(bnd_x1:bnd_x2,bnd_y1:bnd_y2))
@@ -245,7 +274,19 @@ subroutine ocean_variables_allocate
 
     xxt=0.0d0; yyt=0.0d0
 
-    wf_tot=0.0d0
+    tflux_surf=0.0d0; tflux_bot=0.0d0
+    sflux_surf=0.0d0; sflux_bot=0.0d0
+    surf_stress_x=0.0d0; surf_stress_y=0.0d0
+    bot_stress_x=0.0d0;  bot_stress_y=0.0d0
+    divswrad=0.0d0; dkft=0.0d0; dkfs=0.0d0
+    sensheat=0.0d0; latheat=0.0d0; lw_bal=0.0d0; sw_bal=0.0d0
+    hf_tot=0.0d0; wf_tot=0.0d0
+
+    tatm=0.0d0; qatm=0.0d0; rain=0.0d0; snow=0.0d0; wind=0.0d0
+    lwr=0.0d0; swr=0.0d0; slpr=0.0d0; uwnd=0.0d0; vwnd=0.0d0
+    taux=0.0d0; tauy=0.0d0
+
+    BottomFriction=0.0d0; r_diss=0.0d0
 
     BottomFriction=0.0d0; r_diss=0.0d0
 
@@ -268,7 +309,10 @@ subroutine ocean_variables_deallocate
     deallocate(RHSy2d_diff_disp,RHSx2d_diff_disp,RHSy2d_tran_disp,RHSx2d_tran_disp,     &
               stress_s2d,stress_t2d,r_vort2d,amuv42d,amuv2d)
     deallocate(r_diss, BottomFriction)
-    deallocate(wf_tot)
+    deallocate(tauy,taux,vwnd,uwnd,slpr,swr,lwr,wind,snow,rain,qatm,tatm)
+    deallocate(wf_tot,hf_tot,sw_bal,lw_bal,latheat,sensheat,dkfs,dkft,           &
+               divswrad,bot_stress_y,bot_stress_x,surf_stress_y,surf_stress_x,   &
+               sflux_bot,sflux_surf,tflux_bot,tflux_surf)
     deallocate(xxt, yyt)
     deallocate(vbrtrp_e,vbrtr_e,ubrtrp_e,ubrtr_e,sshp_e,ssh_e)
     deallocate(RHSy2d,RHSx2d,vbrtr_i,ubrtr_i,pgry,pgrx,sshp_i,ssh_i)
@@ -284,52 +328,78 @@ subroutine atm_arrays_allocate
 
     allocate(xa(nxa),ya(nya))
 
-    allocate( a_wflux(nxa,nya),       &   !precipitation-evaporation[m/s]
-              a_slpr(nxa,nya) )           !pressure at sea surface
+    allocate( a_hflux(nxa,nya),       &   !heat balance [w/m**2]
+           a_swrad(nxa,nya),       &   !sw radiation balance[w/m**2]
+           a_wflux(nxa,nya),       &   !precipitation-evaporation[m/s]
+           a_stress_x(nxa,nya),    &   !zonal wind stress[pA=n/m**2]
+           a_stress_y(nxa,nya),    &   !meridional wind stress[pA=n/m**2]
+           a_slpr(nxa,nya),        &   !pressure at sea surface
+           a_lwr(nxa,nya),         &   !dw-lw-rad[w/m**2]
+           a_swr(nxa,nya),         &   !dw-sw-rad[w/m**2]
+           a_rain(nxa,nya),        &   !precipit[m/s]
+           a_snow(nxa,nya),        &   !precipit[m/s]
+           a_tatm(nxa,nya),        &   !temp of atmosphere[�c]
+           a_qatm(nxa,nya),        &   !humidity [g/kg]
+           a_uwnd(nxa,nya),        &   !u-wind speed[m/s]
+           a_vwnd(nxa,nya)  )          !v-wind speed[m/s]
 
     xa=0.0d0; ya=0.0d0
 
-    a_wflux=0.0;
-    a_slpr=0.0;
+    a_hflux=0.0; a_swrad=0.0; a_wflux=0.0; a_stress_x=0.0; a_stress_y=0.0
+    a_slpr=0.0;  a_lwr=0.0;   a_swr=0.0; a_rain=0.0; a_snow=0.0
+    a_tatm=0.0;  a_qatm=0.0; a_uwnd=0.0; a_vwnd=0.0
 
+    ind_change_heat =0
     ind_change_water=0
+    ind_change_stress=0
+    ind_change_rad  =0
+    ind_change_prec =0
+    ind_change_tatm =0
+    ind_change_qatm =0
+    ind_change_wind =0
     ind_change_slpr =0
 
+    num_rec_heat =0
     num_rec_water=0
+    num_rec_stress=0
+    num_rec_rad  =0
+    num_rec_prec =0
+    num_rec_tatm =0
+    num_rec_qatm =0
+    num_rec_wind =0
     num_rec_slpr =0
 
 endsubroutine atm_arrays_allocate
-!-------------------------------------------------------------------------------
 
+!-------------------------------------------------------------------------------
 subroutine atm_arrays_deallocate
     use atm_pars
     use atm_forcing
     implicit none
 
-    deallocate(a_slpr,a_wflux)
+    deallocate(a_vwnd,a_uwnd,a_qatm,a_tatm,a_snow,a_rain,a_swr,a_lwr,     &
+             a_slpr,a_stress_y,a_stress_x,a_wflux,a_swrad,a_hflux)
     deallocate(ya,xa)
 
 endsubroutine atm_arrays_deallocate
-!-------------------------------------------------------------------------------
 
+!-------------------------------------------------------------------------------
 subroutine atm2oc_allocate
     use mpi_parallel_tools
     use atm2oc_interpol
     implicit none
 
-    allocate(wght_mtrx_a2o(bnd_x1:bnd_x2,bnd_y1:bnd_y2,4),      &
-               i_input_a2o(bnd_x1:bnd_x2,bnd_y1:bnd_y2,4),      &
-               j_input_a2o(bnd_x1:bnd_x2,bnd_y1:bnd_y2,4)    )
+    allocate(   wght_mtrx_a2o(bnd_x1:bnd_x2,bnd_y1:bnd_y2,4),      &
+                i_input_a2o(bnd_x1:bnd_x2,bnd_y1:bnd_y2,4),      &
+                j_input_a2o(bnd_x1:bnd_x2,bnd_y1:bnd_y2,4)    )
     wght_mtrx_a2o=0.0d0; i_input_a2o=0; j_input_a2o=0
 
 endsubroutine atm2oc_allocate
-!-------------------------------------------------------------------------------
 
+!-------------------------------------------------------------------------------
 subroutine atm2oc_deallocate
     use atm2oc_interpol
     implicit none
 
     deallocate(j_input_a2o  , i_input_a2o  , wght_mtrx_a2o  )
-
 endsubroutine atm2oc_deallocate
-!-------------------------------------------------------------------------------

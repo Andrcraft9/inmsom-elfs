@@ -62,7 +62,23 @@ real(8),allocatable:: xxt(:,:,:),   &  !auxiliary array 1
                       yyt(:,:,:)       !auxiliary array 2
 
 ! sea surface boundary condition
-real(8), allocatable:: wf_tot(:,:)                !total water flux
+real(8), allocatable:: tflux_surf(:,:),      &       !total surface heat flux [�C*m/s]
+                       tflux_bot(:,:),       &       !total bottom heat flux [�C*m/s]
+                       sflux_surf(:,:),      &       !total surface salt flux [psu*m/s]
+                       sflux_bot(:,:),       &       !total bottom salt flux [psu*m/s]
+                   surf_stress_x(:,:),       &       !wind      zonal stress per water density [m^2/s^2]
+                   surf_stress_y(:,:),       &       !wind meridional stress per water density [m^2/s^2]
+                    bot_stress_x(:,:),       &       !bottom    zonal stress per water density [m^2/s^2]
+                    bot_stress_y(:,:),       &       !bottom meridional stress per water density [m^2/s^2]
+                      divswrad(:,:,:),       &       !shortwave radiation divergence coefficients
+                            dkft(:,:),       &       !relaxation coefficient for SST, [m/s]
+                            dkfs(:,:),       &       !relaxation coefficient for SSS, [m/s]
+                        sensheat(:,:),       &       !sensible heat flux
+                         latheat(:,:),       &       !latent heat flux
+                          lw_bal(:,:),       &       !longwave radiation balance
+                          sw_bal(:,:),       &       !shortwave radiation balance
+                          hf_tot(:,:),       &       !total heat flux
+                         wf_tot(:,:)                 !total water flux
 
 !Atmospheric arrays for bulk-formulae
 real(8),allocatable:: tatm(:,:),   &    !Air temperature, [�C]

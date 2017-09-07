@@ -158,8 +158,7 @@ call ocean_model_parameters(time_step)
 if (rank .eq. 0) print *, "--------------------END OF OCEAN MODEL PARAMETERS----------------------"
 
 !Initializing SW init conditions
-call sw_only_inicond(1, path2ocp)
-!call sw_test2
+call sw_only_inicond(0, path2ocp)
 
 if (atm_forcing_on == 1) then
   !constructing matrix for spatial interpolation
@@ -167,13 +166,8 @@ if (atm_forcing_on == 1) then
 endif
 
 !------------------------- Check points ----------------------------------------!
-!call parallel_check_point(148.694d0, 38.711d0) ! DART 21418
-!call parallel_check_point(152.117d0, 30.515d0) ! DART 21413
-!call parallel_check_point(152.583d0, 42.617d0) ! DART 21401
-!call parallel_check_point(155.736d0, 44.455d0) ! DART 21419
-!call parallel_check_point(171.847d0, 50.183d0) ! DART 21415
-!call mpi_finalize(ierr)
-!stop
+call parallel_check_point(38.990d0, 47.270d0) !Taganrog
+call parallel_check_point(38.590d0, 46.700d0) !Eesk
 
 !call  parallel_local_output(path2ocp,  &
 !                          1,  &
@@ -275,22 +269,8 @@ if( key_write_local>0) then
 
   nrec_loc=num_step/loc_data_wr_period_step
 
-  call parallel_point_output(path2ocp, num_step, 148.694d0, 38.711d0, 'DART21418') ! DART 21418
-  call parallel_point_output(path2ocp, num_step, 152.117d0, 30.515d0, 'DART21413') ! DART 21413
-  call parallel_point_output(path2ocp, num_step, 152.583d0, 42.617d0, 'DART21401') ! DART 21401
-  call parallel_point_output(path2ocp, num_step, 155.736d0, 44.455d0, 'DART21419') ! DART 21419
-  call parallel_point_output(path2ocp, num_step, 171.847d0, 50.183d0, 'DART21415') ! DART 21415
-
-  call parallel_point_output(path2ocp, num_step, 142.0d0, 37.0d0, 'P1')
-  call parallel_point_output(path2ocp, num_step, 141.5d0, 38.0d0, 'P2')
-  call parallel_point_output(path2ocp, num_step, 142.5d0, 39.0d0, 'P3')
-  call parallel_point_output(path2ocp, num_step, 142.0d0, 39.0d0, 'P4')
-  call parallel_point_output(path2ocp, num_step, 145.0d0, 38.0d0, 'P5')
-
-  call parallel_point_output(path2ocp, num_step, 141.017d0, 38.0167d0, 'S1')
-  call parallel_point_output(path2ocp, num_step, 141.083d0, 37.4167d0, 'S2')
-  call parallel_point_output(path2ocp, num_step, 141.617d0, 38.5167d0, 'S3')
-
+  call parallel_point_output(path2ocp, num_step, 38.990d0, 47.270d0, 'Taganrog')
+  call parallel_point_output(path2ocp, num_step, 38.590d0, 46.700d0, 'Eesk')
 
 !  call start_timer(t_local)
 !  call  parallel_local_output(path2ocp,  &

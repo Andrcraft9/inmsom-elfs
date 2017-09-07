@@ -394,8 +394,7 @@ subroutine barotropic_dynamics(tau,     &
                              sshp_e,    &
                              ubrtr_i,   &
                              vbrtr_i,   &
-                            ssh4gradx,  &
-                            ssh4grady,  &
+                               ssh_i,   &
                                  RHSx,  &
                                  RHSy,  &
                                 wflux,  &
@@ -429,8 +428,7 @@ subroutine barotropic_dynamics(tau,     &
               sshp_e(bnd_x1:bnd_x2,bnd_y1:bnd_y2),     &
              ubrtr_i(bnd_x1:bnd_x2,bnd_y1:bnd_y2),     &
              vbrtr_i(bnd_x1:bnd_x2,bnd_y1:bnd_y2),     &
-           ssh4gradx(bnd_x1:bnd_x2,bnd_y1:bnd_y2),     &
-           ssh4grady(bnd_x1:bnd_x2,bnd_y1:bnd_y2),     &
+               ssh_i(bnd_x1:bnd_x2,bnd_y1:bnd_y2),     &
                wflux(bnd_x1:bnd_x2,bnd_y1:bnd_y2),     &
                 RHSx(bnd_x1:bnd_x2,bnd_y1:bnd_y2),     &
                 RHSy(bnd_x1:bnd_x2,bnd_y1:bnd_y2),     &
@@ -474,25 +472,23 @@ subroutine barotropic_dynamics(tau,     &
             vn(bnd_x1:bnd_x2,bnd_y1:bnd_y2),   &
             sshn(bnd_x1:bnd_x2,bnd_y1:bnd_y2))
 
-
     tau_inner=tau/dfloat(nstep)
 
-    un=0.0d0
-    vn=0.0d0
-    sshn=0.0d0
+    un = 0.0d0
+    vn = 0.0d0
+    sshn = 0.0d0
 
     up=ubrtrp_e
     vp=vbrtrp_e
     sshp=sshp_e
 
-    u=ubrtr_e
-    v=vbrtr_e
-    ssh=ssh_e
+    u = ubrtr_e
+    v = vbrtr_e
+    ssh = ssh_e
 
-    ubrtr_i   =0.0d0
-    vbrtr_i   =0.0d0
-    ssh4gradx =0.0d0
-    ssh4grady =0.0d0
+    ubrtr_i = 0.0d0
+    vbrtr_i = 0.0d0
+    ssh_i = 0.0d0
 
     do step = 1, nstep
         !computing ssh
@@ -560,8 +556,6 @@ subroutine barotropic_dynamics(tau,     &
                         + rlh_s(m,n-1)*hhh_e(m,n-1)*dxb(m,n-1)*dyb(m,n-1)*(v(m+1,n-1)+v(m,n-1))  )/4.0d0
 
                     un(m,n)=(up(m,n)*bp0 + grx )/(bp - RHSx_bfc(m, n))
-                    !ubrtr_i(m,n)  = ubrtr_i(m,n)+ (u(m,n)*hhu_e(m,n)+un(m,n)*hhun_e(m,n))/dfloat(4*nstep)
-                    !ssh4gradx(m,n)= ssh4gradx(m,n)+(slx+slxn)/dfloat(4*nstep)
                 endif
 
                 !meridional flux
@@ -578,8 +572,6 @@ subroutine barotropic_dynamics(tau,     &
                         + rlh_s(m-1,n)*hhh_e(m-1,n)*dxb(m-1,n)*dyb(m-1,n)*(u(m-1,n+1)+u(m-1,n))  )/4.0d0
 
                     vn(m,n)=(vp(m,n)*bp0 + gry )/(bp - RHSy_bfc(m, n))
-                    !vbrtr_i(m,n)  = vbrtr_i(m,n)+(v(m,n)*hhv_e(m,n)+vn(m,n)*hhvn_e(m,n))/dfloat(4*nstep)
-                    !ssh4grady(m,n)= ssh4grady(m,n)+(sly+slyn)/dfloat(4*nstep)
                 endif
             enddo
         enddo
@@ -588,12 +580,12 @@ subroutine barotropic_dynamics(tau,     &
         call syncborder_real8(un ,1)
         call syncborder_real8(vn, 1)
         if(periodicity_x/=0) then
-            call cyclize8_x(  un,nx,ny,1,mmm,mm)
-            call cyclize8_x(  vn,nx,ny,1,mmm,mm)
+            call cyclize8_x(un,nx,ny,1,mmm,mm)
+            call cyclize8_x(vn,nx,ny,1,mmm,mm)
         endif
         if(periodicity_y/=0) then
-            call cyclize8_y(  un,nx,ny,1,nnn,nn)
-            call cyclize8_y(  vn,nx,ny,1,nnn,nn)
+            call cyclize8_y(un,nx,ny,1,nnn,nn)
+            call cyclize8_y(vn,nx,ny,1,nnn,nn)
         endif
 
         !shifting time indices
@@ -636,25 +628,23 @@ subroutine barotropic_dynamics(tau,     &
             vbrtr_e=v
             ssh_e=ssh
 
-            ssh4gradx = ssh
-            ssh4grady = ssh
+            ssh_i = ssh
             ubrtr_i = u
             vbrtr_i = v
         endif
 
     enddo
 
-    call syncborder_real8(ubrtr_i, 1)
-    call syncborder_real8(vbrtr_i, 1)
-
-    if(periodicity_x/=0) then
-        call cyclize8_x(ubrtr_i,nx,ny,1,mmm,mm)
-        call cyclize8_x(vbrtr_i,nx,ny,1,mmm,mm)
-    endif
-    if(periodicity_y/=0) then
-        call cyclize8_y(ubrtr_i,nx,ny,1,nnn,nn)
-        call cyclize8_y(vbrtr_i,nx,ny,1,nnn,nn)
-    endif
+    !call syncborder_real8(ubrtr_i, 1)
+    !call syncborder_real8(vbrtr_i, 1)
+    !if(periodicity_x/=0) then
+    !    call cyclize8_x(ubrtr_i,nx,ny,1,mmm,mm)
+    !    call cyclize8_x(vbrtr_i,nx,ny,1,mmm,mm)
+    !endif
+    !if(periodicity_y/=0) then
+    !    call cyclize8_y(ubrtr_i,nx,ny,1,nnn,nn)
+    !    call cyclize8_y(vbrtr_i,nx,ny,1,nnn,nn)
+    !endif
 
     if(full_free_surface>0) then
     !initialize depth for external mode

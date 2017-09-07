@@ -17,8 +17,23 @@ subroutine shallow_water_model_step(tau,nstep)
 
 !------------------------ Init variables ---------------------------------------
     if (atm_forcing_on == 1) then
-        RHSx2d = -(slpr(m+1,n)-slpr(m,n))*hhu(m,n)*dyh(m,n)/RefDen
-        RHSy2d = -(slpr(m,n+1)-slpr(m,n))*hhv(m,n)*dxh(m,n)/RefDen
+        !Computation of sea surface boundary conditions
+        if(ksw_ssbc > 0) then
+            call sea_surface_fluxes
+        endif
+
+        !Computing bottom stresses
+        !if(type_fric>0) then
+        !    call sea_bottom_fluxes
+        !endif
+
+        !RHSx2d = ( surf_stress_x(m,n)+bot_stress_x(m,n) )*dxt(m,n)*dyh(m,n)    &
+        RHSx2d = (surf_stress_x(m,n))*dxt(m,n)*dyh(m,n)    &
+                 -(slpr(m+1,n)-slpr(m,n))*hhu(m,n)*dyh(m,n)/RefDen
+
+        !RHSy2d = ( surf_stress_y(m,n)+bot_stress_y(m,n) )*dyt(m,n)*dxh(m,n)    &
+        RHSy2d = (surf_stress_y(m,n))*dyt(m,n)*dxh(m,n)    &
+                 -(slpr(m,n+1)-slpr(m,n))*hhv(m,n)*dxh(m,n)/RefDen
     else
         RHSx2d = 0.0d0
         RHSy2d = 0.0d0
@@ -42,8 +57,7 @@ subroutine shallow_water_model_step(tau,nstep)
                           sshp_e,    &
                           ubrtr_i,   &
                           vbrtr_i,   &
-                             pgrx,   &
-                             pgry,   &
+                             ssh_i,  &
                             RHSx2d,  &
                             RHSy2d,  &
                             wf_tot,  &
@@ -63,8 +77,6 @@ subroutine shallow_water_model_step(tau,nstep)
                   RHSy2d_bfc)
     call end_timer(time_count)
     time_barotrop = time_barotrop + time_count
-
-    ssh_i = pgrx ! not good :(
 
     do n=ny_start,ny_end
       do m=nx_start,nx_end

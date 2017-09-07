@@ -23,7 +23,8 @@ SRCSERVICE =	    \
 SRCFUNCTION =	\
 	Function/depth.f90   \
 	Function/mixing.f90  \
-	Function/vel_ssh.f90   
+	Function/vel_ssh.f90 \
+	Function/fluxes.f90  
 
 
 SRCMODULES = 	\

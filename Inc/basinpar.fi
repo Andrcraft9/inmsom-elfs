@@ -1,8 +1,8 @@
 !Parameters of the ocean model
 
 real(8), parameter:: time_smooth=0.05d0
-integer, parameter:: nx=10804,   &	 !number of total points in x-direction in base arrays !289
-                     ny=5404,   &     !number of total points in y-direction in base arrays !163
+integer, parameter:: nx=1525,   &	 !number of total points in x-direction in base arrays !289
+                     ny=1115,   &     !number of total points in y-direction in base arrays !163
                      nz=1,     &     !number of s-levels in vertical direction for 3d arrays !20
                      mmm=3,    &     !begin of significant area in x-direction
                      nnn=3,    &     !begin of significant area in y-direction
@@ -10,13 +10,13 @@ integer, parameter:: nx=10804,   &	 !number of total points in x-direction in ba
                    nn=ny-2,    &     !end of significant area in y-direction
           nx_glob=mm-mmm+1,    &     !Size of significant area in x-direction
           ny_glob=nn-nnn+1,    &     !Size of significant area in y-direction
-           periodicity_x=1,    &     !Periodicity on x-direction (0 - non-periodic, 1 - periodic)
+           periodicity_x=0,    &     !Periodicity on x-direction (0 - non-periodic, 1 - periodic)
            periodicity_y=0           !Periodicity on y-direction (0 - non-periodic, 1 - periodic). (No parallel yet !!!)
 
- real(8), parameter:: rlon =   0.01666666d0,   &     !first calcutable t-point (m=mmm) on latitude  (in degrees)
-                      rlat = -89.98333333d0,   &     !first calcutable t-point (n=nnn) on longitude (in degrees)
-                      dxst =   0.03333333d0,     &     !longitude step (in degrees) in case of regular grid
-                      dyst =   0.03333333d0            !latitude  step (in degrees) in case of regular grid
+ real(8), parameter:: rlon =   34.751560d0,   &     !first calcutable t-point (m=mmm) on latitude  (in degrees)
+                      rlat =   44.801125d0,   &     !first calcutable t-point (n=nnn) on longitude (in degrees)
+                      dxst =   0.00312d0,     &     !longitude step (in degrees) in case of regular grid
+                      dyst =   0.00225d0            !latitude  step (in degrees) in case of regular grid
 
  integer, parameter:: xgr_type=0,   &
                       ygr_type=0          !grid types: 0 - regular, 1 - levels
@@ -71,8 +71,8 @@ real(8), parameter:: r_fric=1.0d-4     !Basic Rayleigh dissipation parameter (1/
 
 integer, parameter :: atm_forcing_on = 1 ! 0 - turn off forcing
                                          ! 1 - turn on forcing
-                                         
-real(8), parameter:: nbfc = 0.025
+
+real(8), parameter:: nbfc = 0.025 !Bottom Friction Coeff
 
 real(8), parameter:: Pi = 3.141592653589793d0,   & !Pi-constant
                RadEarth = 6371000.0d0,           & !Earth radius[m]
