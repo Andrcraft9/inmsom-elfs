@@ -1,4 +1,47 @@
 !========================================================================
+subroutine sea_surface_fluxes_simple
+    use main_basin_pars
+    use mpi_parallel_tools
+    use basin_grid
+    use ocean_variables
+    use atm_forcing
+    implicit none
+
+    integer :: m, n
+    real*8 :: wnd, wnd_mod
+    real*8 :: coeff_surf_fric
+
+    coeff_surf_fric = 3.25d-6
+
+    !$omp parallel do private(m,n,wnd,wnd_mod)
+    do n=ny_start,ny_end
+        do m=nx_start,nx_end
+
+        if(lcu(m,n)>0.5) then
+            wnd = (uwnd(m  ,n)*dx(m  ,n)*dy(m  ,n)                              &
+                    + uwnd(m+1,n)*dx(m+1,n)*dy(m+1,n))/2.0d0/dxt(m,n)/dyh(m,n)
+            wnd_mod = (wind(m  ,n)*dx(m  ,n)*dy(m  ,n)                          &
+                        + wind(m+1,n)*dx(m+1,n)*dy(m+1,n))/2.0d0/dxt(m,n)/dyh(m,n)
+
+            surf_stress_x(m,n) = wnd * wnd_mod * coeff_surf_fric
+        endif
+
+        if(lcv(m,n)>0.5) then
+            wnd = (vwnd(m,n  )*dx(m,n  )*dy(m,n  )                              &
+                    + vwnd(m,n+1)*dx(m,n+1)*dy(m,n+1))/2.0d0/dxh(m,n)/dyt(m,n)
+            wnd_mod = (wind(m,n  )*dx(m,n  )*dy(m,n  )                          &
+                        + wind(m,n+1)*dx(m,n+1)*dy(m,n+1))/2.0d0/dxh(m,n)/dyt(m,n)
+
+            surf_stress_y(m,n) = wnd * wnd_mod * coeff_surf_fric
+        endif
+
+        enddo
+    enddo
+    !$omp end parallel do
+
+endsubroutine sea_surface_fluxes_simple
+
+!========================================================================
 subroutine sea_surface_fluxes
     use main_basin_pars
     use mpi_parallel_tools

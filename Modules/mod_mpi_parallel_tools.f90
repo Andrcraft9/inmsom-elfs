@@ -177,7 +177,7 @@ module mpi_parallel_tools
         integer, dimension(2) :: p_dist, p_src
         real*8 :: time_count
 
-        call start_timer(time_count)
+        !call start_timer(time_count)
 !------------------ send-recv in ny+ -------------------------------------------
         p_dist(1) = p_coord(1)
         p_dist(2) = p_coord(2) + 1
@@ -239,8 +239,8 @@ module mpi_parallel_tools
          call directsync_real8(field, p_dist, nx_start, nx_start, ny_end, ny_end,  &
                                       p_src,  bnd_x2 - 1, bnd_x2 - 1, bnd_y1 + 1, bnd_y1 + 1, nz)
 
-        call end_timer(time_count)
-        time_sync = time_sync + time_count
+        !call end_timer(time_count)
+        !time_sync = time_sync + time_count
         return
     end subroutine syncborder_real8
 

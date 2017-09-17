@@ -19,7 +19,8 @@ subroutine shallow_water_model_step(tau,nstep)
     if (atm_forcing_on == 1) then
         !Computation of sea surface boundary conditions
         if(ksw_ssbc > 0) then
-            call sea_surface_fluxes
+            !call sea_surface_fluxes
+            call sea_surface_fluxes_simple
         endif
 
         !Computing bottom stresses
@@ -45,7 +46,7 @@ subroutine shallow_water_model_step(tau,nstep)
     amuv42d = lvisc_4
 
 !---------------------- Shallow water equ solver -------------------------------
-    call start_timer(time_count)
+    !call start_timer(time_count)
     call barotropic_dynamics(tau,     &
                           nstep,     &
                           ksw_lat4,  &
@@ -75,8 +76,8 @@ subroutine shallow_water_model_step(tau,nstep)
                   RHSy2d_diff_disp,  &
                   RHSx2d_bfc,        &
                   RHSy2d_bfc)
-    call end_timer(time_count)
-    time_barotrop = time_barotrop + time_count
+    !call end_timer(time_count)
+    !time_barotrop = time_barotrop + time_count
 
     do n=ny_start,ny_end
       do m=nx_start,nx_end
