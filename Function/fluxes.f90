@@ -62,12 +62,12 @@ subroutine sea_surface_fluxes
             do m=nx_start,nx_end
 
             if(lcu(m,n)>0.5) then
-            surf_stress_x(m,n)= (taux(m  ,n)*dx(m  ,n)*dy(m  ,n)   &
+                surf_stress_x(m,n)= (taux(m  ,n)*dx(m  ,n)*dy(m  ,n)   &
                                 +taux(m+1,n)*dx(m+1,n)*dy(m+1,n))/RefDen/2.0d0/dxt(m,n)/dyh(m,n)
             endif
 
             if(lcv(m,n)>0.5) then
-            surf_stress_y(m,n)= (tauy(m,n  )*dx(m,n  )*dy(m,n  )   &
+                surf_stress_y(m,n)= (tauy(m,n  )*dx(m,n  )*dy(m,n  )   &
                                 +tauy(m,n+1)*dx(m,n+1)*dy(m,n+1))/RefDen/2.0d0/dxh(m,n)/dyt(m,n)
             endif
 

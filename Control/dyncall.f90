@@ -19,22 +19,29 @@ subroutine shallow_water_model_step(tau,nstep)
     if (atm_forcing_on == 1) then
         !Computation of sea surface boundary conditions
         if(ksw_ssbc > 0) then
-            call sea_surface_fluxes
-            !call sea_surface_fluxes_simple
+            !call sea_surface_fluxes
+            call sea_surface_fluxes_simple
         endif
 
         !Computing bottom stresses
         !if(type_fric>0) then
         !    call sea_bottom_fluxes
         !endif
+        
+        do n=ny_start,ny_end
+            do m=nx_start,nx_end
+                if(lu(m,n)>0.5) then
+                    !RHSx2d(m, n) = ( surf_stress_x(m,n)+bot_stress_x(m,n) )*dxt(m,n)*dyh(m,n)    &
+                    RHSx2d(m, n) = (surf_stress_x(m,n))*dxt(m,n)*dyh(m,n)    &
+                             -(slpr(m+1,n)-slpr(m,n))*hhu(m,n)*dyh(m,n)/RefDen
 
-        !RHSx2d = ( surf_stress_x(m,n)+bot_stress_x(m,n) )*dxt(m,n)*dyh(m,n)    &
-        RHSx2d = (surf_stress_x(m,n))*dxt(m,n)*dyh(m,n)    &
-                 -(slpr(m+1,n)-slpr(m,n))*hhu(m,n)*dyh(m,n)/RefDen
+                    !RHSy2d(m, n) = ( surf_stress_y(m,n)+bot_stress_y(m,n) )*dyt(m,n)*dxh(m,n)    &
+                    RHSy2d(m, n) = (surf_stress_y(m,n))*dyt(m,n)*dxh(m,n)    &
+                             -(slpr(m,n+1)-slpr(m,n))*hhv(m,n)*dxh(m,n)/RefDen
+                endif
+            enddo
+        enddo
 
-        !RHSy2d = ( surf_stress_y(m,n)+bot_stress_y(m,n) )*dyt(m,n)*dxh(m,n)    &
-        RHSy2d = (surf_stress_y(m,n))*dyt(m,n)*dxh(m,n)    &
-                 -(slpr(m,n+1)-slpr(m,n))*hhv(m,n)*dxh(m,n)/RefDen
     else
         RHSx2d = 0.0d0
         RHSy2d = 0.0d0

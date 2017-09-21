@@ -537,7 +537,7 @@ subroutine barotropic_dynamics(tau,     &
         ! endif
 
         ! compute BottomFriction (bfc)
-        call uv_bfc(up, vp, hhq_e, hhu_e, hhv_e, hhh_e, RHSx_bfc, RHSy_bfc)
+        !call uv_bfc(up, vp, hhq_e, hhu_e, hhv_e, hhh_e, RHSx_bfc, RHSy_bfc)
 
         !$omp parallel do private(bp,bp0,grx,gry, slx, sly, slxn, slyn)
         do n=ny_start,ny_end
