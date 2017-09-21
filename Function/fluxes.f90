@@ -85,7 +85,7 @@ subroutine sea_surface_fluxes
                     call air_sea_turbulent_fluxes(  wind(m,n),         &   ! wind modulo, m/s
                                                     slpr(m,n),         &   ! sea level pressure, Pa
                                                     tatm(m,n),         &   ! air temperature,  �C
-                                                        0.0d0,         &   ! sea surface temp, �C
+                                                    tatm(m,n),         &   ! sea surface temp, �C
                                                     qatm(m,n),         &   ! air specific humidity, kg/kg
                                                      u_height,         &   ! height of wind datasets, m
                                                      t_height,         &   ! height of tair datasets, m
@@ -151,7 +151,7 @@ subroutine sea_surface_fluxes
                         + wf_tot(m+1,n)*uwnd(m+1,n)*dx(m+1,n)*dy(m+1,n))/2.0d0/dxt(m,n)/dyh(m,n)
 
                     surf_stress_x(m,n) = (taux(m,n) + taux(m+1,n))/RefDen/2.0d0     &
-                        *( wnd - ubrtr_i(m, n) ) + wf/RefDen
+                        *( wnd ) + wf/RefDen
                 endif
 
                 if(lcv(m,n)>0.5) then
@@ -162,7 +162,7 @@ subroutine sea_surface_fluxes
                     +wf_tot(m,n+1)*vwnd(m,n+1)*dx(m,n+1)*dy(m,n+1))/2.0d0/dxh(m,n)/dyt(m,n)
 
                     surf_stress_y(m,n) = (tauy(m,n) + tauy(m,n+1))/RefDen/2.0d0     &
-                           *( wnd - vbrtr_i(m, n) ) + wf/RefDen
+                           *( wnd ) + wf/RefDen
                 endif
 
             enddo

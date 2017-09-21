@@ -19,8 +19,8 @@ subroutine shallow_water_model_step(tau,nstep)
     if (atm_forcing_on == 1) then
         !Computation of sea surface boundary conditions
         if(ksw_ssbc > 0) then
-            !call sea_surface_fluxes
-            call sea_surface_fluxes_simple
+            call sea_surface_fluxes
+            !call sea_surface_fluxes_simple
         endif
 
         !Computing bottom stresses
