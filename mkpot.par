@@ -1,7 +1,0 @@
-                                      !PATH TO DATA(INPUT)
-imask.txt                             !FILE WITH TEMPERATURE MASK(INPUT)
-topo.dat                              !FILE WITH BOTTOM DATA(INPUT)
-temBS_s.dat                           !FILE WITH SIGMA LEVEL TEMPERATURE(IN SITU)
-salBS_s.dat                           !FILE WITH SIGMA LEVEL SALINITY
-temBS_sp.dat                          !FILE WITH SIGMA LEVEL POTENTIAL TEMPERATURE
-12                                    !NUMBER OF 3D ARRAYS
